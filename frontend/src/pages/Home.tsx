@@ -1,3 +1,4 @@
+// pages/Home.tsx (Updated sections)
 import MainLayout from "@/components/layout/MainLayout";
 import TabNavigation, { Tab } from "@/components/navigation/TabNavigation";
 import DataPreviewTab from "@/components/tabs/DataPreviewTab";
@@ -7,10 +8,11 @@ import FeedbackButton from "@/components/common/FeedbackButton";
 import ProductHuntButton from "@/components/common/ProductHuntButton";
 import { DataLoadWithDuckDBResult } from "@/components/layout/Sidebar";
 
-import { Table, BarChart, Database } from "lucide-react";
+import { Table, BarChart, Database, Brain } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useAppStore } from "@/store/appStore";
+import { useAIAssistantStore } from "@/store/aiAssistantStore";
 import { 
   selectActiveFileInfo, 
   selectStatusText,
@@ -38,13 +40,17 @@ const Home = () => {
     setActiveTab,
     setJsonViewMode,
     addFile,
+    files
   } = useAppStore();
 
-  // Define available tabs
+  const { updateDiscoveryStep } = useAIAssistantStore();
+
+  // Define available tabs 
   const tabs: Tab[] = [
     { id: "preview", label: "Data Preview", icon: <Table size={16} /> },
     { id: "query", label: "Query", icon: <Database size={16} /> },
     { id: "visualization", label: "Visualize", icon: <BarChart size={16} /> },
+    { id: "ai-assistant", label: "Assistant", icon: null, isAI: true },
   ];
 
   /**
@@ -53,7 +59,12 @@ const Home = () => {
    */
   const handleDataLoad = (result: DataLoadWithDuckDBResult) => {
     // Use store action to load data
-    addFile(result);
+    const fileId = addFile(result);
+    
+    // Trigger AI discovery flow
+    setTimeout(() => {
+      updateDiscoveryStep('analysis-ready');
+    }, 1000);
   };
 
   // Prepare feedback context
@@ -118,7 +129,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Tab navigation */}
+        {/* Tab navigation with AI Assistant */}
         <TabNavigation
           tabs={tabs}
           activeTab={activeTab}
@@ -126,7 +137,7 @@ const Home = () => {
           className="mb-4"
         />
 
-        {/* Tab content with animations */}
+        {/* Tab content with animations - AI tab doesn't render content here */}
         <div className="flex-1 overflow-hidden relative">
           <AnimatePresence mode="wait">
             <motion.div
@@ -141,6 +152,19 @@ const Home = () => {
               {activeTab === "preview" && <DataPreviewTab />}
               {activeTab === "query" && <QueryTab />}
               {activeTab === "visualization" && <VisualizationTab />}
+              {/* AI Assistant tab content is handled by the dropdown, not here */}
+              {activeTab === "ai-assistant" && (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <h3 className="text-xl font-heading font-medium text-white mb-2">
+                      AI Assistant Active
+                    </h3>
+                    <p className="text-white/70">
+                      The AI Assistant panel is open above. Use other tabs to view your data.
+                    </p>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
