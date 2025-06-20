@@ -8,20 +8,49 @@ import DataTransforms from "./panels/DataTransformsPanel";
 import ChartGenerator from "./panels/ChartGeneratorPanel";
 import ChartStylePanel from "./panels/ChartStylePanel";
 
+interface DuckDBTable {
+  name: string;
+  rowCount?: number;
+  isView: boolean;
+  source: "local" | "motherduck";
+  database?: string;
+  schema?: { name: string; type: string }[];
+}
+
+interface ChartConfigPanelProps {
+  selectedTable?: DuckDBTable | null;
+}
+
 /**
  * Component for configuring chart settings
  */
-const ChartConfigPanel: React.FC = () => {
+const ChartConfigPanel: React.FC<ChartConfigPanelProps> = ({ selectedTable }) => {
   const { currentChart, updateCurrentChart } = useChartsStore();
 
   const [activeTab, setActiveTab] = useState<"data" | "style" | "transforms">(
     "data"
   );
 
-  if (!currentChart) {
+  if (!selectedTable) {
     return (
       <div className="p-4 text-center h-full flex flex-col justify-center">
-        <h3 className="text-lg font-medium mb-2">No Chart Selected</h3>
+        <h3 className="text-sm font-medium mb-2 text-white/70">No Table Selected</h3>
+        <p className="text-xs text-white/50">Select a table to configure charts</p>
+      </div>
+    );
+  }
+
+  if (!currentChart) {
+    return (
+      <div className="p-4 h-full flex flex-col">
+        <h3 className="text-sm font-medium mb-2 text-white/70">Ready to Create Chart</h3>
+        <p className="text-xs text-white/50 mb-4">
+          Configure your data mapping below to generate a chart from{" "}
+          <span className="text-primary">{selectedTable.name}</span>
+        </p>
+        
+        {/* Show ChartGenerator directly when no chart exists */}
+        <ChartGenerator selectedTable={selectedTable} />
       </div>
     );
   }
@@ -78,8 +107,8 @@ const ChartConfigPanel: React.FC = () => {
 
       {/* Tab content - scrollable area */}
       <div className="flex-1 overflow-y-auto pr-1">
-        {/* Data mapping tab */}
-        {activeTab === "data" && <ChartGenerator />}
+        {/* Data mapping tab - now with selected table */}
+        {activeTab === "data" && <ChartGenerator selectedTable={selectedTable} />}
 
         {/* Style & Colors tab */}
         {activeTab === "style" && <ChartStylePanel />}
