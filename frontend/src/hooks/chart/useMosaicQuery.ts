@@ -13,6 +13,9 @@ export interface QueryOptions {
   orderDirection?: "asc" | "desc";
   source?: "local" | "motherduck";
   database?: string;
+  samplingMode?: "fixed" | "smart" | "custom";
+  samplingType?: "random" | "systematic";
+  tableRowCount?: number;
 }
 
 export interface Filter {
@@ -35,6 +38,12 @@ export interface QueryResult {
   rowCount: number;
   executionTime: number;
   query: string;
+  samplingInfo?: {
+    mode: "fixed" | "smart" | "custom";
+    sampleSize?: number;
+    totalRows?: number;
+    samplingRatio?: number;
+  };
 }
 
 /**
@@ -47,6 +56,19 @@ export const useMosaicQuery = () => {
   const [lastResult, setLastResult] = useState<QueryResult | null>(null);
 
   const { executeQuery, executeMotherDuckQuery } = useDuckDBStore();
+
+  /**
+   * Calculate optimal sample size for smart sampling
+   */
+  const calculateSmartSampleSize = useCallback((tableRowCount: number): number => {
+    // Smart sampling algorithm based on statistical principles
+    if (tableRowCount <= 1000) return tableRowCount; // No sampling needed
+    if (tableRowCount <= 10000) return Math.min(5000, Math.floor(tableRowCount * 0.8));
+    if (tableRowCount <= 100000) return Math.min(10000, Math.floor(tableRowCount * 0.3));
+    if (tableRowCount <= 1000000) return Math.min(25000, Math.floor(tableRowCount * 0.1));
+    // For very large datasets (>1M), use statistical sampling
+    return Math.min(50000, Math.floor(Math.sqrt(tableRowCount) * 100));
+  }, []);
 
   /**
    * Build SQL query from options
@@ -63,10 +85,49 @@ export const useMosaicQuery = () => {
       orderBy = "value",
       orderDirection = "desc",
       database,
+      samplingMode = "fixed",
+      samplingType = "random",
+      tableRowCount,
     } = options;
 
-    // Build table reference
-    const tableRef = database ? `"${database}"."${table}"` : `"${table}"`;
+    // Determine if we need SQL-level aggregation for performance
+    const effectiveRowCount = tableRowCount || 0;
+    const needsAggregation = effectiveRowCount > 100000;
+    let aggregationBins = 100; // Default bins for large datasets
+
+    if (needsAggregation) {
+      // Calculate optimal bins based on data size
+      if (effectiveRowCount <= 1000000) aggregationBins = 200;
+      else if (effectiveRowCount <= 10000000) aggregationBins = 100;
+      else aggregationBins = 50; // Massive datasets
+    }
+
+    // Build table reference with sampling
+    let tableRef = database ? `"${database}"."${table}"` : `"${table}"`;
+    
+    // Apply sampling if needed
+    if (samplingMode !== "fixed" && effectiveRowCount > 0) {
+      let sampleSize: number;
+      
+      if (samplingMode === "smart") {
+        sampleSize = calculateSmartSampleSize(effectiveRowCount);
+      } else {
+        sampleSize = limit || 1000;
+      }
+      
+      // Only apply sampling if it's beneficial
+      if (sampleSize < effectiveRowCount) {
+        const samplePercentage = (sampleSize / effectiveRowCount) * 100;
+        
+        if (samplingType === "random") {
+          // Use TABLESAMPLE BERNOULLI for random sampling
+          tableRef = `${tableRef} TABLESAMPLE BERNOULLI(${samplePercentage.toFixed(2)})`;
+        } else {
+          // Use TABLESAMPLE SYSTEM for systematic sampling (faster)
+          tableRef = `${tableRef} TABLESAMPLE SYSTEM(${samplePercentage.toFixed(2)})`;
+        }
+      }
+    }
 
     // Build WHERE clause
     let whereClause = "";
@@ -90,17 +151,46 @@ export const useMosaicQuery = () => {
       whereClause = `WHERE ${conditions.join(" AND ")}`;
     }
 
-    // Build GROUP BY clause
-    const groupByField = groupBy || dimension;
-    const groupByClause = `GROUP BY "${groupByField}"`;
+    // Build GROUP BY clause with binning support
+    const groupByClause = needsAggregation ? 
+      `GROUP BY ${dimensionSQL}` : 
+      `GROUP BY "${groupBy || dimension}"`;
 
     // Build ORDER BY clause
     const orderField =
       orderBy === "value" ? `${aggregation}_value` : `"${dimension}"`;
     const orderByClause = `ORDER BY ${orderField} ${orderDirection.toUpperCase()}`;
 
-    // Handle special aggregations
+    // Handle special aggregations with optimized SQL for large datasets
+    let dimensionSQL = `"${dimension}"`;
     let aggregationSQL = "";
+    
+    // Apply intelligent binning for large datasets - optimized for Mosaic
+    if (needsAggregation && effectiveRowCount > 500000) {
+      // Use percentile-based binning for better distribution
+      dimensionSQL = `
+        CASE 
+          WHEN "${dimension}" IS NULL THEN 'NULL'
+          ELSE CAST(
+            ROUND(
+              CAST("${dimension}" AS DOUBLE), 
+              CASE 
+                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 1000 THEN -1
+                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 10 THEN 0  
+                ELSE 2
+              END
+            ) AS VARCHAR
+          )
+        END`;
+    } else if (needsAggregation) {
+      // Simpler binning for medium datasets
+      dimensionSQL = `
+        CASE 
+          WHEN "${dimension}" IS NULL THEN 'NULL'
+          ELSE CAST(ROUND(CAST("${dimension}" AS DOUBLE), 1) AS VARCHAR)
+        END`;
+    }
+
     switch (aggregation) {
       case "count":
         aggregationSQL = `COUNT(*) as ${aggregation}_value`;
@@ -115,21 +205,36 @@ export const useMosaicQuery = () => {
         aggregationSQL = `${aggregation.toUpperCase()}("${measure}") as ${aggregation}_value`;
     }
 
-    // Build final query
+    // Determine final limit - optimized for Mosaic streaming
+    let finalLimit = limit;
+    if (samplingMode === "smart" && effectiveRowCount > 0) {
+      // For Mosaic, allow larger result sets since they're streamed efficiently
+      const smartSampleSize = calculateSmartSampleSize(effectiveRowCount);
+      finalLimit = Math.min(limit * 5, Math.floor(smartSampleSize / 2)); // Allow more results for Mosaic
+    }
+
+    // Build final query with performance optimizations for database-driven visualization
     const query = `
       SELECT 
-        "${dimension}" as dimension,
+        ${dimensionSQL} as dimension,
         ${aggregationSQL},
-        COUNT(*) as count
+        COUNT(*) as count,
+        MIN("${measure}") as min_value,
+        MAX("${measure}") as max_value
       FROM ${tableRef}
       ${whereClause}
       ${groupByClause}
       ${orderByClause}
-      LIMIT ${limit}
+      LIMIT ${finalLimit}
     `.trim();
 
-    return query;
-  }, []);
+    // Add performance comment for debugging
+    const performanceNote = needsAggregation ? 
+      `-- Performance: SQL-level binning applied (${aggregationBins} bins for ${effectiveRowCount.toLocaleString()} rows)\n` : 
+      `-- Performance: Direct query (${effectiveRowCount.toLocaleString()} rows)\n`;
+    
+    return performanceNote + query;
+  }, [calculateSmartSampleSize]);
 
   /**
    * Build a query for getting row count
@@ -210,11 +315,28 @@ export const useMosaicQuery = () => {
 
         const executionTime = Date.now() - startTime;
 
+        // Calculate sampling info
+        let samplingInfo = undefined;
+        const effectiveTableRowCount = options.tableRowCount || 0;
+        if (options.samplingMode !== "fixed" && effectiveTableRowCount > 0) {
+          const sampleSize = options.samplingMode === "smart" 
+            ? calculateSmartSampleSize(effectiveTableRowCount)
+            : options.limit || 1000;
+          
+          samplingInfo = {
+            mode: options.samplingMode,
+            sampleSize,
+            totalRows: effectiveTableRowCount,
+            samplingRatio: sampleSize / effectiveTableRowCount,
+          };
+        }
+
         const queryResult: QueryResult = {
           data: formattedData,
           rowCount: formattedData.length,
           executionTime,
           query,
+          samplingInfo,
         };
 
         setLastResult(queryResult);

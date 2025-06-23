@@ -51,6 +51,12 @@ export interface CurrentChart extends ChartConfig {
   originalData?: any[];
   showXAxisLabel?: boolean;
   showYAxisLabel?: boolean;
+  samplingInfo?: {
+    mode: "fixed" | "smart" | "custom";
+    sampleSize?: number;
+    totalRows?: number;
+    samplingRatio?: number;
+  };
 }
 
 // Interface for the charts store state
@@ -76,7 +82,7 @@ interface ChartsState {
   setCurrentChart: (chart: CurrentChart | null) => void;
   updateCurrentChart: (updates: Partial<CurrentChart>) => void;
   saveCurrentChart: (asTemplate?: boolean) => void;
-  createNewChart: (type: ChartType, data: any[], query?: string) => void;
+  createNewChart: (type: ChartType, data: any[], query?: string, samplingInfo?: { mode: "fixed" | "smart" | "custom"; sampleSize?: number; totalRows?: number; samplingRatio?: number; }) => void;
   deleteChart: (id: string) => void;
   loadChart: (id: string, data?: any[]) => void;
   duplicateChart: (id: string) => void;
@@ -260,7 +266,7 @@ export const useChartsStore = create<ChartsState>((set, get) => ({
     });
   },
   
-  createNewChart: (type, data, query) => {
+  createNewChart: (type, data, query, samplingInfo) => {
     const id = `chart-${Date.now()}`;
     
     // Automatically determine reasonable defaults for x and y axes
@@ -291,7 +297,8 @@ export const useChartsStore = create<ChartsState>((set, get) => ({
       query,
       data,
       originalData: [...data], // Keep a copy of the original data for resets
-      isModified: true
+      isModified: true,
+      samplingInfo
     };
     
     set({ currentChart: newChart });
