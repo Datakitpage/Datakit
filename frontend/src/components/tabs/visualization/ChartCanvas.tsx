@@ -1,6 +1,16 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 
 import { useChartsStore, ChartType } from "@/store/chartsStore";
+import { analyzeDataPerformance } from "@/utils/chartPerformance";
+import { useChartDimensions } from "@/hooks/useResizeObserver";
+import CanvasChart from "./canvas/CanvasChart";
+import ObservablePlotChart from "./observable/ObservablePlotChart";
+import MosaicChart from "./mosaic/MosaicChart";
+import MosaicChartSQL from "./mosaic/MosaicChartSQL";
+import MosaicChartVgplot from "./mosaic/MosaicChartVgplot";
+import MosaicChartSimple from "./mosaic/MosaicChartSimple";
+import MosaicChartCanvas from "./mosaic/MosaicChartCanvas";
+import MosaicChartCanvasSimple from "./mosaic/MosaicChartCanvasSimple";
 
 import {
   ResponsiveContainer,
@@ -22,6 +32,8 @@ import {
   Legend,
   Label,
   ReferenceLine,
+  Brush,
+  ReferenceArea,
 } from "recharts";
 
 /**
@@ -29,10 +41,110 @@ import {
  */
 const ChartCanvas: React.FC = () => {
   const { currentChart, colorPalettes } = useChartsStore();
+  
+  // Get responsive chart dimensions (must be called before any conditional returns)
+  const { ref: chartRef, width: chartWidth, height: chartHeight, isReady } = useChartDimensions(600, 400);
+  
+  // Zoom state management
+  const [zoomState, setZoomState] = useState<{
+    left?: string | number;
+    right?: string | number;
+    refAreaLeft?: string | number;
+    refAreaRight?: string | number;
+    top?: string | number;
+    bottom?: string | number;
+    animation?: boolean;
+  }>({
+    left: 'dataMin',
+    right: 'dataMax',
+    refAreaLeft: '',
+    refAreaRight: '',
+    top: 'dataMax+1',
+    bottom: 'dataMin-1',
+    animation: true,
+  });
 
+  // Zoom handler functions
+  const getAxisYDomain = useCallback((from: number, to: number, ref: string, offset: number) => {
+    const refData = currentChart?.data?.slice(from - 1, to);
+    if (!refData || refData.length === 0) return [0, 0];
+    
+    let [bottom, top] = [refData[0][ref], refData[0][ref]];
+    refData.forEach((d) => {
+      if (d[ref] > top) top = d[ref];
+      if (d[ref] < bottom) bottom = d[ref];
+    });
+
+    return [(bottom | 0) - offset, (top | 0) + offset];
+  }, [currentChart?.data]);
+
+  const zoom = useCallback(() => {
+    let { refAreaLeft, refAreaRight } = zoomState;
+    const { data } = currentChart || {};
+
+    if (!data || refAreaLeft === refAreaRight || refAreaRight === '') {
+      setZoomState(prev => ({
+        ...prev,
+        refAreaLeft: '',
+        refAreaRight: '',
+      }));
+      return;
+    }
+
+    // xAxis domain
+    if (refAreaLeft && refAreaRight && refAreaLeft > refAreaRight) 
+      [refAreaLeft, refAreaRight] = [refAreaRight, refAreaLeft];
+
+    // yAxis domain
+    const yAxisField = currentChart?.yAxis?.field || currentChart?.yAxis?.dataKey;
+    if (!yAxisField) return;
+
+    const from = data.findIndex(d => d[currentChart.xAxis.field] === refAreaLeft);
+    const to = data.findIndex(d => d[currentChart.xAxis.field] === refAreaRight);
+    const [bottom, top] = getAxisYDomain(from, to, yAxisField, 1);
+
+    setZoomState(prev => ({
+      ...prev,
+      refAreaLeft: '',
+      refAreaRight: '',
+      left: refAreaLeft,
+      right: refAreaRight,
+      bottom,
+      top,
+    }));
+  }, [zoomState, currentChart, getAxisYDomain]);
+
+  const zoomOut = useCallback(() => {
+    setZoomState({
+      left: 'dataMin',
+      right: 'dataMax',
+      refAreaLeft: '',
+      refAreaRight: '',
+      top: 'dataMax+1',
+      bottom: 'dataMin-1',
+      animation: true,
+    });
+  }, []);
+
+  // Analyze performance to determine rendering strategy (must be done with hooks)
+  const performanceAnalysis = currentChart?.data ? analyzeDataPerformance(currentChart.data.length, 2) : null;
+  const shouldUseMosaic = performanceAnalysis?.renderingStrategy === 'mosaic_plot';
+  const shouldUseCanvas = performanceAnalysis?.renderingStrategy === 'canvas';
+  const shouldUseObservablePlot = performanceAnalysis?.renderingStrategy === 'observable_plot';
+
+  // Debug logging (MUST be called every render to maintain hooks order)
+  React.useEffect(() => {
+    if (currentChart?.data && performanceAnalysis) {
+      console.log(`[ChartCanvas] Data size: ${currentChart.data.length} rows`);
+      console.log(`[ChartCanvas] Strategy: ${performanceAnalysis.renderingStrategy}`);
+      console.log(`[ChartCanvas] Using: ${shouldUseCanvas ? 'Canvas' : shouldUseMosaic ? 'Mosaic' : shouldUseObservablePlot ? 'Observable Plot' : 'Recharts'}`);
+    }
+  }, [currentChart?.data?.length, performanceAnalysis?.renderingStrategy, shouldUseCanvas, shouldUseMosaic, shouldUseObservablePlot]);
+
+  // Early returns after ALL hooks are called
   if (!currentChart || !currentChart.data || currentChart.data.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-darkNav/20 rounded-lg border border-white/5">
+      <div ref={chartRef} className="h-full flex items-center justify-center bg-darkNav/20 rounded-lg border border-white/5">
         <div className="text-center p-8">
           <h3 className="text-lg font-medium text-white/80 mb-2">
             No Chart Data
@@ -41,6 +153,15 @@ const ChartCanvas: React.FC = () => {
             Configure your chart or run a query to visualize data.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Don't render chart until dimensions are ready
+  if (!isReady) {
+    return (
+      <div ref={chartRef} className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 flex items-center justify-center">
+        <div className="text-white/60">Loading chart...</div>
       </div>
     );
   }
@@ -56,20 +177,125 @@ const ChartCanvas: React.FC = () => {
 
   // Render the appropriate chart based on type
   return (
-    <div className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 p-4">
-      <h3 className="text-lg font-medium mb-2 chart-title">
-        {currentChart.title}
-      </h3>
-      {currentChart.description && (
-        <p className="text-sm text-white/70 mb-4 chart-description">
-          {currentChart.description}
-        </p>
+    <div ref={chartRef} className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 p-4">
+      {/* Header with title and zoom controls */}
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h3 className="text-lg font-medium chart-title">
+            {currentChart.title}
+          </h3>
+          {currentChart.description && (
+            <p className="text-sm text-white/70 chart-description">
+              {currentChart.description}
+            </p>
+          )}
+        </div>
+        
+        {/* Zoom Controls - only show for charts that support zoom */}
+        {currentChart.type !== 'pie' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={zoomOut}
+              className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 rounded border border-white/20 text-white/80 hover:text-white transition-colors"
+              title="Reset zoom"
+            >
+              Reset Zoom
+            </button>
+            <div className="text-xs text-white/50">
+              Drag to zoom
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sampling Info */}
+      {currentChart.samplingInfo && (
+        <div className="mb-2 p-2 bg-blue-500/10 rounded border border-blue-500/20">
+          <p className="text-xs text-blue-300">
+            📊 {currentChart.samplingInfo.mode === 'fixed' ? 'Fixed' : 'Custom'} sampling: 
+            {' '}{currentChart.samplingInfo.sampleSize?.toLocaleString()} of {currentChart.samplingInfo.totalRows?.toLocaleString()} rows 
+            ({((currentChart.samplingInfo.samplingRatio || 0) * 100).toFixed(1)}%)
+          </p>
+        </div>
       )}
 
-      <div className="h-[calc(100%-60px)]">
-        <ResponsiveContainer width="100%" height="100%">
-          {renderChart(currentChart.type, palette)}
-        </ResponsiveContainer>
+      <div className="h-[calc(100%-80px)]">
+        {shouldUseCanvas && currentChart.type !== 'pie' ? (
+          /* High-performance Canvas renderer for massive datasets (1M+) */
+          <div className="w-full h-full">
+            <CanvasChart
+              data={currentChart.data}
+              type={currentChart.type}
+              xField={(() => {
+                // Auto-detect actual field names from data structure
+                const sampleRow = currentChart.data[0] || {};
+                const aggregation = currentChart.query?.includes('SUM') ? 'sum' : 
+                                  currentChart.query?.includes('AVG') ? 'avg' :
+                                  currentChart.query?.includes('COUNT') ? 'count' : 'sum';
+                return sampleRow.hasOwnProperty('dimension') ? 'dimension' : currentChart.xAxis.field;
+              })()}
+              yField={(() => {
+                const sampleRow = currentChart.data[0] || {};
+                const aggregation = currentChart.query?.includes('SUM') ? 'sum' : 
+                                  currentChart.query?.includes('AVG') ? 'avg' :
+                                  currentChart.query?.includes('COUNT') ? 'count' : 'sum';
+                return sampleRow.hasOwnProperty(`${aggregation}_value`) ? `${aggregation}_value` : currentChart.yAxis.field;
+              })()}
+              xLabel={currentChart.xAxis.label}
+              yLabel={currentChart.yAxis.label}
+              width={chartWidth - 32}
+              height={chartHeight - 120}
+              colors={palette}
+              showGrid={currentChart.showGrid}
+              onZoom={(zoomBounds) => {
+                console.log('Canvas zoom:', zoomBounds);
+                // Could trigger new query for zoomed data in the future
+              }}
+            />
+          </div>
+        ) : shouldUseMosaic && currentChart.type !== 'pie' ? (
+          /* Canvas-based vgplot implementation optimized for large datasets */
+          <div className="w-full h-full">
+            <MosaicChartCanvasSimple
+              data={currentChart.data}
+              type={currentChart.type}
+              xField={currentChart.xAxis.field}
+              yField={currentChart.yAxis.field}
+              xLabel={currentChart.xAxis.label}
+              yLabel={currentChart.yAxis.label}
+              tableName={currentChart.query ? extractTableName(currentChart.query) : 'data'}
+              width={chartWidth - 32}
+              height={chartHeight - 120}
+              colors={palette}
+              aggregation={currentChart.query?.includes('SUM') ? 'sum' : 
+                          currentChart.query?.includes('AVG') ? 'avg' :
+                          currentChart.query?.includes('COUNT') ? 'count' : 'sum'}
+            />
+          </div>
+        ) : shouldUseObservablePlot && currentChart.type !== 'pie' ? (
+          /* Observable Plot for medium datasets (5K-50K) */
+          <div className="w-full h-full">
+            <ObservablePlotChart
+              data={currentChart.data}
+              type={currentChart.type}
+              xField={currentChart.xAxis.field}
+              yField={currentChart.yAxis.field}
+              xLabel={currentChart.xAxis.label}
+              yLabel={currentChart.yAxis.label}
+              width={chartWidth - 32}
+              height={chartHeight - 120}
+              colors={palette}
+              aggregation={currentChart.query?.includes('SUM') ? 'sum' : 
+                          currentChart.query?.includes('AVG') ? 'avg' :
+                          currentChart.query?.includes('COUNT') ? 'count' : 'sum'}
+            />
+          </div>
+        ) : (
+          /* Traditional Recharts renderer for smaller datasets (<5K) */
+          <ResponsiveContainer width="100%" height="100%">
+            {renderChart(currentChart.type, palette)}
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
@@ -86,8 +312,8 @@ const ChartCanvas: React.FC = () => {
           name={xAxis.label}
           stroke="#ffffff60"
           scale={xAxis.scale || "auto"}
-          domain={xAxis.domain || ["auto", "auto"]}
-          allowDataOverflow={!!xAxis.domain}
+          domain={xAxis.domain || [zoomState.left, zoomState.right]}
+          allowDataOverflow={true}
         >
           <Label
             value={xAxis.label}
@@ -103,8 +329,8 @@ const ChartCanvas: React.FC = () => {
           name={xAxis.label}
           stroke="#ffffff60"
           scale={xAxis.scale || "auto"}
-          domain={xAxis.domain || ["auto", "auto"]}
-          allowDataOverflow={!!xAxis.domain}
+          domain={xAxis.domain || [zoomState.left, zoomState.right]}
+          allowDataOverflow={true}
         />
       );
 
@@ -114,8 +340,8 @@ const ChartCanvas: React.FC = () => {
           name={yAxis.label}
           stroke="#ffffff60"
           scale={yAxis.scale || "auto"}
-          domain={yAxis.domain || ["auto", "auto"]}
-          allowDataOverflow={!!yAxis.domain}
+          domain={yAxis.domain || [zoomState.bottom, zoomState.top]}
+          allowDataOverflow={true}
         >
           <Label
             value={yAxis.label}
@@ -131,8 +357,8 @@ const ChartCanvas: React.FC = () => {
           name={yAxis.label}
           stroke="#ffffff60"
           scale={yAxis.scale || "auto"}
-          domain={yAxis.domain || ["auto", "auto"]}
-          allowDataOverflow={!!yAxis.domain}
+          domain={yAxis.domain || [zoomState.bottom, zoomState.top]}
+          allowDataOverflow={true}
         />
       );
 
@@ -170,16 +396,41 @@ const ChartCanvas: React.FC = () => {
     const referenceLineConfig =
       type !== "pie" ? <ReferenceLine y={0} stroke="#ffffff40" /> : null;
 
+    // Reference area for zoom selection
+    const referenceAreaConfig = zoomState.refAreaLeft && zoomState.refAreaRight ? (
+      <ReferenceArea
+        x1={zoomState.refAreaLeft}
+        x2={zoomState.refAreaRight}
+        strokeOpacity={0.3}
+        fill="#8884d8"
+        fillOpacity={0.1}
+      />
+    ) : null;
+
     switch (type) {
       case "bar":
         return (
-          <BarChart {...commonProps}>
+          <BarChart 
+            {...commonProps}
+            onMouseDown={(e) => {
+              if (e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaLeft: e.activeLabel }));
+              }
+            }}
+            onMouseMove={(e) => {
+              if (zoomState.refAreaLeft && e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaRight: e.activeLabel }));
+              }
+            }}
+            onMouseUp={zoom}
+          >
             {gridConfig}
             {xAxisConfig}
             {yAxisConfig}
             {tooltipConfig}
             {legendConfig}
             {referenceLineConfig}
+            {referenceAreaConfig}
 
             {!stackedData ? (
               <Bar
@@ -229,13 +480,27 @@ const ChartCanvas: React.FC = () => {
 
       case "line":
         return (
-          <LineChart {...commonProps}>
+          <LineChart 
+            {...commonProps}
+            onMouseDown={(e) => {
+              if (e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaLeft: e.activeLabel }));
+              }
+            }}
+            onMouseMove={(e) => {
+              if (zoomState.refAreaLeft && e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaRight: e.activeLabel }));
+              }
+            }}
+            onMouseUp={zoom}
+          >
             {gridConfig}
             {xAxisConfig}
             {yAxisConfig}
             {tooltipConfig}
             {legendConfig}
             {referenceLineConfig}
+            {referenceAreaConfig}
 
             {!stackedData ? (
               <Line
@@ -277,13 +542,27 @@ const ChartCanvas: React.FC = () => {
 
       case "area":
         return (
-          <AreaChart {...commonProps}>
+          <AreaChart 
+            {...commonProps}
+            onMouseDown={(e) => {
+              if (e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaLeft: e.activeLabel }));
+              }
+            }}
+            onMouseMove={(e) => {
+              if (zoomState.refAreaLeft && e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaRight: e.activeLabel }));
+              }
+            }}
+            onMouseUp={zoom}
+          >
             {gridConfig}
             {xAxisConfig}
             {yAxisConfig}
             {tooltipConfig}
             {legendConfig}
             {referenceLineConfig}
+            {referenceAreaConfig}
 
             {!stackedData ? (
               <>
@@ -404,12 +683,26 @@ const ChartCanvas: React.FC = () => {
 
       case "scatter":
         return (
-          <ScatterChart {...commonProps}>
+          <ScatterChart 
+            {...commonProps}
+            onMouseDown={(e) => {
+              if (e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaLeft: e.activeLabel }));
+              }
+            }}
+            onMouseMove={(e) => {
+              if (zoomState.refAreaLeft && e?.activeLabel) {
+                setZoomState(prev => ({ ...prev, refAreaRight: e.activeLabel }));
+              }
+            }}
+            onMouseUp={zoom}
+          >
             {gridConfig}
             {xAxisConfig}
             {yAxisConfig}
             {tooltipConfig}
             {legendConfig}
+            {referenceAreaConfig}
 
             <Scatter
               name={`${xAxis.label} vs ${yAxis.label}`}
@@ -521,6 +814,14 @@ function formatFieldLabel(field: string): string {
     .replace(/_/g, " ")
     .replace(/([A-Z])/g, " $1")
     .replace(/^\w/, (c) => c.toUpperCase());
+}
+
+/**
+ * Extract table name from SQL query for Mosaic integration
+ */
+function extractTableName(query: string): string {
+  const match = query.match(/FROM\s+"?([^"\s]+)"?/i);
+  return match ? match[1] : 'unknown_table';
 }
 
 export default ChartCanvas;
