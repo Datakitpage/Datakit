@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ArrowRight, RefreshCw, Code, Eye, AlertTriangle, Zap, TrendingUp } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -38,9 +38,8 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
     "sum" | "avg" | "min" | "max" | "count"
   >("sum");
   const [limit, setLimit] = useState<number>(100);
-  const [samplingMode, setSamplingMode] = useState<"fixed" | "smart" | "custom">("fixed");
+  const [samplingMode, setSamplingMode] = useState<"fixed" | "custom">("fixed");
   const [customSampleSize, setCustomSampleSize] = useState<number>(10000);
-  const [samplingType, setSamplingType] = useState<"random" | "systematic">("random");
   const [showSQL, setShowSQL] = useState(false);
   const [generatedSQL, setGeneratedSQL] = useState("");
   const [performanceAnalysis, setPerformanceAnalysis] = useState<PerformanceAnalysis | null>(null);
@@ -132,18 +131,17 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
         dimension,
         measure,
         aggregation,
-        limit: samplingMode === "fixed" ? limit : samplingMode === "custom" ? customSampleSize : undefined,
+        limit: samplingMode === "fixed" ? limit : customSampleSize,
         source: selectedTable.source,
         database: selectedTable.database,
         samplingMode,
-        samplingType,
         tableRowCount: selectedTable.rowCount,
       };
 
       const sql = generateSQL(queryOptions);
       setGeneratedSQL(sql);
     }
-  }, [selectedTable, dimension, measure, aggregation, limit, samplingMode, customSampleSize, samplingType, generateSQL]);
+  }, [selectedTable, dimension, measure, aggregation, limit, samplingMode, customSampleSize, generateSQL]);
 
   // Analyze performance when table changes
   useEffect(() => {
@@ -151,10 +149,10 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
       const analysis = analyzeDataPerformance(selectedTable.rowCount, fields.length);
       setPerformanceAnalysis(analysis);
       
-      // Auto-adjust sampling mode based on performance analysis
+      // Auto-adjust sample size for large datasets when using fixed mode
       if (analysis.dataSize === 'large' || analysis.dataSize === 'very_large' || analysis.dataSize === 'massive') {
-        if (samplingMode === 'fixed') {
-          setSamplingMode('smart');
+        if (samplingMode === 'fixed' && limit > 1000) {
+          setLimit(1000); // Cap at 1000 for large datasets in fixed mode
         }
       }
     } else {
@@ -162,7 +160,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
     }
   }, [selectedTable?.rowCount, fields.length, samplingMode]);
 
-  const handleGenerateChart = async () => {
+  const handleGenerateChart = useCallback(async () => {
     if (!selectedTable?.name || !dimension || !measure) return;
 
     // Performance safety check
@@ -180,11 +178,10 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
       dimension,
       measure,
       aggregation,
-      limit: samplingMode === "fixed" ? limit : samplingMode === "custom" ? customSampleSize : undefined,
+      limit: samplingMode === "fixed" ? limit : customSampleSize,
       source: selectedTable.source,
       database: selectedTable.database,
       samplingMode,
-      samplingType,
       tableRowCount: selectedTable.rowCount,
     };
 
@@ -218,7 +215,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
       // Error is already handled by the hook
       console.error("Failed to generate chart:", err);
     }
-  };
+  }, [selectedTable, dimension, measure, performanceAnalysis, executeQuery, currentChart, createNewChart, updateCurrentChart, aggregation, samplingMode, limit, customSampleSize]);
   
   // Notify parent about generate chart function and state
   useEffect(() => {
@@ -411,11 +408,10 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
           <div className="space-y-2">
             <select
               value={samplingMode}
-              onChange={(e) => setSamplingMode(e.target.value as "fixed" | "smart" | "custom")}
+              onChange={(e) => setSamplingMode(e.target.value as "fixed" | "custom")}
               className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
             >
-              <option value="fixed">Fixed Limits (Traditional)</option>
-              <option value="smart">Smart Sample (Recommended for Large Data)</option>
+              <option value="fixed">Fixed Limits</option>
               <option value="custom">Custom Sample Size</option>
             </select>
 
@@ -435,30 +431,6 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
               </select>
             )}
 
-            {/* Smart Sampling - For large datasets */}
-            {samplingMode === "smart" && (
-              <div className="space-y-2">
-                <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                  <p className="text-xs text-blue-300">
-                    📊 Smart sampling will automatically determine optimal sample size based on table size and chart type
-                  </p>
-                  {selectedTable?.rowCount && selectedTable.rowCount > 100000 && (
-                    <p className="text-xs text-yellow-300 mt-1">
-                      ⚡ Large dataset detected ({selectedTable.rowCount.toLocaleString()} rows) - sampling recommended
-                    </p>
-                  )}
-                </div>
-                <select
-                  value={samplingType}
-                  onChange={(e) => setSamplingType(e.target.value as "random" | "systematic")}
-                  className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
-                >
-                  <option value="random">Random Sampling</option>
-                  <option value="systematic">Systematic Sampling</option>
-                </select>
-              </div>
-            )}
-
             {/* Custom Sample Size */}
             {samplingMode === "custom" && (
               <div className="space-y-2">
@@ -471,20 +443,12 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
                   max="1000000"
                   className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
                 />
-                <div className="grid grid-cols-2 gap-2">
-                  <select
-                    value={samplingType}
-                    onChange={(e) => setSamplingType(e.target.value as "random" | "systematic")}
-                    className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
-                  >
-                    <option value="random">Random</option>
-                    <option value="systematic">Systematic</option>
-                  </select>
-                  <div className="text-xs text-white/50 p-2">
-                    {selectedTable?.rowCount && (
-                      <span>{((customSampleSize / selectedTable.rowCount) * 100).toFixed(1)}% of data</span>
-                    )}
-                  </div>
+                <div className="text-xs text-white/50 p-2 bg-background/30 rounded">
+                  {selectedTable?.rowCount && (
+                    <span>
+                      {((customSampleSize / selectedTable.rowCount) * 100).toFixed(1)}% of {selectedTable.rowCount.toLocaleString()} total rows
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -512,25 +476,13 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ selectedTable, onGenera
         )}
 
         {/* Performance Warning for Large Datasets */}
-        {selectedTable?.rowCount && selectedTable.rowCount > 1000000 && samplingMode === "fixed" && (
+        {selectedTable?.rowCount && selectedTable.rowCount > 100000 && samplingMode === "fixed" && limit > 1000 && (
           <div className="p-2 bg-yellow-500/10 rounded border border-yellow-500/20">
             <p className="text-xs text-yellow-300">
               ⚠️ Large dataset detected ({selectedTable.rowCount.toLocaleString()} rows)
             </p>
             <p className="text-xs text-yellow-200 mt-1">
-              Consider using Smart Sample for better performance and representative results.
-            </p>
-          </div>
-        )}
-
-        {/* Smart Sampling Explanation */}
-        {samplingMode === "smart" && selectedTable?.rowCount && (
-          <div className="p-2 bg-green-500/10 rounded border border-green-500/20">
-            <p className="text-xs text-green-300">
-              ✨ Smart sampling will analyze ~{calculateSmartSampleSize(selectedTable.rowCount).toLocaleString()} rows
-            </p>
-            <p className="text-xs text-green-200 mt-1">
-              This provides statistically significant results while maintaining fast performance.
+              Consider using Custom Sample Size or reduce Fixed Limit for better performance.
             </p>
           </div>
         )}
@@ -644,13 +596,5 @@ function getAggregationDescription(
   }
 }
 
-// Calculate optimal sample size for smart sampling (same logic as in useMosaicQuery)
-function calculateSmartSampleSize(tableRowCount: number): number {
-  if (tableRowCount <= 1000) return tableRowCount;
-  if (tableRowCount <= 10000) return Math.min(5000, Math.floor(tableRowCount * 0.8));
-  if (tableRowCount <= 100000) return Math.min(10000, Math.floor(tableRowCount * 0.3));
-  if (tableRowCount <= 1000000) return Math.min(25000, Math.floor(tableRowCount * 0.1));
-  return Math.min(50000, Math.floor(Math.sqrt(tableRowCount) * 100));
-}
 
 export default ChartGenerator;

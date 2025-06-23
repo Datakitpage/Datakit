@@ -37,7 +37,7 @@ export interface PerformanceAnalysis {
  */
 export const PERFORMANCE_THRESHOLDS: Record<DataSize, PerformanceThreshold> = {
   tiny: {
-    maxRows: 1000,
+    maxRows: 5000,
     strategy: 'recharts',
     aggregationLevel: 1,
     warningLevel: 'none',
@@ -49,65 +49,66 @@ export const PERFORMANCE_THRESHOLDS: Record<DataSize, PerformanceThreshold> = {
     ]
   },
   small: {
-    maxRows: 10000,
+    maxRows: 25000,
     strategy: 'recharts',
     aggregationLevel: 1,
-    warningLevel: 'info',
-    description: 'Good performance with monitoring',
+    warningLevel: 'none',
+    description: 'Recharts with full interactivity for moderate datasets',
     recommendations: [
-      'All chart types available',
-      'Monitor for performance issues',
-      'Consider data filtering for better UX'
+      'Full DOM-based rendering with smooth interactions',
+      'All chart types and features available',
+      'Excellent responsiveness for user interactions',
+      'Optimal balance of features and performance'
     ]
   },
   medium: {
     maxRows: 100000,
     strategy: 'mosaic_plot',
-    aggregationLevel: 2,
+    aggregationLevel: 1,
     warningLevel: 'info',
     description: 'Mosaic Plot for database-driven visualization with DuckDB optimization',
     recommendations: [
-      'Switched to Mosaic Plot for scalable performance',
-      'Database-pushed computation (binning, aggregation)',
+      'Database-pushed computation for optimal performance',
+      'Smooth zoom and pan interactions',
       'Interactive cross-filtering capabilities',
       'Optimized for large dataset exploration'
     ]
   },
   large: {
-    maxRows: 10000000,
-    strategy: 'mosaic_plot',
-    aggregationLevel: 5,
-    warningLevel: 'warning',
-    description: 'Mosaic Plot with database-side aggregation for million-record performance',
+    maxRows: 1000000,
+    strategy: 'canvas',
+    aggregationLevel: 2,
+    warningLevel: 'info',
+    description: 'High-performance canvas rendering for large datasets',
     recommendations: [
-      'Database-side processing via DuckDB for optimal performance',
-      'Automatic binning and aggregation for large datasets',
-      'Cross-filtering across multiple views supported',
+      'Canvas-based rendering for optimal performance',
+      'Native zoom and pan interactions',
+      'Intelligent sampling preserves data patterns',
       'Optimized for million-row datasets'
     ]
   },
   very_large: {
-    maxRows: 100000000,
-    strategy: 'mosaic_plot',
-    aggregationLevel: 10,
-    warningLevel: 'critical',
-    description: 'Mosaic Plot with heavy database-side aggregation for billion-record datasets',
+    maxRows: 10000000,
+    strategy: 'canvas',
+    aggregationLevel: 5,
+    warningLevel: 'warning',
+    description: 'Canvas rendering with aggressive optimization for very large datasets',
     recommendations: [
-      'Heavy database-side processing via DuckDB',
-      'Automatic data sampling and binning',
-      'Materialized views recommended for performance',
-      'Optimized for billion-row datasets'
+      'Hardware-accelerated canvas rendering',
+      'Adaptive data sampling and binning',
+      'Progressive loading for better UX',
+      'Optimized for multi-million row datasets'
     ]
   },
   massive: {
     maxRows: Infinity,
     strategy: 'server_aggregated',
-    aggregationLevel: 100,
+    aggregationLevel: 10,
     warningLevel: 'critical',
-    description: 'Server-side aggregation required',
+    description: 'Server-side aggregation required for massive datasets',
     recommendations: [
       'Data must be pre-aggregated on server',
-      'Only summary statistics visualizations',
+      'Statistical sampling recommended',
       'Consider data sampling strategies',
       'Use specialized big data visualization tools'
     ]

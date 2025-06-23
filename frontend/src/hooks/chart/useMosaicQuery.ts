@@ -13,8 +13,7 @@ export interface QueryOptions {
   orderDirection?: "asc" | "desc";
   source?: "local" | "motherduck";
   database?: string;
-  samplingMode?: "fixed" | "smart" | "custom";
-  samplingType?: "random" | "systematic";
+  samplingMode?: "fixed" | "custom";
   tableRowCount?: number;
 }
 
@@ -39,7 +38,7 @@ export interface QueryResult {
   executionTime: number;
   query: string;
   samplingInfo?: {
-    mode: "fixed" | "smart" | "custom";
+    mode: "fixed" | "custom";
     sampleSize?: number;
     totalRows?: number;
     samplingRatio?: number;
@@ -57,18 +56,6 @@ export const useMosaicQuery = () => {
 
   const { executeQuery, executeMotherDuckQuery } = useDuckDBStore();
 
-  /**
-   * Calculate optimal sample size for smart sampling
-   */
-  const calculateSmartSampleSize = useCallback((tableRowCount: number): number => {
-    // Smart sampling algorithm based on statistical principles
-    if (tableRowCount <= 1000) return tableRowCount; // No sampling needed
-    if (tableRowCount <= 10000) return Math.min(5000, Math.floor(tableRowCount * 0.8));
-    if (tableRowCount <= 100000) return Math.min(10000, Math.floor(tableRowCount * 0.3));
-    if (tableRowCount <= 1000000) return Math.min(25000, Math.floor(tableRowCount * 0.1));
-    // For very large datasets (>1M), use statistical sampling
-    return Math.min(50000, Math.floor(Math.sqrt(tableRowCount) * 100));
-  }, []);
 
   /**
    * Build SQL query from options
@@ -86,46 +73,35 @@ export const useMosaicQuery = () => {
       orderDirection = "desc",
       database,
       samplingMode = "fixed",
-      samplingType = "random",
       tableRowCount,
     } = options;
 
     // Determine if we need SQL-level aggregation for performance
     const effectiveRowCount = tableRowCount || 0;
-    const needsAggregation = effectiveRowCount > 100000;
-    let aggregationBins = 100; // Default bins for large datasets
+    const needsAggregation = effectiveRowCount > 500000; // Higher threshold for better data fidelity
+    let aggregationBins = 200; // More bins by default for better resolution
 
     if (needsAggregation) {
-      // Calculate optimal bins based on data size
-      if (effectiveRowCount <= 1000000) aggregationBins = 200;
-      else if (effectiveRowCount <= 10000000) aggregationBins = 100;
-      else aggregationBins = 50; // Massive datasets
+      // Calculate optimal bins based on data size - preserve more detail
+      if (effectiveRowCount <= 1000000) aggregationBins = 500;
+      else if (effectiveRowCount <= 5000000) aggregationBins = 300;
+      else if (effectiveRowCount <= 10000000) aggregationBins = 200;
+      else aggregationBins = 100; // Only for truly massive datasets
     }
 
     // Build table reference with sampling
     let tableRef = database ? `"${database}"."${table}"` : `"${table}"`;
     
-    // Apply sampling if needed
-    if (samplingMode !== "fixed" && effectiveRowCount > 0) {
-      let sampleSize: number;
+    // Apply intelligent sampling (only for custom mode and very large datasets)
+    if (samplingMode === "custom" && effectiveRowCount > 100000) {
+      const sampleSize = Math.max(limit || 10000, 10000); // Minimum 10k for good visualization
       
-      if (samplingMode === "smart") {
-        sampleSize = calculateSmartSampleSize(effectiveRowCount);
-      } else {
-        sampleSize = limit || 1000;
-      }
-      
-      // Only apply sampling if it's beneficial
-      if (sampleSize < effectiveRowCount) {
-        const samplePercentage = (sampleSize / effectiveRowCount) * 100;
+      // Only apply sampling if dataset is very large and sample size is significantly smaller
+      if (sampleSize < effectiveRowCount * 0.5) { // Only sample if less than 50% of data
+        const samplePercentage = Math.min(100, (sampleSize / effectiveRowCount) * 100 * 1.2); // 20% buffer
         
-        if (samplingType === "random") {
-          // Use TABLESAMPLE BERNOULLI for random sampling
-          tableRef = `${tableRef} TABLESAMPLE BERNOULLI(${samplePercentage.toFixed(2)})`;
-        } else {
-          // Use TABLESAMPLE SYSTEM for systematic sampling (faster)
-          tableRef = `${tableRef} TABLESAMPLE SYSTEM(${samplePercentage.toFixed(2)})`;
-        }
+        // Use TABLESAMPLE SYSTEM for consistent sampling
+        tableRef = `${tableRef} TABLESAMPLE SYSTEM(${samplePercentage.toFixed(2)})`;
       }
     }
 
@@ -165,9 +141,9 @@ export const useMosaicQuery = () => {
     let dimensionSQL = `"${dimension}"`;
     let aggregationSQL = "";
     
-    // Apply intelligent binning for large datasets - optimized for Mosaic
-    if (needsAggregation && effectiveRowCount > 500000) {
-      // Use percentile-based binning for better distribution
+    // Apply intelligent binning for large datasets - preserves more granularity
+    if (needsAggregation && effectiveRowCount > 2000000) {
+      // Adaptive precision binning for very large datasets
       dimensionSQL = `
         CASE 
           WHEN "${dimension}" IS NULL THEN 'NULL'
@@ -175,19 +151,29 @@ export const useMosaicQuery = () => {
             ROUND(
               CAST("${dimension}" AS DOUBLE), 
               CASE 
+                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 10000 THEN -2
                 WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 1000 THEN -1
-                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 10 THEN 0  
+                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 100 THEN 0
+                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 10 THEN 1
                 ELSE 2
               END
             ) AS VARCHAR
           )
         END`;
     } else if (needsAggregation) {
-      // Simpler binning for medium datasets
+      // Moderate binning for large datasets - preserve more detail
       dimensionSQL = `
         CASE 
           WHEN "${dimension}" IS NULL THEN 'NULL'
-          ELSE CAST(ROUND(CAST("${dimension}" AS DOUBLE), 1) AS VARCHAR)
+          ELSE CAST(
+            ROUND(
+              CAST("${dimension}" AS DOUBLE), 
+              CASE 
+                WHEN ABS(CAST("${dimension}" AS DOUBLE)) > 100 THEN 0
+                ELSE 1
+              END
+            ) AS VARCHAR
+          )
         END`;
     }
 
@@ -205,12 +191,14 @@ export const useMosaicQuery = () => {
         aggregationSQL = `${aggregation.toUpperCase()}("${measure}") as ${aggregation}_value`;
     }
 
-    // Determine final limit - optimized for Mosaic streaming
+    // Use intelligent limit based on dataset size and aggregation
     let finalLimit = limit;
-    if (samplingMode === "smart" && effectiveRowCount > 0) {
-      // For Mosaic, allow larger result sets since they're streamed efficiently
-      const smartSampleSize = calculateSmartSampleSize(effectiveRowCount);
-      finalLimit = Math.min(limit * 5, Math.floor(smartSampleSize / 2)); // Allow more results for Mosaic
+    if (needsAggregation) {
+      // For aggregated queries, we can handle more bins
+      finalLimit = Math.min(limit || 1000, aggregationBins * 2);
+    } else {
+      // For direct queries, use the provided limit or a reasonable default
+      finalLimit = limit || Math.min(25000, effectiveRowCount);
     }
 
     // Build final query with performance optimizations for database-driven visualization
@@ -230,11 +218,11 @@ export const useMosaicQuery = () => {
 
     // Add performance comment for debugging
     const performanceNote = needsAggregation ? 
-      `-- Performance: SQL-level binning applied (${aggregationBins} bins for ${effectiveRowCount.toLocaleString()} rows)\n` : 
-      `-- Performance: Direct query (${effectiveRowCount.toLocaleString()} rows)\n`;
+      `-- Performance: SQL-level binning applied (${aggregationBins} bins for ${effectiveRowCount.toLocaleString()} rows, limit: ${finalLimit})\n` : 
+      `-- Performance: Direct query (${effectiveRowCount.toLocaleString()} rows, limit: ${finalLimit})\n`;
     
     return performanceNote + query;
-  }, [calculateSmartSampleSize]);
+  }, []);
 
   /**
    * Build a query for getting row count
@@ -318,17 +306,19 @@ export const useMosaicQuery = () => {
         // Calculate sampling info
         let samplingInfo = undefined;
         const effectiveTableRowCount = options.tableRowCount || 0;
-        if (options.samplingMode !== "fixed" && effectiveTableRowCount > 0) {
-          const sampleSize = options.samplingMode === "smart" 
-            ? calculateSmartSampleSize(effectiveTableRowCount)
-            : options.limit || 1000;
+        if (options.samplingMode === "custom" && effectiveTableRowCount > 100000) {
+          const requestedSampleSize = Math.max(options.limit || 10000, 10000);
+          const actualSampleSize = formattedData.length;
           
-          samplingInfo = {
-            mode: options.samplingMode,
-            sampleSize,
-            totalRows: effectiveTableRowCount,
-            samplingRatio: sampleSize / effectiveTableRowCount,
-          };
+          // Only show sampling info if we actually applied sampling
+          if (requestedSampleSize < effectiveTableRowCount * 0.5) {
+            samplingInfo = {
+              mode: options.samplingMode,
+              sampleSize: actualSampleSize,
+              totalRows: effectiveTableRowCount,
+              samplingRatio: actualSampleSize / effectiveTableRowCount,
+            };
+          }
         }
 
         const queryResult: QueryResult = {
@@ -338,6 +328,8 @@ export const useMosaicQuery = () => {
           query,
           samplingInfo,
         };
+        
+        console.log(`[MosaicQuery] Query completed: ${formattedData.length} rows in ${executionTime}ms`, samplingInfo ? `(sampled from ${effectiveTableRowCount.toLocaleString()})` : '');
 
         setLastResult(queryResult);
         setProgress(0);

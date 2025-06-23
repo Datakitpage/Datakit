@@ -2,9 +2,15 @@ import React, { useState, useCallback } from "react";
 
 import { useChartsStore, ChartType } from "@/store/chartsStore";
 import { analyzeDataPerformance } from "@/utils/chartPerformance";
+import { useChartDimensions } from "@/hooks/useResizeObserver";
 import CanvasChart from "./canvas/CanvasChart";
 import ObservablePlotChart from "./observable/ObservablePlotChart";
 import MosaicChart from "./mosaic/MosaicChart";
+import MosaicChartSQL from "./mosaic/MosaicChartSQL";
+import MosaicChartVgplot from "./mosaic/MosaicChartVgplot";
+import MosaicChartSimple from "./mosaic/MosaicChartSimple";
+import MosaicChartCanvas from "./mosaic/MosaicChartCanvas";
+import MosaicChartCanvasSimple from "./mosaic/MosaicChartCanvasSimple";
 
 import {
   ResponsiveContainer,
@@ -35,6 +41,9 @@ import {
  */
 const ChartCanvas: React.FC = () => {
   const { currentChart, colorPalettes } = useChartsStore();
+  
+  // Get responsive chart dimensions (must be called before any conditional returns)
+  const { ref: chartRef, width: chartWidth, height: chartHeight, isReady } = useChartDimensions(600, 400);
   
   // Zoom state management
   const [zoomState, setZoomState] = useState<{
@@ -117,9 +126,25 @@ const ChartCanvas: React.FC = () => {
     });
   }, []);
 
+  // Analyze performance to determine rendering strategy (must be done with hooks)
+  const performanceAnalysis = currentChart?.data ? analyzeDataPerformance(currentChart.data.length, 2) : null;
+  const shouldUseMosaic = performanceAnalysis?.renderingStrategy === 'mosaic_plot';
+  const shouldUseCanvas = performanceAnalysis?.renderingStrategy === 'canvas';
+  const shouldUseObservablePlot = performanceAnalysis?.renderingStrategy === 'observable_plot';
+
+  // Debug logging (MUST be called every render to maintain hooks order)
+  React.useEffect(() => {
+    if (currentChart?.data && performanceAnalysis) {
+      console.log(`[ChartCanvas] Data size: ${currentChart.data.length} rows`);
+      console.log(`[ChartCanvas] Strategy: ${performanceAnalysis.renderingStrategy}`);
+      console.log(`[ChartCanvas] Using: ${shouldUseCanvas ? 'Canvas' : shouldUseMosaic ? 'Mosaic' : shouldUseObservablePlot ? 'Observable Plot' : 'Recharts'}`);
+    }
+  }, [currentChart?.data?.length, performanceAnalysis?.renderingStrategy, shouldUseCanvas, shouldUseMosaic, shouldUseObservablePlot]);
+
+  // Early returns after ALL hooks are called
   if (!currentChart || !currentChart.data || currentChart.data.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-darkNav/20 rounded-lg border border-white/5">
+      <div ref={chartRef} className="h-full flex items-center justify-center bg-darkNav/20 rounded-lg border border-white/5">
         <div className="text-center p-8">
           <h3 className="text-lg font-medium text-white/80 mb-2">
             No Chart Data
@@ -132,29 +157,17 @@ const ChartCanvas: React.FC = () => {
     );
   }
 
+  // Don't render chart until dimensions are ready
+  if (!isReady) {
+    return (
+      <div ref={chartRef} className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 flex items-center justify-center">
+        <div className="text-white/60">Loading chart...</div>
+      </div>
+    );
+  }
+
   // Get color palette
   const palette = colorPalettes[currentChart.palette] || colorPalettes.primary;
-
-  // Analyze performance to determine rendering strategy
-  const performanceAnalysis = analyzeDataPerformance(currentChart.data.length, 2);
-  
-  // Enable Mosaic for progressive querying and smooth interactions with large datasets
-  const shouldUseMosaic = performanceAnalysis.renderingStrategy === 'mosaic_plot' ||
-                         currentChart.data.length >= 100000; // Use Mosaic for 100K+ records for progressive querying
-                         
-  const shouldUseCanvas = (performanceAnalysis.renderingStrategy === 'canvas' || 
-                          performanceAnalysis.renderingStrategy === 'webgl' ||
-                          currentChart.data.length >= 1000000) && !shouldUseMosaic; // Canvas as fallback for massive datasets
-  
-  const shouldUseObservablePlot = (performanceAnalysis.renderingStrategy === 'observable_plot' ||
-                                  (currentChart.data.length > 5000 && currentChart.data.length < 100000)) && !shouldUseMosaic && !shouldUseCanvas;
-
-  // Debug: Log which renderer is being used
-  React.useEffect(() => {
-    console.log(`[ChartCanvas] Data size: ${currentChart.data.length} rows`);
-    console.log(`[ChartCanvas] Strategy: ${performanceAnalysis.renderingStrategy}`);
-    console.log(`[ChartCanvas] Using: ${shouldUseCanvas ? 'Canvas' : shouldUseMosaic ? 'Mosaic' : shouldUseObservablePlot ? 'Observable Plot' : 'Recharts'}`);
-  }, [currentChart.data.length, performanceAnalysis.renderingStrategy, shouldUseCanvas, shouldUseMosaic, shouldUseObservablePlot]);
 
   // Common props for charts
   const commonProps = {
@@ -164,7 +177,7 @@ const ChartCanvas: React.FC = () => {
 
   // Render the appropriate chart based on type
   return (
-    <div className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 p-4">
+    <div ref={chartRef} className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 p-4">
       {/* Header with title and zoom controls */}
       <div className="flex items-center justify-between mb-2">
         <div>
@@ -199,7 +212,7 @@ const ChartCanvas: React.FC = () => {
       {currentChart.samplingInfo && (
         <div className="mb-2 p-2 bg-blue-500/10 rounded border border-blue-500/20">
           <p className="text-xs text-blue-300">
-            📊 {currentChart.samplingInfo.mode === 'smart' ? 'Smart' : 'Custom'} sampling: 
+            📊 {currentChart.samplingInfo.mode === 'fixed' ? 'Fixed' : 'Custom'} sampling: 
             {' '}{currentChart.samplingInfo.sampleSize?.toLocaleString()} of {currentChart.samplingInfo.totalRows?.toLocaleString()} rows 
             ({((currentChart.samplingInfo.samplingRatio || 0) * 100).toFixed(1)}%)
           </p>
@@ -208,17 +221,30 @@ const ChartCanvas: React.FC = () => {
 
       <div className="h-[calc(100%-80px)]">
         {shouldUseCanvas && currentChart.type !== 'pie' ? (
-          /* High-performance Canvas renderer for massive datasets (10M+) */
+          /* High-performance Canvas renderer for massive datasets (1M+) */
           <div className="w-full h-full">
             <CanvasChart
               data={currentChart.data}
               type={currentChart.type}
-              xField={currentChart.xAxis.field}
-              yField={currentChart.yAxis.field}
+              xField={(() => {
+                // Auto-detect actual field names from data structure
+                const sampleRow = currentChart.data[0] || {};
+                const aggregation = currentChart.query?.includes('SUM') ? 'sum' : 
+                                  currentChart.query?.includes('AVG') ? 'avg' :
+                                  currentChart.query?.includes('COUNT') ? 'count' : 'sum';
+                return sampleRow.hasOwnProperty('dimension') ? 'dimension' : currentChart.xAxis.field;
+              })()}
+              yField={(() => {
+                const sampleRow = currentChart.data[0] || {};
+                const aggregation = currentChart.query?.includes('SUM') ? 'sum' : 
+                                  currentChart.query?.includes('AVG') ? 'avg' :
+                                  currentChart.query?.includes('COUNT') ? 'count' : 'sum';
+                return sampleRow.hasOwnProperty(`${aggregation}_value`) ? `${aggregation}_value` : currentChart.yAxis.field;
+              })()}
               xLabel={currentChart.xAxis.label}
               yLabel={currentChart.yAxis.label}
-              width={800} // TODO: Make responsive with useResizeObserver
-              height={400}
+              width={chartWidth - 32}
+              height={chartHeight - 120}
               colors={palette}
               showGrid={currentChart.showGrid}
               onZoom={(zoomBounds) => {
@@ -228,26 +254,22 @@ const ChartCanvas: React.FC = () => {
             />
           </div>
         ) : shouldUseMosaic && currentChart.type !== 'pie' ? (
-          /* Mosaic Plot for large datasets with database-driven computation (10K-10M) */
+          /* Canvas-based vgplot implementation optimized for large datasets */
           <div className="w-full h-full">
-            <MosaicChart
+            <MosaicChartCanvasSimple
               data={currentChart.data}
               type={currentChart.type}
               xField={currentChart.xAxis.field}
               yField={currentChart.yAxis.field}
               xLabel={currentChart.xAxis.label}
               yLabel={currentChart.yAxis.label}
-              tableName={extractTableName(currentChart.query || '')}
-              width={800}
-              height={400}
+              tableName={currentChart.query ? extractTableName(currentChart.query) : 'data'}
+              width={chartWidth - 32}
+              height={chartHeight - 120}
               colors={palette}
               aggregation={currentChart.query?.includes('SUM') ? 'sum' : 
                           currentChart.query?.includes('AVG') ? 'avg' :
                           currentChart.query?.includes('COUNT') ? 'count' : 'sum'}
-              onCrossFilter={(selection) => {
-                console.log('Mosaic cross-filter:', selection);
-                // Future: trigger coordinated views
-              }}
             />
           </div>
         ) : shouldUseObservablePlot && currentChart.type !== 'pie' ? (
@@ -260,8 +282,8 @@ const ChartCanvas: React.FC = () => {
               yField={currentChart.yAxis.field}
               xLabel={currentChart.xAxis.label}
               yLabel={currentChart.yAxis.label}
-              width={800}
-              height={400}
+              width={chartWidth - 32}
+              height={chartHeight - 120}
               colors={palette}
               aggregation={currentChart.query?.includes('SUM') ? 'sum' : 
                           currentChart.query?.includes('AVG') ? 'avg' :
