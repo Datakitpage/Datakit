@@ -113,7 +113,7 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
               Your data stays private
             </motion.span>
           </motion.span>{" "}
-          — everything runs locally in your browser.
+          — everything runs locally.
         </p>
 
         {/* Import options */}

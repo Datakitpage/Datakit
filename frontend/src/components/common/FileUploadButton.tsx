@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
+import { useElectronFileUpload } from "@/hooks/useElectronFileUpload";
 
 import csv from "@/assets/csv.png";
 import json from "@/assets/json.png";
@@ -14,6 +15,7 @@ interface FileUploadButtonProps {
   accept?: string;
   className?: string;
   supportLargeFiles?: boolean;
+  electronStatus?: string | null;
 }
 
 export const FileUploadButton = ({
@@ -23,9 +25,13 @@ export const FileUploadButton = ({
   accept = ".csv,.json,.xlsx,.xls,.parquet",
   className = "",
   supportLargeFiles = true,
+  electronStatus = null,
 }: FileUploadButtonProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // Initialize Electron file handling
+  const { isElectron } = useElectronFileUpload({ onFileSelect, onFileHandleSelect });
 
   const fileTypes = [
     { type: "csv", icon: csv, color: "bg-primary", label: "CSV" },
@@ -246,10 +252,10 @@ export const FileUploadButton = ({
             disabled={isLoading}
           >
             <div className="flex flex-col items-center w-full py-5 px-4">
-              {isLoading ? (
+              {isLoading || electronStatus ? (
                 <div className="flex flex-col items-center">
                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mb-2" />
-                  <span className="text-sm">Processing...</span>
+                  <span className="text-sm">{electronStatus || "Processing..."}</span>
                 </div>
               ) : (
                 <>
@@ -273,7 +279,7 @@ export const FileUploadButton = ({
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-white/80 mb-1">
-                      Click to open or drag files here
+                      {isElectron ? "Click to open, drag files, or double-click files on desktop" : "Click to open or drag files here"}
                     </p>
                     <p className="text-[10px] text-white/50">{maxSizeText}</p>
                   </div>
