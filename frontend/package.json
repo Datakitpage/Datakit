@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && NODE_ENV=development electron .\"",
+    "electron:build": "ELECTRON_BUILD=true npm run build && electron-builder",
+    "electron:dist": "ELECTRON_BUILD=true npm run build && electron-builder --publish=never"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.29.1-dev132.0",
@@ -61,6 +65,9 @@
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.0",
+    "electron": "^37.2.3",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
@@ -72,7 +79,103 @@
     "tw-animate-css": "^1.2.9",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wait-on": "^8.0.3"
   },
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.datakit.app",
+    "productName": "Datakit",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*.cjs",
+      "node_modules/**/*",
+      "public/datakit.png"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.cjs"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "public/datakit.png",
+      "fileAssociations": [
+        {
+          "ext": "csv",
+          "name": "CSV File",
+          "description": "Comma-separated values file",
+          "mimeType": "text/csv",
+          "icon": "public/datakit.png"
+        },
+        {
+          "ext": "json",
+          "name": "JSON File", 
+          "description": "JavaScript Object Notation file",
+          "mimeType": "application/json",
+          "icon": "public/datakit.png"
+        },
+        {
+          "ext": ["xlsx", "xls"],
+          "name": "Excel File",
+          "description": "Microsoft Excel spreadsheet",
+          "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "icon": "public/datakit.png"
+        },
+        {
+          "ext": "parquet",
+          "name": "Parquet File",
+          "description": "Apache Parquet columnar storage file",
+          "mimeType": "application/x-parquet",
+          "icon": "public/datakit.png"
+        }
+      ]
+    },
+    "win": {
+      "icon": "public/datakit.png",
+      "fileAssociations": [
+        {
+          "ext": "csv",
+          "name": "CSV File",
+          "description": "Comma-separated values file",
+          "mimeType": "text/csv",
+          "icon": "public/datakit.png"
+        },
+        {
+          "ext": "json", 
+          "name": "JSON File",
+          "description": "JavaScript Object Notation file",
+          "mimeType": "application/json",
+          "icon": "public/datakit.png"
+        },
+        {
+          "ext": ["xlsx", "xls"],
+          "name": "Excel File",
+          "description": "Microsoft Excel spreadsheet", 
+          "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "icon": "public/datakit.png"
+        },
+        {
+          "ext": "parquet",
+          "name": "Parquet File",
+          "description": "Apache Parquet columnar storage file",
+          "mimeType": "application/x-parquet",
+          "icon": "public/datakit.png"
+        }
+      ]
+    },
+    "linux": {
+      "icon": "public/datakit.png",
+      "category": "Development",
+      "mimeTypes": [
+        "text/csv",
+        "application/json",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+        "application/x-parquet"
+      ]
+    }
+  }
 }

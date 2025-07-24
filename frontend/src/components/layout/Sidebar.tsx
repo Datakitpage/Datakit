@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import usePopover from "@/hooks/usePopover";
 import { Button } from "@/components/ui/Button";
 import UserMenu from "@/components/auth/UserMenu";
+import { useElectronFileUpload } from "@/hooks/useElectronFileUpload";
 
 import RemoteDataImportModal from "@/components/common/RemoteDataImportPanel";
 
@@ -52,6 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   } = useAppStore();
 
   const uploadPopover = usePopover();
+  const [electronFileStatus, setElectronFileStatus] = useState<string | null>(null);
 
   const {
     processFileStreaming,
@@ -66,6 +68,20 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
     processingProgress: duckDBProgress,
     error: duckDBError,
   } = useDuckDBStore();
+
+  // Initialize Electron file handling with status updates
+  const { isElectron } = useElectronFileUpload({
+    onFileSelect: (file) => {
+      setElectronFileStatus(null); // Clear status once file is processed
+      return onDataLoad ? processFile(file, onDataLoad) : processFile(file);
+    },
+    onFileHandleSelect: (handle, file) => {
+      setElectronFileStatus(null); // Clear status once file is processed
+      if (!onDataLoad) return;
+      return processFileStreaming(handle, file, onDataLoad);
+    },
+    onStatusUpdate: setElectronFileStatus,
+  });
 
   const handleFileWithStreaming = async (
     handle: FileSystemFileHandle,
@@ -88,10 +104,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   };
 
   // Determine if any loading state is active
-  const isLoading = isProcessingLocalFile || duckDBLoading;
+  const isLoading = isProcessingLocalFile || duckDBLoading || Boolean(electronFileStatus);
 
   // Determine current loading status message
-  const loadingStatus = localFileLoadingStatus;
+  const loadingStatus = electronFileStatus || localFileLoadingStatus;
 
   // Determine current error message
   const errorMessage = localFileProcessingError || duckDBError;
@@ -121,6 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
         isLoading={isProcessingLocalFile}
         className="w-full mb-2"
         supportLargeFiles={true}
+        electronStatus={electronFileStatus}
       />
 
       <Button
@@ -209,8 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
       {/* Introduction text */}
       <div className="px-5 py-4">
         <p className="text-sm text-white text-opacity-70">
-          DataKit leverages WebAssembly to process large datasets directly in
-          your browser.
+          DataKit leverages WebAssembly to process large datasets.
         </p>
       </div>
 
@@ -226,6 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           isLoading={isProcessingLocalFile}
           className="w-full mb-2"
           supportLargeFiles={true}
+          electronStatus={electronFileStatus}
         />
 
         {/* New Remote Data Import Button */}
