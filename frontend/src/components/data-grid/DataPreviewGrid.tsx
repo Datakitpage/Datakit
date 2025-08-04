@@ -1,12 +1,14 @@
 import React, { useEffect, useCallback } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Microscope } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { useInspectorStore } from '@/store/inspectorStore';
+import { useResearchPanelStore } from '@/store/researchPanelStore';
 import { selectActiveFile } from '@/store/selectors/appSelectors';
 import { useDataPreview } from '@/hooks/useDataPreview';
 
 import Grid from './Grid';
 import InspectorPanel from '@/components/tabs/preview/inspector/InspectorPanel';
+import ResearchPanel from '@/components/tabs/preview/ResearchPanel';
 import DataPreviewPagination from './DataPreviewPagination';
 import { Button } from '../ui/Button';
 
@@ -24,6 +26,7 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
   const activeFile = useAppStore(selectActiveFile);
   const { setActiveTab } = useAppStore();
   const { openPanel, analyzeFile } = useInspectorStore();
+  const { openPanel: openResearchPanel } = useResearchPanelStore();
 
   // Use provided fileId or fall back to active file
   const targetFileId = fileId || activeFile?.id;
@@ -125,6 +128,11 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
     analyzeFile(activeFile.id, tableName);
   }, [activeFile, openPanel, analyzeFile]);
 
+  const handleResearchClick = useCallback(() => {
+    if (!activeFile) return;
+    openResearchPanel();
+  }, [activeFile, openResearchPanel]);
+
   const renderHeader = () => {
     if (!activeFile && !isLoading) return null;
 
@@ -199,6 +207,20 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
               <CheckCircle className="h-4 w-4 text-primary relative z-10 group-hover:text-primary-foreground transition-colors" />
             </div>
             <span className="text-white/90 group-hover:text-white font-medium">Inspect Quality</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-secondary/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handleResearchClick}
+            data-research-trigger
+            className="group relative flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg border border-primary/30 bg-gradient-to-r from-gray-900/80 to-gray-800/80 hover:from-gray-800/80 hover:to-gray-700/80 transition-all duration-300 hover:scale-105"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-sm group-hover:blur-md transition-all duration-300" />
+              <Microscope className="h-4 w-4 text-primary relative z-10 group-hover:text-primary-foreground transition-colors" />
+            </div>
+            <span className="text-white/90 group-hover:text-white font-medium">Research</span>
             <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-secondary/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Button>
 
@@ -345,6 +367,9 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
 
       {/* Inspector Panel */}
       <InspectorPanel />
+
+      {/* Research Panel */}
+      <ResearchPanel />
     </>
   );
 };
