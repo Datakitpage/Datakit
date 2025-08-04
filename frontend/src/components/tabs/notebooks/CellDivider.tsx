@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Code2, Type } from "lucide-react";
+import { Code2, Type, Sparkles } from "lucide-react";
 import { usePythonStore } from "@/store/pythonStore";
 
 interface CellDividerProps {
@@ -14,7 +14,7 @@ const CellDivider: React.FC<CellDividerProps> = ({ insertIndex, isLastCell = fal
   const { createCell } = usePythonStore();
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleCreateCell = (type: 'code' | 'markdown') => {
+  const handleCreateCell = (type: 'code' | 'markdown' | 'prompt') => {
     createCell(type, "", insertIndex);
   };
 
@@ -45,11 +45,19 @@ const CellDivider: React.FC<CellDividerProps> = ({ insertIndex, isLastCell = fal
         </button>
         <button
           onClick={() => handleCreateCell('markdown')}
-          className="flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:text-white hover:bg-white/10 transition-colors rounded-r-md"
+          className="flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:text-white hover:bg-white/10 transition-colors border-r border-white/10"
           title="Add Text Cell"
         >
           <Type size={12} />
           <span>Text</span>
+        </button>
+        <button
+          onClick={() => handleCreateCell('prompt')}
+          className="flex items-center gap-2 px-3 py-2 text-xs text-purple-400/70 hover:text-purple-300 hover:bg-purple-500/10 transition-colors rounded-r-md"
+          title="Add AI Prompt Cell"
+        >
+          <Sparkles size={12} />
+          <span>Prompt</span>
         </button>
       </div>
     </div>

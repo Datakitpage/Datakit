@@ -1,17 +1,21 @@
 import type { PyodideInterface } from "pyodide";
 
-export type CellType = 'code' | 'markdown';
+export type CellType = 'code' | 'markdown' | 'prompt';
 
 export interface PythonCell {
   id: string;
   type: CellType;
-  code: string; // For code cells, this is Python code; for markdown cells, this is markdown content
+  code: string; // For code cells, this is Python code; for markdown cells, this is markdown content; for prompt cells, this is the user's natural language prompt
   output: CellOutput[];
   executionCount: number | null;
   isExecuting: boolean;
   isEditing?: boolean; // For markdown cells, tracks if currently editing
   isInputCollapsed?: boolean; // Whether the cell input is collapsed
   isOutputCollapsed?: boolean; // Whether the cell output is collapsed
+  // Prompt-specific properties
+  isProcessing?: boolean; // For prompt cells, tracks if AI is processing
+  generatedCode?: string; // For prompt cells, stores the AI-generated code
+  aiResponse?: string; // For prompt cells, stores the full AI response
   createdAt: Date;
   updatedAt: Date;
 }
