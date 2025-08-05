@@ -16,6 +16,7 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  Sparkles,
 } from 'lucide-react';
 
 import { usePythonStore } from '@/store/pythonStore';
@@ -35,6 +36,7 @@ import {
 } from '@/utils/notebookExport';
 
 import PythonCell from './PythonCell';
+import PromptCell from './PromptCell';
 import CellDivider from './CellDivider';
 import ScriptHistory from './ScriptHistory';
 import PackageManager from './PackageManager';
@@ -617,6 +619,18 @@ const NotebooksWorkspace: React.FC = () => {
               </Button>
             </Tooltip>
 
+            <Tooltip content="Add New AI Prompt Cell" placement="bottom">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => createCell('prompt')}
+                className="h-8 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/20"
+              >
+                <Sparkles size={14} className="mr-1 text-purple-400" />
+                <span>Prompt</span>
+              </Button>
+            </Tooltip>
+
             <Tooltip
               content="Execute All Cells (⌘+Shift+Enter)"
               placement="bottom"
@@ -696,12 +710,21 @@ const NotebooksWorkspace: React.FC = () => {
           <div className="flex-1 overflow-y-auto overflow-x-visible p-8 space-y-0">
             {cells.map((cell, index) => (
               <React.Fragment key={cell.id}>
-                <PythonCell
-                  cell={cell}
-                  isActive={cell.id === activeCellId}
-                  onActivate={() => setActiveCellId(cell.id)}
-                  cellNumber={index + 1}
-                />
+                {cell.type === 'prompt' ? (
+                  <PromptCell
+                    cell={cell}
+                    isActive={cell.id === activeCellId}
+                    onActivate={() => setActiveCellId(cell.id)}
+                    cellNumber={index + 1}
+                  />
+                ) : (
+                  <PythonCell
+                    cell={cell}
+                    isActive={cell.id === activeCellId}
+                    onActivate={() => setActiveCellId(cell.id)}
+                    cellNumber={index + 1}
+                  />
+                )}
                 {/* Cell Divider - always show after each cell */}
                 <CellDivider
                   insertIndex={index + 1}
