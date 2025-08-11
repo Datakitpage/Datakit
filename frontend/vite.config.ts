@@ -82,6 +82,14 @@ export default defineConfig({
           'Origin': 'https://api.groq.com',
         },
       },
+      '/api/ollama': {
+        target: 'http://localhost:11434',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/ollama/, ''),
+        headers: {
+          'Origin': 'http://localhost:11434',
+        },
+      },
       '/video': {
         target: 'https://assets.datakit.page',
         changeOrigin: true,

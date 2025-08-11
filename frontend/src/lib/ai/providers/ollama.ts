@@ -61,7 +61,12 @@ export class OllamaProvider {
   private timeout: number;
 
   constructor(baseUrl: string = 'http://localhost:11434', model?: string) {
-    this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+    // In development, use proxy. In production, use direct connection
+    if (import.meta.env.DEV && baseUrl === 'http://localhost:11434') {
+      this.baseUrl = '/api/ollama';
+    } else {
+      this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+    }
     this.model = model || 'llama3.2';
     this.timeout = 30000; // 30 second timeout
   }
