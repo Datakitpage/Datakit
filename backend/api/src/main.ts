@@ -10,7 +10,9 @@ import {
 } from './utils/cors.utils';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: true,
+  });
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (isProduction) {

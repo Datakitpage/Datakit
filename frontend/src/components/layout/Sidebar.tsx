@@ -2,20 +2,22 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 
 import { DataSourceManager } from '@/components/data-sources';
-import { WorkspaceSelector } from '@/components/workspace/WorkspaceSelector';
+import { ProjectSelector } from '@/components/projects/ProjectSelector';
 import {
   FileTreeView,
-  WorkspaceFile,
-} from '@/components/workspace/FileTreeView';
+  LocalProjectFile,
+} from '@/components/projects/FileTreeView';
 import { ThemeColorPicker } from '@/components/common/ThemeColorPicker';
 import { useDuckDBStore } from '@/store/duckDBStore';
 import useDirectFileImport from '@/hooks/useDirectFileImport';
 import { useAppStore } from '@/store/appStore';
+import { useCloudStore } from '@/store/cloudStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePopover from '@/hooks/usePopover';
 import { useNotifications } from '@/hooks/useNotifications';
 
 import UserMenu from '@/components/auth/UserMenu';
+import { CloudFilesList } from '@/components/projects/CloudFilesList';
 import DuckDBIcon from '@/assets/duckdb.svg';
 
 // Check for custom logo from environment variable or window object
@@ -154,15 +156,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   // Get notifications
   const { showSuccess } = useNotifications();
 
-  // Get workspace state from appStore
+  // Get local project state from appStore
   const {
-    workspaceFiles,
-    addFileToWorkspace,
-    removeFileFromWorkspace,
-    renameFileInWorkspace,
+    projectFiles,
+    addFileToProject,
+    removeFileFromProject,
+    renameFileInProject,
     files,
     setActiveFile,
   } = useAppStore();
+
+  // Get cloud store state
+  const { currentCloudProject } = useCloudStore();
+
+  // Determine if cloud project is active
+  const isCloudActive = currentCloudProject !== null;
 
   const {
     processFileStreaming,
@@ -193,15 +201,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
       // Skip if this is being called from workspace file selection
       if (result && !skipWorkspaceAdd) {
         const fileType = file.name.split('.').pop()?.toLowerCase() || 'txt';
-        const newFile: WorkspaceFile = {
+        const newFile: LocalProjectFile = {
           id: `file-${Date.now()}`,
           name: file.name,
-          type: fileType as WorkspaceFile['type'],
+          type: fileType as LocalProjectFile['type'],
           size: file.size,
           lastModified: file.lastModified,
           handle: isFileSystemAccessSupported() ? handle : undefined, // Only store handle if supported
         };
-        addFileToWorkspace(newFile);
+        addFileToProject(newFile);
       }
 
       return result;
@@ -216,7 +224,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
       // Add remote file to workspace
       if (result.isRemote) {
-        const newFile: WorkspaceFile = {
+        const newFile: LocalProjectFile = {
           id: `remote-${Date.now()}`,
           name: result.fileName,
           type: 'remote',
@@ -224,7 +232,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           remoteUrl: result.remoteURL,
           lastModified: Date.now(),
         };
-        addFileToWorkspace(newFile);
+        addFileToProject(newFile);
 
         // Show success notification for remote file import
         showSuccess(
@@ -241,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   // File tree handlers
   const handleFileRemove = async (fileId: string) => {
     // Get file info before removing
-    const file = workspaceFiles.find((f) => f.id === fileId);
+    const file = projectFiles.find((f) => f.id === fileId);
 
     if (!file) return;
 
@@ -253,7 +261,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
     if (!confirmed) return;
 
     // Remove from workspace after confirmation
-    removeFileFromWorkspace(fileId);
+    removeFileFromProject(fileId);
 
     // Show success notification
     showSuccess(
@@ -284,10 +292,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   };
 
   const handleFileRename = (fileId: string, newName: string) => {
-    renameFileInWorkspace(fileId, newName);
+    renameFileInProject(fileId, newName);
   };
 
-  const handleFileSelect = async (file: WorkspaceFile) => {
+  const handleFileSelect = async (file: LocalProjectFile) => {
     console.log('[Sidebar] File selected from workspace:', file);
 
     if (!onDataLoad) {
@@ -431,7 +439,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
               await handleFileWithStreaming(selectedHandle, selectedFile, true); // Skip workspace add
 
               // Update the file handle in the workspace file for future automatic access
-              const updatedFile: WorkspaceFile = {
+              const updatedFile: LocalProjectFile = {
                 ...file,
                 handle: isFileSystemAccessSupported()
                   ? selectedHandle
@@ -505,14 +513,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           // Add file to workspace
           if (result) {
             const fileType = file.name.split('.').pop()?.toLowerCase() || 'txt';
-            const newFile: WorkspaceFile = {
+            const newFile: LocalProjectFile = {
               id: `file-${Date.now()}`,
               name: file.name,
-              type: fileType as WorkspaceFile['type'],
+              type: fileType as LocalProjectFile['type'],
               size: file.size,
               lastModified: file.lastModified,
             };
-            addFileToWorkspace(newFile);
+            addFileToProject(newFile);
           }
 
           return result;
@@ -610,7 +618,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
       {/* Workspace Selector */}
       <div className="px-5 py-3 border-b border-white/10">
-        <WorkspaceSelector />
+        <ProjectSelector />
       </div>
 
       {/* Data Source Manager section */}
@@ -626,14 +634,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
             if (result) {
               const fileType =
                 file.name.split('.').pop()?.toLowerCase() || 'txt';
-              const newFile: WorkspaceFile = {
+              const newFile: LocalProjectFile = {
                 id: `file-${Date.now()}`,
                 name: file.name,
-                type: fileType as WorkspaceFile['type'],
+                type: fileType as LocalProjectFile['type'],
                 size: file.size,
                 lastModified: file.lastModified,
               };
-              addFileToWorkspace(newFile);
+              addFileToProject(newFile);
             }
 
             return result;
@@ -645,13 +653,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
         {/* Loading Status - Combined for both local and remote */}
       </div>
-      <div className="flex-1 overflow-y-auto border-t border-white/10 mt-2">
-        <FileTreeView
-          files={workspaceFiles}
-          onFileSelect={handleFileSelect}
-          onFileRemove={handleFileRemove}
-          onFileRename={handleFileRename}
-        />
+
+      {/* Unified File Tree */}
+      <div className="flex-1 overflow-y-auto border-t border-white/10">
+        {isCloudActive ? (
+          <CloudFilesList onFileLoad={onDataLoad} />
+        ) : (
+          <FileTreeView
+            files={projectFiles}
+            onFileSelect={handleFileSelect}
+            onFileRemove={handleFileRemove}
+            onFileRename={handleFileRename}
+          />
+        )}
       </div>
 
       {/* File Tree - Main content area */}
