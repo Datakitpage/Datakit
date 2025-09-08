@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, CloudUpload } from 'lucide-react';
+import { Tooltip } from '../ui/Tooltip';
 import { useAppStore } from '@/store/appStore';
 import { useInspectorStore } from '@/store/inspectorStore';
 import { selectActiveFile } from '@/store/selectors/appSelectors';
@@ -14,6 +15,11 @@ import { useCellFormatting } from './hooks/useCellFormatting';
 import { useColumnSorting } from './hooks/useColumnSorting';
 import { useCellInteraction } from './hooks/useCellInteraction';
 import CellContextMenu from './CellContextMenu';
+import ShareModal from '@/components/sharing/ShareModal';
+import SaveToCloudModal from '@/components/cloud/SaveToCloudModal';
+import { useShareStore } from '@/store/shareStore';
+import { useCloudStore } from '@/store/cloudStore';
+import { useAuth } from '@/hooks/auth/useAuth';
 
 interface DataPreviewGridProps {
   fileId?: string;
@@ -24,6 +30,9 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
   const activeFile = useAppStore(selectActiveFile);
   const { setActiveTab } = useAppStore();
   const { openPanel, analyzeFile } = useInspectorStore();
+  const { isAuthenticated } = useAuth();
+  const { isShareModalOpen, shareModalFileId, openShareModal, closeShareModal } = useShareStore();
+  const { isSaveToCloudModalOpen, saveToCloudFileId, openSaveToCloudModal, closeSaveToCloudModal } = useCloudStore();
 
   // Use provided fileId or fall back to active file
   const targetFileId = fileId || activeFile?.id;
@@ -125,6 +134,18 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
     analyzeFile(activeFile.id, tableName);
   }, [activeFile, openPanel, analyzeFile]);
 
+  const handleShareClick = useCallback(() => {
+    if (!activeFile) return;
+    if (!isAuthenticated) return; // Let tooltip handle the messaging
+    openShareModal(activeFile.id);
+  }, [activeFile, isAuthenticated, openShareModal]);
+
+  const handleSaveToCloudClick = useCallback(() => {
+    if (!activeFile) return;
+    if (!isAuthenticated) return; // Let tooltip handle the messaging
+    openSaveToCloudModal(activeFile.id);
+  }, [activeFile, isAuthenticated, openSaveToCloudModal]);
+
   const renderHeader = () => {
     if (!activeFile && !isLoading) return null;
 
@@ -188,6 +209,41 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
         </div>
 
         <div className="flex items-center gap-2">
+
+            <Button
+              variant="outline"
+              onClick={handleSaveToCloudClick}
+              disabled={!isAuthenticated}
+              className="group relative flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg border border-blue-400/40 bg-gradient-to-r from-blue-500/15 to-cyan-500/15 hover:from-blue-500/25 hover:to-cyan-500/25 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-sm hover:shadow-md"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-400/25 rounded-full blur-sm group-hover:blur-md transition-all duration-300" />
+                <CloudUpload className="h-4 w-4 text-blue-300 relative z-10 group-hover:text-blue-200 transition-colors" />
+              </div>
+              <span className="text-white/90 group-hover:text-white font-medium">Save to Cloud</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/8 to-cyan-400/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </Button>
+            <div className="w-px h-3 bg-white/20" />
+
+          {/* TODO: to be released in the  next iterations */}
+          {/*  */}
+          {/* Share Button - show for all users with tooltip for non-authenticated */}
+          {/* <Tooltip placement='bottom' content={isAuthenticated ? "" : "Please sign in to share files"}>
+            <Button
+              variant="outline"
+              onClick={handleShareClick}
+              disabled={!isAuthenticated}
+              className="group relative flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg border border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-sm group-hover:blur-md transition-all duration-300" />
+                <Share2 className="h-4 w-4 text-blue-400 relative z-10 group-hover:text-blue-300 transition-colors" />
+              </div>
+              <span className="text-white/90 group-hover:text-white font-medium">Share</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-cyan-500/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </Button>
+          </Tooltip> */}
+
           <Button
             variant="outline"
             onClick={handleInspectorClick}
@@ -209,7 +265,7 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
             onClick={() => setActiveTab('query')}
             className="flex items-center gap-1 px-2 py-1 text-xs hover:bg-white/5 rounded transition-all duration-150"
           >
-            <span>Query full dataset</span>
+            <span>Query</span>
             <svg
               className="h-3 w-3"
               fill="none"
@@ -345,6 +401,23 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
 
       {/* Inspector Panel */}
       <InspectorPanel />
+
+      {/* Share Modal */}
+      {isShareModalOpen && shareModalFileId && (
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={closeShareModal}
+          fileId={shareModalFileId}
+        />
+      )}
+
+      {isSaveToCloudModalOpen && saveToCloudFileId && (
+        <SaveToCloudModal
+          isOpen={isSaveToCloudModalOpen}
+          onClose={closeSaveToCloudModal}
+          fileId={saveToCloudFileId}
+        />
+      )}
     </>
   );
 };

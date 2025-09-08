@@ -461,7 +461,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
                     <li className="flex items-center gap-2">
                       <div className="w-1 h-1 bg-primary rounded-full"></div>
-                      Create unlimited workspaces
+                      Create unlimited projects
                     </li>
 
                     <li className="flex items-center gap-2">

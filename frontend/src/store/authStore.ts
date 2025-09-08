@@ -21,6 +21,7 @@ interface AuthState {
   settings: UserSettings | null;
   hasInitialized: boolean;
   currentWorkspace: Workspace | null;
+  currentWorkspaceId:  Workspace['id'];
 
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -49,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
       settings: null,
       hasInitialized: false,
       currentWorkspace: null,
+      currentWorkspaceId: null,
 
       // Actions
       login: async (credentials) => {
@@ -59,6 +61,7 @@ export const useAuthStore = create<AuthState>()(
 
           set({
             user: response.user,
+            currentWorkspaceId: response.user.currentWorkspaceId,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -96,6 +99,7 @@ export const useAuthStore = create<AuthState>()(
 
           set({
             user: response.user,
+            currentWorkspaceId: response.user.currentWorkspaceId,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -152,9 +156,10 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
               hasInitialized: true,
+              currentWorkspaceId: user?.currentWorkspaceId
             });
 
-            // TODO: In future we might want to show workspaces from the very beginning of the user's journey in the app
+            // TODO: In future we might want to show workspaces and their details from the very beginning of the user's journey in the app
             //
             // Load current workspace after auth check
             // try {

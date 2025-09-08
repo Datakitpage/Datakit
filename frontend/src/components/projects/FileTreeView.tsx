@@ -1,6 +1,6 @@
 /**
- * FileTreeView - Display workspace files in a tree structure
- * Shows all files in the current workspace with actions
+ * FileTreeView - Display local project files in a tree structure
+ * Shows all files in the current local project with actions
  */
 
 import React, { useState } from 'react';
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export interface WorkspaceFile {
+export interface LocalProjectFile {
   id: string;
   name: string;
   path?: string;
@@ -32,8 +32,8 @@ export interface WorkspaceFile {
 }
 
 interface FileTreeViewProps {
-  files: WorkspaceFile[];
-  onFileSelect?: (file: WorkspaceFile) => void;
+  files: LocalProjectFile[];
+  onFileSelect?: (file: LocalProjectFile) => void;
   onFileRemove?: (fileId: string) => void;
   onFileRename?: (fileId: string, newName: string) => void;
   activeFileId?: string;
@@ -50,7 +50,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
   const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState('');
 
-  const getFileIcon = (type: WorkspaceFile['type']) => {
+  const getFileIcon = (type: LocalProjectFile['type']) => {
     const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 };
     
     switch (type) {
@@ -79,7 +79,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
   };
 
-  const handleStartRename = (file: WorkspaceFile) => {
+  const handleStartRename = (file: LocalProjectFile) => {
     setRenamingFileId(file.id);
     setNewFileName(file.name);
     setContextMenuFileId(null);
@@ -102,7 +102,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
     return (
       <div className="px-5 py-8 text-center">
         <FolderOpen className="h-8 w-8 text-white/20 mx-auto mb-2" />
-        <p className="text-xs text-white/40">No files in workspace</p>
+        <p className="text-xs text-white/40">No files in this project</p>
         <p className="text-[10px] text-white/30 mt-1">Add files using the source panel above</p>
       </div>
     );
@@ -111,7 +111,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
   return (
     <div className="px-3 py-2">
       <div className="text-[10px] text-white/40 uppercase tracking-wider mb-2 px-2">
-        Workspace Files ({files.length})
+        Project Files ({files.length})
       </div>
       
       <div className="space-y-0.5">

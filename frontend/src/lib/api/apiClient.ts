@@ -181,6 +181,43 @@ class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 
+  // Special method for multipart uploads (FormData)
+  async uploadFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    options?: Omit<RequestOptions, 'headers'> & { 
+      onUploadProgress?: (progress: number) => void;
+      headers?: Record<string, string>;
+    }
+  ): Promise<T> {
+    const { skipAuth = false, headers = {}, onUploadProgress, ...restOptions } = options || {};
+    
+    const authHeaders = skipAuth ? {} : await this.getAuthHeaders();
+    
+    // Don't set Content-Type for FormData - browser will set it with boundary
+    const finalHeaders = {
+      ...authHeaders,
+      ...headers,
+    };
+
+    const url = `${this.baseURL}${endpoint}`;
+    
+    try {
+      const response = await fetch(url, {
+        ...restOptions,
+        method: 'POST',
+        headers: finalHeaders,
+        credentials: 'include',
+        body: formData,
+      });
+
+      const result = await this.handleResponse<T>(response, { endpoint, options: { ...options, skipAuth } });
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Streaming method for AI responses
   async stream(
     endpoint: string,
