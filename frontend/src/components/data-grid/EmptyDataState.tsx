@@ -123,8 +123,6 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
 
         {/* Description */}
         <p className="text-white/70 mb-6 leading-relaxed">
-          Import your files to start analyzing.
-          <br />
           <motion.span
             className="relative overflow-hidden"
             initial={{ opacity: 0, y: 10 }}
@@ -142,10 +140,14 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
                 ease: "linear",
               }}
             >
-              Everything runs locally
+             Everything runs locally by default
             </motion.span>
-          </motion.span>{" "}
-          — Your data stays private.
+          </motion.span>
+          {" "}— your data never leaves your machine.
+          <br />
+          <span className="text-white/50">
+            When you're ready, save projects securely in the cloud.
+          </span>
         </p>
 
         {/* Import options */}

@@ -10,23 +10,23 @@ import { DataSourceType } from "@/types/json";
 import { DataFile, DataLoadWithDuckDBResult } from "@/types/multiFile";
 import { ImportProvider } from "@/types/remoteImport";
 import { DucklakeCatalog } from "@/lib/duckdb/ducklake";
-import { WorkspaceFile } from "@/components/workspace/FileTreeView";
+import { LocalProjectFile } from "@/components/projects/FileTreeView";
 
 /**
- * Interface for a workspace
+ * Interface for a local project
  */
-export interface Workspace {
-  /** Unique identifier for the workspace */
+export interface LocalProject {
+  /** Unique identifier for the project */
   id: string;
-  /** User-provided workspace name */
+  /** User-provided project name */
   name: string;
-  /** Array of files in this workspace */
-  files: WorkspaceFile[];
-  /** Timestamp when workspace was created */
+  /** Array of files in this project */
+  files: LocalProjectFile[];
+  /** Timestamp when project was created */
   createdAt: number;
-  /** Timestamp when workspace was last modified */
+  /** Timestamp when project was last modified */
   lastModified: number;
-  /** Whether this is the draft (unsaved) workspace */
+  /** Whether this is the draft (unsaved) project */
   isDraft?: boolean;
 }
 
@@ -92,13 +92,13 @@ interface AppState {
   /** Pending query to be loaded in query tab */
   pendingQuery: string | null;
 
-  // Workspace state
-  /** Array of all workspaces */
-  workspaces: Workspace[];
-  /** ID of the currently active workspace */
-  activeWorkspaceId: string;
-  /** Files in the current workspace (denormalized for easy access) */
-  workspaceFiles: WorkspaceFile[];
+  // Local project state
+  /** Array of all local projects */
+  localProjects: LocalProject[];
+  /** ID of the currently active local project */
+  activeProjectId: string;
+  /** Files in the current project (denormalized for easy access) */
+  projectFiles: LocalProjectFile[];
 
   // Multi-file actions
   /** Add a new file to the collection */
@@ -163,31 +163,33 @@ interface AppState {
   /** Set a pending query to be loaded in query tab */
   setPendingQuery: (query: string | null) => void;
 
-  // Workspace actions
-  /** Create a new workspace */
-  createWorkspace: (name: string) => string;
-  /** Switch to a different workspace */
-  switchWorkspace: (workspaceId: string) => void;
-  /** Rename a workspace */
-  renameWorkspace: (workspaceId: string, newName: string) => void;
-  /** Delete a workspace */
-  deleteWorkspace: (workspaceId: string) => void;
-  /** Add a file to the current workspace */
-  addFileToWorkspace: (file: WorkspaceFile) => void;
-  /** Remove a file from the current workspace */
-  removeFileFromWorkspace: (fileId: string) => void;
-  /** Rename a file in the current workspace */
-  renameFileInWorkspace: (fileId: string, newName: string) => void;
-  /** Save the draft workspace */
-  saveDraftWorkspace: (name: string) => void;
-  /** Load workspaces from storage */
-  loadWorkspacesFromStorage: () => Promise<void>;
-  /** Persist workspaces to storage */
-  saveWorkspacesToStorage: () => Promise<void>;
+  // Local project actions
+  /** Create a new local project */
+  createLocalProject: (name: string) => string;
+  /** Switch to a different local project */
+  switchLocalProject: (projectId: string) => void;
+  /** Clear active project (switch to draft) */
+  clearActiveProject: () => void;
+  /** Rename a local project */
+  renameLocalProject: (projectId: string, newName: string) => void;
+  /** Delete a local project */
+  deleteLocalProject: (projectId: string) => void;
+  /** Add a file to the current project */
+  addFileToProject: (file: LocalProjectFile) => void;
+  /** Remove a file from the current project */
+  removeFileFromProject: (fileId: string) => void;
+  /** Rename a file in the current project */
+  renameFileInProject: (fileId: string, newName: string) => void;
+  /** Save the draft project */
+  saveDraftProject: (name: string) => void;
+  /** Load projects from storage */
+  loadProjectsFromStorage: () => Promise<void>;
+  /** Persist projects to storage */
+  saveProjectsToStorage: () => Promise<void>;
 }
 
-// Create initial draft workspace
-const createDraftWorkspace = (): Workspace => ({
+// Create initial draft project
+const createDraftProject = (): LocalProject => ({
   id: 'draft',
   name: 'Draft',
   files: [],
@@ -223,10 +225,10 @@ const initialState = {
   isRemoteModalOpen: false,
   activeProviderRemoteModal: 'huggingface' as ImportProvider,
 
-  // Workspace state
-  workspaces: [createDraftWorkspace()],
-  activeWorkspaceId: 'draft',
-  workspaceFiles: [],
+  // Local project state
+  localProjects: [createDraftProject()],
+  activeProjectId: 'draft',
+  projectFiles: [],
 };
 
 /**
@@ -250,9 +252,22 @@ const generateTableName = (fileName: string, fileId: string): string => {
     .replace(/[^a-zA-Z0-9_]/g, "_") // Replace non-alphanumeric with underscore
     .toLowerCase();
 
-  // Add file ID suffix to ensure uniqueness
-  const shortId = fileId.split("_").pop() || "unknown";
-  return `${safeName}_${shortId}`;
+  // For cloud files (cloud_xxx), use full cloud ID for uniqueness
+  // For regular files (file_timestamp_randomId), use the random part
+  // For shared files (shared_timestamp), use timestamp
+  let uniqueSuffix: string;
+  if (fileId.startsWith('cloud_')) {
+    // Use the full cloud ID part after 'cloud_' to ensure uniqueness
+    uniqueSuffix = fileId.substring(6); // Remove 'cloud_' prefix
+  } else if (fileId.startsWith('shared_')) {
+    // Use timestamp for shared files
+    uniqueSuffix = fileId.substring(7); // Remove 'shared_' prefix
+  } else {
+    // For regular files, use the random part (last segment)
+    uniqueSuffix = fileId.split("_").pop() || "unknown";
+  }
+  
+  return `${safeName}_${uniqueSuffix}`;
 };
 
 // Detect if running inside an iframe
@@ -289,11 +304,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   sidebarCollapsed: getSavedSidebarState(),
   isInIframe: detectIframe(),
   
-  // Initialize workspaces on store creation
+  // Initialize projects on store creation
   ...((() => {
-    // Load workspaces from storage on initialization
+    // Load projects from storage on initialization
     setTimeout(() => {
-      get().loadWorkspacesFromStorage();
+      get().loadProjectsFromStorage();
     }, 0);
     return {};
   })()),
@@ -701,11 +716,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ pendingQuery: query });
   },
 
-  // Workspace actions
-  createWorkspace: (name: string): string => {
-    const workspaceId = `workspace-${Date.now()}`;
-    const newWorkspace: Workspace = {
-      id: workspaceId,
+  // Local project actions
+  createLocalProject: (name: string): string => {
+    const projectId = `project-${Date.now()}`;
+    const newProject: LocalProject = {
+      id: projectId,
       name,
       files: [],
       createdAt: Date.now(),
@@ -714,121 +729,128 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
 
     set((state) => ({
-      workspaces: [...state.workspaces, newWorkspace],
-      activeWorkspaceId: workspaceId,
-      workspaceFiles: []
+      localProjects: [...state.localProjects, newProject],
+      activeProjectId: projectId,
+      projectFiles: []
     }));
 
-    // Only save to storage if not a draft workspace
-    const activeWorkspace = get().workspaces.find(w => w.id === get().activeWorkspaceId);
-    if (activeWorkspace && !activeWorkspace.isDraft) {
-      get().saveWorkspacesToStorage();
+    // Only save to storage if not a draft project
+    const activeProject = get().localProjects.find(p => p.id === get().activeProjectId);
+    if (activeProject && !activeProject.isDraft) {
+      get().saveProjectsToStorage();
     }
-    return workspaceId;
+    return projectId;
   },
 
-  switchWorkspace: (workspaceId: string) => {
+  switchLocalProject: (projectId: string) => {
     set((state) => {
-      const workspace = state.workspaces.find(w => w.id === workspaceId);
-      if (workspace) {
+      const project = state.localProjects.find(p => p.id === projectId);
+      if (project) {
         return {
-          activeWorkspaceId: workspaceId,
-          workspaceFiles: workspace.files || []
+          activeProjectId: projectId,
+          projectFiles: project.files || []
         };
       }
       return state;
     });
   },
+  
+  clearActiveProject: () => {
+    set({
+      activeProjectId: 'draft',
+      projectFiles: []
+    });
+  },
 
-  renameWorkspace: (workspaceId: string, newName: string) => {
+  renameLocalProject: (projectId: string, newName: string) => {
     set((state) => ({
-      workspaces: state.workspaces.map(w =>
-        w.id === workspaceId 
-          ? { ...w, name: newName, lastModified: Date.now() }
-          : w
+      localProjects: state.localProjects.map(p =>
+        p.id === projectId 
+          ? { ...p, name: newName, lastModified: Date.now() }
+          : p
       )
     }));
-    // Only save to storage if not a draft workspace
-    const activeWorkspace = get().workspaces.find(w => w.id === get().activeWorkspaceId);
-    if (activeWorkspace && !activeWorkspace.isDraft) {
-      get().saveWorkspacesToStorage();
+    // Only save to storage if not a draft project
+    const activeProject = get().localProjects.find(p => p.id === get().activeProjectId);
+    if (activeProject && !activeProject.isDraft) {
+      get().saveProjectsToStorage();
     }
   },
 
-  deleteWorkspace: (workspaceId: string) => {
-    if (workspaceId === 'draft') return; // Can't delete draft
+  deleteLocalProject: (projectId: string) => {
+    if (projectId === 'draft') return; // Can't delete draft
     
     set((state) => {
-      const newWorkspaces = state.workspaces.filter(w => w.id !== workspaceId);
-      const needsSwitch = state.activeWorkspaceId === workspaceId;
+      const newProjects = state.localProjects.filter(p => p.id !== projectId);
+      const needsSwitch = state.activeProjectId === projectId;
       
       return {
-        workspaces: newWorkspaces,
-        activeWorkspaceId: needsSwitch ? 'draft' : state.activeWorkspaceId,
-        workspaceFiles: needsSwitch ? [] : state.workspaceFiles
+        localProjects: newProjects,
+        activeProjectId: needsSwitch ? 'draft' : state.activeProjectId,
+        projectFiles: needsSwitch ? [] : state.projectFiles
       };
     });
-    // Always save to storage after deleting a workspace (since we're deleting a non-draft workspace)
-    get().saveWorkspacesToStorage();
+    // Always save to storage after deleting a project (since we're deleting a non-draft project)
+    get().saveProjectsToStorage();
   },
 
-  addFileToWorkspace: (file: WorkspaceFile) => {
+  addFileToProject: (file: LocalProjectFile) => {
     set((state) => {
-      const updatedWorkspaces = state.workspaces.map(w => {
-        if (w.id === state.activeWorkspaceId) {
+      const updatedProjects = state.localProjects.map(p => {
+        if (p.id === state.activeProjectId) {
           return {
-            ...w,
-            files: [...(w.files || []), file],
+            ...p,
+            files: [...(p.files || []), file],
             lastModified: Date.now()
           };
         }
-        return w;
+        return p;
       });
 
       return {
-        workspaces: updatedWorkspaces,
-        workspaceFiles: [...state.workspaceFiles, file]
+        localProjects: updatedProjects,
+        projectFiles: [...state.projectFiles, file]
       };
     });
-    // Only save to storage if not a draft workspace
-    const activeWorkspace = get().workspaces.find(w => w.id === get().activeWorkspaceId);
-    if (activeWorkspace && !activeWorkspace.isDraft) {
-      get().saveWorkspacesToStorage();
+    // Only save to storage if not a draft project
+    const activeProject = get().localProjects.find(p => p.id === get().activeProjectId);
+    if (activeProject && !activeProject.isDraft) {
+      get().saveProjectsToStorage();
     }
   },
 
-  removeFileFromWorkspace: (fileId: string) => {
-    // Get the workspace file before removing to check for corresponding file tabs
-    const workspaceFile = get().workspaceFiles.find(f => f.id === fileId);
+  removeFileFromProject: (fileId: string) => {
+    // Get the project file before removing to check for corresponding file tabs
+    const projectFile = get().projectFiles.find(f => f.id === fileId);
     
     set((state) => {
-      const updatedWorkspaces = state.workspaces.map(w => {
-        if (w.id === state.activeWorkspaceId) {
+      const updatedProjects = state.localProjects.map(p => {
+        if (p.id === state.activeProjectId) {
           return {
-            ...w,
-            files: w.files.filter(f => f.id !== fileId),
+            ...p,
+            files: p.files.filter(f => f.id !== fileId),
             lastModified: Date.now()
           };
         }
-        return w;
+        return p;
       });
 
       // Find and remove corresponding file tab(s) with the same name
       let updatedFiles = state.files;
-      if (workspaceFile) {
-        // Remove file tabs that match the workspace file name
+      if (projectFile) {
+        // Remove file tabs that match the project file name
         updatedFiles = state.files.filter(f => {
-          // Check if file tab name matches workspace file name
+          // Check if file tab name matches project file name
           const tabFileName = f.fileName || '';
-          const workspaceFileName = workspaceFile.name || '';
-          return tabFileName !== workspaceFileName;
+          const projectFileName = projectFile.name || '';
+          return tabFileName !== projectFileName;
         });
       }
 
       // Handle active file switching if we removed the active file tab
       let newActiveFileId = state.activeFileId;
-      const activeFileRemoved = workspaceFile && state.files.some(f => 
-        f.id === state.activeFileId && (f.fileName === workspaceFile.name)
+      const activeFileRemoved = projectFile && state.files.some(f => 
+        f.id === state.activeFileId && (f.fileName === projectFile.name)
       );
       
       if (activeFileRemoved && updatedFiles.length > 0) {
@@ -839,43 +861,43 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       return {
-        workspaces: updatedWorkspaces,
-        workspaceFiles: state.workspaceFiles.filter(f => f.id !== fileId),
+        localProjects: updatedProjects,
+        projectFiles: state.projectFiles.filter(f => f.id !== fileId),
         files: updatedFiles,
         activeFileId: newActiveFileId
       };
     });
     
-    // Only save to storage if not a draft workspace
-    const activeWorkspace = get().workspaces.find(w => w.id === get().activeWorkspaceId);
-    if (activeWorkspace && !activeWorkspace.isDraft) {
-      get().saveWorkspacesToStorage();
+    // Only save to storage if not a draft project
+    const activeProject = get().localProjects.find(p => p.id === get().activeProjectId);
+    if (activeProject && !activeProject.isDraft) {
+      get().saveProjectsToStorage();
     }
   },
   // TODO: for now disabling on the UI, as it might bring some confusion on what does it happen to other tabs/query panel
-  renameFileInWorkspace: (fileId: string, newName: string) => {
+  renameFileInProject: (fileId: string, newName: string) => {
     // Get the old file name before renaming for matching with file tabs
-    const oldWorkspaceFile = get().workspaceFiles.find(f => f.id === fileId);
-    const oldFileName = oldWorkspaceFile?.name;
+    const oldProjectFile = get().projectFiles.find(f => f.id === fileId);
+    const oldFileName = oldProjectFile?.name;
     
     set((state) => {
-      const updatedWorkspaces = state.workspaces.map(w => {
-        if (w.id === state.activeWorkspaceId) {
+      const updatedProjects = state.localProjects.map(p => {
+        if (p.id === state.activeProjectId) {
           return {
-            ...w,
-            files: w.files.map(f => 
+            ...p,
+            files: p.files.map(f => 
               f.id === fileId ? { ...f, name: newName } : f
             ),
             lastModified: Date.now()
           };
         }
-        return w;
+        return p;
       });
 
-      // Find file tabs that match the old workspace file name and update them
+      // Find file tabs that match the old project file name and update them
       const updatedFiles = state.files.map(file => {
-        // Check if this file tab corresponds to the renamed workspace file
-        // Match by fileName (since workspace files and file tabs might have different IDs)
+        // Check if this file tab corresponds to the renamed project file
+        // Match by fileName (since project files and file tabs might have different IDs)
         if (oldFileName && file.fileName === oldFileName) {
           return {
             ...file,
@@ -886,21 +908,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
 
       return {
-        workspaces: updatedWorkspaces,
-        workspaceFiles: state.workspaceFiles.map(f =>
+        localProjects: updatedProjects,
+        projectFiles: state.projectFiles.map(f =>
           f.id === fileId ? { ...f, name: newName } : f
         ),
         files: updatedFiles
       };
     });
-    // Only save to storage if not a draft workspace
-    const activeWorkspace = get().workspaces.find(w => w.id === get().activeWorkspaceId);
-    if (activeWorkspace && !activeWorkspace.isDraft) {
-      get().saveWorkspacesToStorage();
+    // Only save to storage if not a draft project
+    const activeProject = get().localProjects.find(p => p.id === get().activeProjectId);
+    if (activeProject && !activeProject.isDraft) {
+      get().saveProjectsToStorage();
     }
   },
 
-  saveDraftWorkspace: (name: string) => {
+  saveDraftProject: (name: string) => {
     const state = get();
     const draftWorkspace = state.workspaces.find(w => w.id === 'draft');
     
@@ -923,24 +945,24 @@ export const useAppStore = create<AppState>((set, get) => ({
               lastModified: Date.now()
             };
           }
-          return w;
+          return p;
         });
 
         return {
-          workspaces: updatedWorkspaces,
+          localProjects: updatedProjects,
           workspaceFiles: draftWorkspace.files
         };
       });
       
-      // Only save to storage if not a draft workspace
-    const activeWorkspace = get().workspaces.find(w => w.id === get().activeWorkspaceId);
-    if (activeWorkspace && !activeWorkspace.isDraft) {
-      get().saveWorkspacesToStorage();
+      // Only save to storage if not a draft project
+    const activeProject = get().localProjects.find(p => p.id === get().activeProjectId);
+    if (activeProject && !activeProject.isDraft) {
+      get().saveProjectsToStorage();
     }
     }
   },
 
-  loadWorkspacesFromStorage: async () => {
+  loadProjectsFromStorage: async () => {
     try {
       const stored = await getFromIndexDB('datakit-workspaces');
       let storedHandles: Record<string, FileSystemFileHandle> = {};
@@ -953,52 +975,52 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
       
       if (stored && Array.isArray(stored)) {
-        // Restore file handles to workspace files
-        const workspacesWithHandles = stored.map(workspace => ({
-          ...workspace,
-          files: workspace.files.map(file => ({
+        // Restore file handles to project files
+        const projectsWithHandles = stored.map(project => ({
+          ...project,
+          files: project.files.map(file => ({
             ...file,
             handle: storedHandles[file.id] || undefined
           }))
         }));
         
-        // Ensure draft workspace exists
-        const hasDraft = workspacesWithHandles.some(w => w.id === 'draft');
-        const workspaces = hasDraft ? workspacesWithHandles : [createDraftWorkspace(), ...workspacesWithHandles];
+        // Ensure draft project exists
+        const hasDraft = projectsWithHandles.some(p => p.id === 'draft');
+        const projects = hasDraft ? projectsWithHandles : [createDraftProject(), ...projectsWithHandles];
         
         set({ 
-          workspaces,
-          workspaceFiles: workspaces.find(w => w.id === get().activeWorkspaceId)?.files || []
+          localProjects: projects,
+          projectFiles: projects.find(p => p.id === get().activeProjectId)?.files || []
         });
         
-        console.log('[AppStore] Loaded workspaces with', Object.keys(storedHandles).length, 'file handles');
+        console.log('[AppStore] Loaded projects with', Object.keys(storedHandles).length, 'file handles');
       }
     } catch (error) {
-      console.error('[AppStore] Failed to load workspaces:', error);
+      console.error('[AppStore] Failed to load projects:', error);
     }
   },
 
-  saveWorkspacesToStorage: async () => {
+  saveProjectsToStorage: async () => {
     try {
-      const workspaces = get().workspaces.filter(w => !w.isDraft);
+      const projects = get().localProjects.filter(p => !p.isDraft);
       
-      // Separate file handles from workspace data for storage
-      const workspacesForStorage = workspaces.map(workspace => ({
-        ...workspace,
-        files: workspace.files.map(file => ({
+      // Separate file handles from project data for storage
+      const projectsForStorage = projects.map(project => ({
+        ...project,
+        files: project.files.map(file => ({
           ...file,
           handle: undefined // Remove handles from JSON storage
         }))
       }));
       
-      // Store workspace data without handles
-      await setToIndexDB('datakit-workspaces', workspacesForStorage);
+      // Store project data without handles
+      await setToIndexDB('datakit-workspaces', projectsForStorage);
       
       // Try to store file handles separately, but don't fail if it doesn't work
       try {
         const fileHandles: Record<string, FileSystemFileHandle> = {};
-        workspaces.forEach(workspace => {
-          workspace.files.forEach(file => {
+        projects.forEach(project => {
+          project.files.forEach(file => {
             if (file.handle) {
               fileHandles[file.id] = file.handle;
             }
@@ -1011,10 +1033,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
       } catch (handleError) {
         console.warn('[AppStore] Could not save file handles (browser may not support this):', handleError);
-        // Continue without failing - workspace data is still saved
+        // Continue without failing - project data is still saved
       }
     } catch (error) {
-      console.error('[AppStore] Failed to save workspaces:', error);
+      console.error('[AppStore] Failed to save projects:', error);
     }
   }
 }));

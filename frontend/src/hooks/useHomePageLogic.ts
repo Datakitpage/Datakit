@@ -14,6 +14,7 @@ import { useDemoFileDrops } from './useDemoFileDrops'
 import { useUrlParameterHandler } from './useUrlParameterHandler'
 import { useTabTracking } from './useTabTracking'
 import { useIframeDetection } from './useIframeDetection'
+import { useSharedFileImport } from './useSharedFileImport'
 
 export const useHomePageLogic = () => {
   const analytics = useAnalytics()
@@ -34,6 +35,7 @@ export const useHomePageLogic = () => {
   useTabTracking(activeTab)
   useDemoFileDrops({ processFile, addFile, analytics })
   useUrlParameterHandler({ processFile, addFile, analytics })
+  useSharedFileImport() // Handle shared file imports from SharePreview
 
   /**
    * Handle data load from sidebar

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { FileUploadButton } from '@/components/common/FileUploadButton';
-import { SourceTypeSelector } from './SourceTypeSelector';
-
 import { File, Cloud } from 'lucide-react';
 import s3Logo from '@/assets/s3.png';
 import huggingfaceLogo from '@/assets/huggingface.png';
@@ -33,29 +31,33 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
 }) => {
   const [activeSourceType, setActiveSourceType] = useState<SourceType>('file');
 
-  const sourceTypes = [
-    {
-      type: 'file' as SourceType,
-      label: 'Files',
-      icon: File,
-      description: 'Local files',
-    },
-    {
-      type: 'cloud' as SourceType,
-      label: 'Cloud',
-      icon: Cloud,
-      description: 'Remote data',
-    },
-  ];
-
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Source Type Selector */}
-      <SourceTypeSelector
-        sourceTypes={sourceTypes}
-        activeType={activeSourceType}
-        onTypeSelect={setActiveSourceType}
-      />
+      {/* Source Type Tabs - Similar to Sidebar View Mode */}
+      <div className="flex items-center gap-1 p-1 bg-white/5 rounded-lg">
+        <button
+          onClick={() => setActiveSourceType('file')}
+          className={`flex-1 flex items-center justify-center gap-2 px-2 py-1.5 rounded transition-colors ${
+            activeSourceType === 'file'
+              ? 'bg-white/10 text-white'
+              : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+          }`}
+        >
+          <File className="h-3.5 w-3.5" />
+          <span className="text-xs font-medium">Local Files</span>
+        </button>
+        <button
+          onClick={() => setActiveSourceType('cloud')}
+          className={`flex-1 flex items-center justify-center gap-2 px-2 py-1.5 rounded transition-colors ${
+            activeSourceType === 'cloud'
+               ? 'bg-white/10 text-white'
+              : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+          }`}
+        >
+          <Cloud className="h-3.5 w-3.5" />
+          <span className="text-xs font-medium">Remote</span>
+        </button>
+      </div>
 
       {/* Source Type Panels */}
       <div className="min-h-[100px]">
@@ -86,7 +88,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
               </div>
 
               <h3 className="text-sm font-medium text-white mb-4 relative z-10 tracking-wide">
-                Connect Cloud Sources
+                Connect Remote Sources
               </h3>
 
               {/* Provider logos - 4 smaller icons */}

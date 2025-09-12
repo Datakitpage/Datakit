@@ -2,7 +2,7 @@ import { useRef } from "react";
 import useDirectFileImport from "@/hooks/useDirectFileImport";
 import { useAppStore } from "@/store/appStore";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { WorkspaceFile } from "@/components/workspace/FileTreeView";
+import { LocalProjectFile } from "@/components/projects/FileTreeView";
 
 // Helper function to check File System Access API support
 const isFileSystemAccessSupported = (): boolean => {
@@ -12,7 +12,7 @@ const isFileSystemAccessSupported = (): boolean => {
 export const useFileUpload = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const analytics = useAnalytics();
-  const { addFile, addFileToWorkspace } = useAppStore();
+  const { addFile, addFileToProject } = useAppStore();
   const { processFile, processFileStreaming, isProcessing } = useDirectFileImport();
 
   const handleButtonClick = async () => {
@@ -47,15 +47,15 @@ export const useFileUpload = () => {
           
           // Add file to workspace with handle for automatic access
           const fileType = file.name.split('.').pop()?.toLowerCase() || 'txt';
-          const newFile: WorkspaceFile = {
+          const newFile: LocalProjectFile = {
             id: `file-${Date.now()}`,
             name: file.name,
-            type: fileType as WorkspaceFile['type'],
+            type: fileType as LocalProjectFile['type'],
             size: file.size,
             lastModified: file.lastModified,
             handle: fileHandle, // Store the file handle for future automatic access
           };
-          addFileToWorkspace(newFile);
+          addFileToProject(newFile);
         });
       } catch (err) {
         if (!(err instanceof Error) || err.name !== "AbortError") {
@@ -79,15 +79,15 @@ export const useFileUpload = () => {
       
       // Add file to workspace (without handle since we're using regular file input)
       const fileType = file.name.split('.').pop()?.toLowerCase() || 'txt';
-      const newFile: WorkspaceFile = {
+      const newFile: LocalProjectFile = {
         id: `file-${Date.now()}`,
         name: file.name,
-        type: fileType as WorkspaceFile['type'],
+        type: fileType as LocalProjectFile['type'],
         size: file.size,
         lastModified: file.lastModified,
         // No handle available for regular file input
       };
-      addFileToWorkspace(newFile);
+      addFileToProject(newFile);
     });
     
     // Reset input

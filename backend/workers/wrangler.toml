@@ -1,0 +1,24 @@
+name = "datakit-subdomain-router"
+main = "subdomain-router.ts"
+compatibility_date = "2024-01-15"
+
+[env.production]
+vars = { 
+  BACKEND_URL = "https://api.datakit.page",
+  FRONTEND_URL = "https://datakit.page",
+  ALLOWED_ORIGINS = "*"
+}
+
+[env.staging]
+vars = { 
+  BACKEND_URL = "https://api-staging.datakit.page",
+  FRONTEND_URL = "https://staging.datakit.page", 
+  ALLOWED_ORIGINS = "*"
+}
+
+[env.development]
+vars = { 
+  BACKEND_URL = "http://localhost:3001",
+  FRONTEND_URL = "http://localhost:3000",
+  ALLOWED_ORIGINS = "*"
+}

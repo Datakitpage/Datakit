@@ -14,6 +14,8 @@ import { AIModule } from './ai/ai.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { PostgresProxyModule } from './postgres-proxy/postgres-proxy.module';
+import { CloudStorageModule } from './cloud-storage/cloud-storage.module';
+import { ProjectSharingModule } from './project-sharing/project-sharing.module';
 import { getDatabaseConfig } from './config/database.config';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 
@@ -69,6 +71,8 @@ import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
     AIModule,
     WaitlistModule,
     PostgresProxyModule,
+    CloudStorageModule,
+    ProjectSharingModule,
   ],
   controllers: [AppController],
   providers: [
