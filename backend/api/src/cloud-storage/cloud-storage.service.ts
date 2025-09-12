@@ -134,7 +134,7 @@ export class CloudStorageService {
       const limitMB = Math.round(limit / (1024 * 1024));
       const usageMB = Math.round(usage / (1024 * 1024));
       throw new ForbiddenException(
-        `Storage limit exceeded. Workspace is using ${usageMB}MB of ${limitMB}MB available.`,
+        `Storage limit exceeded. Workspace is using ${usageMB}MB of ${limitMB}MB available. You need more space? contact us at hello@datakit.page`,
       );
     }
   }
