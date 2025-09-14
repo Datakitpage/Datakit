@@ -146,7 +146,7 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
           {" "}— your data never leaves your machine.
           <br />
           <span className="text-white/50">
-            When you're ready, save projects securely in the cloud.
+            When you're ready, save projects securely.
           </span>
         </p>
 

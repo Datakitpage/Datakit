@@ -169,7 +169,23 @@ class CloudStorageService {
   }
 
   /**
+   * Rename/update project
+   */
+  async renameCloudProject(projectId: string, name: string): Promise<CloudProject> {
+    const response = await apiClient.patch(`/cloud-storage/project/${projectId}`, { name });
+    return response;
+  }
+
+  /**
+   * Delete cloud project (and all its files)
+   */
+  async deleteCloudProject(projectId: string): Promise<void> {
+    await apiClient.delete(`/cloud-storage/project/${projectId}`);
+  }
+
+  /**
    * Delete project (and all its files)
+   * @deprecated Use deleteCloudProject instead
    */
   async deleteProject(projectId: string): Promise<void> {
     await apiClient.delete(`/cloud-storage/project/${projectId}`);

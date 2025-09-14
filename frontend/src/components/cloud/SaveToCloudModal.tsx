@@ -342,7 +342,7 @@ const SaveToCloudModal: React.FC<SaveToCloudModalProps> = ({
 
       <div className="flex justify-end">
         <Button
-          variant="primary"
+          variant="outline"
           onClick={handleNext}
           disabled={!selectedProjectId || willExceedLimit}
         >
@@ -372,13 +372,13 @@ const SaveToCloudModal: React.FC<SaveToCloudModalProps> = ({
       <div className="space-y-3">
         <button
           onClick={() => setReplaceIfExists(!replaceIfExists)}
-          className="w-full flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors text-left"
+          className="w-full flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors text-left cursor-pointer"
         >
           <div className={`h-4 w-4 rounded border-2 mt-0.5 transition-colors ${
             replaceIfExists ? 'bg-primary border-primary' : 'border-white/30'
           }`}>
             {replaceIfExists && (
-              <CheckCircle className="h-3 w-3 text-black m-0.5" />
+              <CheckCircle className="h-3 w-3 text-black" />
             )}
           </div>
           <div className="flex-1">
@@ -395,7 +395,7 @@ const SaveToCloudModal: React.FC<SaveToCloudModalProps> = ({
           onClick={() => setKeepVersionHistory(!keepVersionHistory)}
           disabled={!replaceIfExists}
           className={`w-full flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10 transition-colors text-left ${
-            replaceIfExists ? 'hover:bg-white/10' : 'opacity-50 cursor-not-allowed'
+            replaceIfExists ? 'hover:bg-white/10 cursor-pointer' : 'opacity-50 cursor-not-allowed'
           }`}
         >
           <div className={`h-4 w-4 rounded border-2 mt-0.5 transition-colors ${
@@ -461,7 +461,7 @@ const SaveToCloudModal: React.FC<SaveToCloudModalProps> = ({
           </div>
           <div className="relative h-3 bg-white/10 rounded-full overflow-hidden">
             <div
-              className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary to-green-500 transition-all duration-300"
+              className="absolute left-0 top-0 h-full bg-gradient-to-r from-slate-500 via-cyan-500 to-green-500 transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
@@ -521,7 +521,7 @@ const SaveToCloudModal: React.FC<SaveToCloudModalProps> = ({
             {/* Progress Bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
               <motion.div
-                className="h-full bg-gradient-to-r from-primary to-purple-500"
+                className="h-full bg-gradient-to-r from-slate-400 via-teal-500 to-emerald-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${getStepProgress()}%` }}
                 transition={{ duration: 0.3 }}

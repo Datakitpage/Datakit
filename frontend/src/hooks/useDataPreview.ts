@@ -35,7 +35,7 @@ interface DataPreviewResult {
  */
 export const useDataPreview = (targetFileId?: string): DataPreviewResult => {
   const activeFile = useAppStore(selectActiveFile);
-  const { executePaginatedQuery, getObjectType } = useDuckDBStore();
+  const { executePaginatedQuery, getObjectType, ensureTableExists } = useDuckDBStore();
   
   const { 
     getFileState, 
@@ -156,14 +156,27 @@ export const useDataPreview = (targetFileId?: string): DataPreviewResult => {
         return;
       }
       
-      // For non-PostgreSQL tables, ensure we have a valid tableName
+      // For non-PostgreSQL tables, ensure table exists and get correct name
       if (!tableName || tableName.trim() === '') {
         throw new Error('Invalid table name for DuckDB query');
       }
+
+      // Fix table synchronization issues using our new method
+      const actualTableName = await ensureTableExists(tableName);
+      if (!actualTableName) {
+        throw new Error(`Table "${tableName}" not found in database`);
+      }
+
+      // Update the file in app store if table name was corrected
+      if (actualTableName !== tableName && currentFile) {
+        console.log(`[useDataPreview] Correcting table name: ${tableName} → ${actualTableName}`);
+        const appStore = useAppStore.getState();
+        appStore.updateFile(currentFile.id, { tableName: actualTableName });
+      }
       
-      const query = `SELECT * FROM "${tableName}"`;
+      const query = `SELECT * FROM "${actualTableName}"`;
       
-      console.log(`[useDataPreview] Loading initial data for ${tableName}`);
+      console.log(`[useDataPreview] Loading initial data for ${actualTableName}`);
       
       // First, get the initial page of data quickly (NO COUNT for speed)
       const result = await executePaginatedQuery(
@@ -213,7 +226,7 @@ export const useDataPreview = (targetFileId?: string): DataPreviewResult => {
         isLoading: false,
       });
     }
-  }, [currentFile, fileId, executePaginatedQuery, fileState.rowsPerPage, getFileState, updateFileState]);
+  }, [currentFile, fileId, executePaginatedQuery, fileState.rowsPerPage, getFileState, updateFileState, ensureTableExists]);
   
   /**
    * Load exact row count in background (progressive loading)
@@ -332,14 +345,27 @@ export const useDataPreview = (targetFileId?: string): DataPreviewResult => {
           throw new Error(result.error?.message || 'Failed to execute PostgreSQL query');
         }
       } else {
-        // Regular DuckDB table pagination
+        // Regular DuckDB table pagination with table sync fix
         if (!tableName || tableName.trim() === '') {
           throw new Error('Invalid table name for DuckDB query');
         }
+
+        // Ensure table exists and get correct name
+        const actualTableName = await ensureTableExists(tableName);
+        if (!actualTableName) {
+          throw new Error(`Table "${tableName}" not found in database`);
+        }
+
+        // Update the file if table name was corrected
+        if (actualTableName !== tableName) {
+          console.log(`[useDataPreview] Correcting table name for pagination: ${tableName} → ${actualTableName}`);
+          const appStore = useAppStore.getState();
+          appStore.updateFile(activeFile.id, { tableName: actualTableName });
+        }
         
-        const query = `SELECT * FROM "${tableName}"`;
+        const query = `SELECT * FROM "${actualTableName}"`;
         
-        console.log(`[useDataPreview] Changing to page ${newPage}`);
+        console.log(`[useDataPreview] Changing to page ${newPage} for table ${actualTableName}`);
         
         const result = await executePaginatedQuery(
           query,
@@ -377,7 +403,7 @@ export const useDataPreview = (targetFileId?: string): DataPreviewResult => {
     } finally {
       setIsChangingPage(false);
     }
-  }, [activeFile, executePaginatedQuery, getFileState, updateFileState]);
+  }, [activeFile, executePaginatedQuery, getFileState, updateFileState, ensureTableExists]);
   
   /**
    * Change the number of rows per page

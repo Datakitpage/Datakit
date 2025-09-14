@@ -146,26 +146,24 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({
                   <Share2 className="h-3 w-3 text-white/80" />
                 </div>
               )} */}
-              {!isCloud && (
-                <>
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsEditing(true);
-                      setEditingName(project.name);
-                    }}
-                    className="p-1 hover:bg-white/20 rounded cursor-pointer transition-colors"
-                  >
-                    <Edit2 className="h-3 w-3 text-white/80" />
-                  </div>
-                  <div
-                    onClick={handleDelete}
-                    className="p-1 hover:bg-white/20 rounded cursor-pointer transition-colors"
-                  >
-                    <Trash2 className="h-3 w-3 text-red-400/80" />
-                  </div>
-                </>
-              )}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditing(true);
+                  setEditingName(project.name);
+                }}
+                className="p-1 hover:bg-white/20 rounded cursor-pointer transition-colors"
+                title={isCloud ? "Rename cloud project" : "Rename project"}
+              >
+                <Edit2 className="h-3 w-3 text-white/80" />
+              </div>
+              <div
+                onClick={handleDelete}
+                className="p-1 hover:bg-white/20 rounded cursor-pointer transition-colors"
+                title={isCloud ? "Delete cloud project" : "Delete project"}
+              >
+                <Trash2 className="h-3 w-3 text-red-400/80" />
+              </div>
             </div>
           )}
           

@@ -194,6 +194,25 @@ interface DuckDBState {
   };
   setPostgreSQLAutoImportThreshold: (bytes: number) => void;
   importPostgreSQLTableData: (tableKey: string, forceImport?: boolean) => Promise<void>;
+
+  // Cloud storage methods for Parquet-first approach
+  exportTableToParquet: (tableName: string) => Promise<{
+    parquetBuffer: ArrayBuffer;
+    schema: Array<{ cid: number; name: string; type: string; notnull: boolean; dflt_value: any; pk: number }>;
+    rowCount: number;
+  }>;
+  importParquetWithSchema: (
+    parquetFile: File, 
+    preservedSchema?: Array<{ cid: number; name: string; type: string; notnull: boolean; dflt_value: any; pk: number }>
+  ) => Promise<{ tableName: string; rowCount: number; schemaApplied: boolean; }>;
+  importCloudFileStreaming: (
+    cloudFile: File,
+    fileName: string,
+    fileSize: number,
+    preservedSchema?: Array<{ cid: number; name: string; type: string; notnull: boolean; dflt_value: any; pk: number }>,
+    onProgress?: (progress: number, status: string) => void
+  ) => Promise<{ tableName: string; rowCount: number; schemaApplied: boolean; streamingUsed: boolean; }>;
+  ensureTableExists: (expectedTableName: string) => Promise<string | null>;
 }
 
 export const useDuckDBStore = create<DuckDBState>((set, get) => ({
@@ -3976,6 +3995,484 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to import PostgreSQL table data';
       set({ postgresError: errorMessage });
+      throw err;
+    }
+  },
+
+  // Enhanced cloud storage methods following existing patterns
+  
+  /**
+   * Export table to Parquet format with full schema preservation
+   * Uses DuckDB's native COPY command for optimal performance and type fidelity
+   */
+  exportTableToParquet: async (tableName: string) => {
+    const { connection, db, registeredTables } = get();
+
+    if (!connection || !db) {
+      throw new Error('DuckDB not initialized');
+    }
+
+    // Get the properly escaped table name from registeredTables
+    const escapedTableName = registeredTables.get(tableName) || `"${tableName}"`;
+
+    console.log(`[DuckDBStore] Exporting table to Parquet: ${tableName} (${escapedTableName})`);
+
+    // Create temporary connection following existing pattern
+    const conn = await db.connect();
+
+    try {
+      // Step 1: Get complete schema info using existing pattern
+      const schemaQuery = `PRAGMA table_info(${escapedTableName})`;
+      const schemaResult = await conn.query(schemaQuery);
+      const schema = schemaResult.toArray();
+
+      if (schema.length === 0) {
+        throw new Error(`Table ${tableName} has no schema information`);
+      }
+
+      console.log(`[DuckDBStore] Table schema:`, schema);
+
+      // Step 2: Get row count
+      const countQuery = `SELECT COUNT(*) as count FROM ${escapedTableName}`;
+      const countResult = await conn.query(countQuery);
+      const rowCount = countResult.toArray()[0]?.count || 0;
+
+      console.log(`[DuckDBStore] Table has ${rowCount} rows`);
+
+      // Step 3: Generate unique temporary filename
+      const tempFileName = `export_${tableName}_${Date.now()}.parquet`;
+
+      // Step 4: Export using DuckDB's native COPY command with best practices
+      const exportQuery = `COPY ${escapedTableName} TO '${tempFileName}' (FORMAT PARQUET, COMPRESSION 'SNAPPY')`;
+      console.log(`[DuckDBStore] Executing export:`, exportQuery);
+
+      await conn.query(exportQuery);
+
+      // Step 5: Extract binary data
+      const parquetBuffer = await db.copyFileToBuffer(tempFileName);
+      console.log(`[DuckDBStore] Parquet export completed: ${parquetBuffer.byteLength} bytes`);
+
+      // Step 6: Clean up temporary file
+      await db.dropFile(tempFileName);
+
+      return {
+        parquetBuffer,
+        schema,
+        rowCount: typeof rowCount === 'bigint' ? Number(rowCount) : rowCount
+      };
+
+    } catch (err) {
+      console.error(`[DuckDBStore] Parquet export failed:`, err);
+      throw new Error(`Failed to export table to Parquet: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      // Always close connection following existing pattern
+      await conn.close();
+    }
+  },
+
+  /**
+   * Import Parquet file with optional schema preservation
+   * Extends existing importFileDirectly with schema correction capabilities
+   */
+  importParquetWithSchema: async (parquetFile: File, preservedSchema) => {
+    console.log(`[DuckDBStore] Importing Parquet with schema preservation:`, parquetFile.name);
+
+    try {
+      // Step 1: Use existing importFileDirectly for initial import
+      const importResult = await get().importFileDirectly(parquetFile);
+      let schemaApplied = false;
+
+      // Step 2: If we have preserved schema, check if it needs correction
+      if (preservedSchema && preservedSchema.length > 0) {
+        const { connection } = get();
+        if (!connection) {
+          throw new Error('DuckDB connection not available');
+        }
+
+        // Get current schema of imported table
+        const currentSchemaQuery = `PRAGMA table_info("${importResult.tableName}")`;
+        const currentSchemaResult = await connection.query(currentSchemaQuery);
+        const currentSchema = currentSchemaResult.toArray();
+
+        // Compare schemas to see if correction is needed
+        console.log('[DuckDBStore] Current imported schema:', JSON.stringify(currentSchema, null, 2));
+        console.log('[DuckDBStore] Preserved schema to apply:', JSON.stringify(preservedSchema, null, 2));
+        
+        const needsCorrection = preservedSchema.some(preservedCol => {
+          const currentCol = currentSchema.find(c => c.name === preservedCol.name);
+          const typeMismatch = !currentCol || currentCol.type !== preservedCol.type;
+          if (typeMismatch) {
+            console.log(`[DuckDBStore] Type mismatch for ${preservedCol.name}: current=${currentCol?.type}, preserved=${preservedCol.type}`);
+          }
+          return typeMismatch;
+        });
+        
+        console.log('[DuckDBStore] Schema correction needed:', needsCorrection);
+
+        if (needsCorrection) {
+          console.log(`[DuckDBStore] Schema correction needed, applying preserved schema`);
+
+          // Create target table with correct schema
+          const targetTableName = `${importResult.tableName}_corrected`;
+          const escapedTargetName = `"${targetTableName}"`;
+          const escapedSourceName = `"${importResult.tableName}"`;
+
+          // Drop existing target table
+          await connection.query(`DROP TABLE IF EXISTS ${escapedTargetName}`);
+
+          // Create table with preserved schema
+          const columnDefs = preservedSchema.map(col => {
+            let def = `"${col.name}" ${col.type}`;
+            if (col.notnull) def += ' NOT NULL';
+            if (col.dflt_value !== null && col.dflt_value !== undefined) {
+              if (typeof col.dflt_value === 'string') {
+                def += ` DEFAULT '${col.dflt_value.replace(/'/g, "''")}'`;
+              } else if (typeof col.dflt_value === 'boolean') {
+                def += ` DEFAULT ${col.dflt_value.toString().toUpperCase()}`;
+              } else {
+                def += ` DEFAULT ${col.dflt_value}`;
+              }
+            }
+            return def;
+          }).join(', ');
+
+          const createTableQuery = `CREATE TABLE ${escapedTargetName} (${columnDefs})`;
+          await connection.query(createTableQuery);
+
+          // Copy data with smart type casting
+          const selectClauses = preservedSchema.map(targetCol => {
+            const sourceCol = currentSchema.find(c => c.name === targetCol.name);
+            if (!sourceCol) {
+              return `NULL as "${targetCol.name}"`;
+            }
+            
+            // Smart casting based on target type
+            if (sourceCol.type === targetCol.type) {
+              return `"${targetCol.name}"`; // No casting needed
+            } else if (targetCol.type === 'BOOLEAN' && sourceCol.type.includes('VARCHAR')) {
+              // Special handling for boolean conversion
+              return `CASE 
+                WHEN LOWER(TRIM("${targetCol.name}")) IN ('true', '1', 'yes', 't') THEN TRUE
+                WHEN LOWER(TRIM("${targetCol.name}")) IN ('false', '0', 'no', 'f') THEN FALSE
+                ELSE TRY_CAST("${targetCol.name}" AS BOOLEAN)
+              END as "${targetCol.name}"`;
+            } else {
+              return `TRY_CAST("${targetCol.name}" AS ${targetCol.type}) as "${targetCol.name}"`;
+            }
+          }).join(', ');
+
+          const insertQuery = `INSERT INTO ${escapedTargetName} SELECT ${selectClauses} FROM ${escapedSourceName}`;
+          console.log(`[DuckDBStore] Applying schema correction:`, insertQuery);
+
+          try {
+            await connection.query(insertQuery);
+            schemaApplied = true;
+
+            // Update registered tables
+            const newTables = new Map(get().registeredTables);
+            newTables.delete(importResult.tableName);
+            newTables.set(targetTableName, escapedTargetName);
+            set({ registeredTables: newTables });
+
+            // Clean up source table
+            await connection.query(`DROP TABLE IF EXISTS ${escapedSourceName}`);
+
+            // Update result
+            importResult.tableName = targetTableName;
+
+            console.log(`[DuckDBStore] Schema correction applied successfully`);
+
+          } catch (castError) {
+            console.warn(`[DuckDBStore] Schema correction failed, using original table:`, castError);
+            // Continue with original import result
+          }
+        }
+      }
+
+      console.log(`[DuckDBStore] Parquet import completed: ${importResult.tableName}, schemaApplied: ${schemaApplied}`);
+
+      return {
+        ...importResult,
+        schemaApplied
+      };
+
+    } catch (err) {
+      console.error(`[DuckDBStore] Parquet import with schema failed:`, err);
+      throw err;
+    }
+  },
+
+  /**
+   * Ensure table exists and return actual table name
+   * Fixes table synchronization issues by finding the correct table name
+   */
+  ensureTableExists: async (expectedTableName: string) => {
+    const { connection } = get();
+
+    if (!connection) {
+      console.warn(`[DuckDBStore] Connection not available for table check: ${expectedTableName}`);
+      return null;
+    }
+
+    try {
+      // Step 1: Try direct access to expected table
+      const testQuery = `SELECT 1 FROM "${expectedTableName}" LIMIT 1`;
+      await connection.query(testQuery);
+      
+      console.log(`[DuckDBStore] Table exists and accessible: ${expectedTableName}`);
+      return expectedTableName;
+
+    } catch {
+      // Step 2: Table doesn't exist or isn't accessible, find alternatives
+      console.log(`[DuckDBStore] Table ${expectedTableName} not accessible, searching alternatives...`);
+
+      try {
+        const tablesResult = await connection.query('SHOW TABLES');
+        const availableTables = tablesResult.toArray().map((row: any) => 
+          row.name || row.Name || Object.values(row)[0]
+        ) as string[];
+
+        console.log(`[DuckDBStore] Available tables:`, availableTables);
+
+        // Find best match using simple fuzzy matching
+        const exactMatch = availableTables.find(t => t === expectedTableName);
+        if (exactMatch) return exactMatch;
+
+        const caseInsensitiveMatch = availableTables.find(t => 
+          t.toLowerCase() === expectedTableName.toLowerCase()
+        );
+        if (caseInsensitiveMatch) {
+          console.log(`[DuckDBStore] Found case-insensitive match: ${expectedTableName} -> ${caseInsensitiveMatch}`);
+          return caseInsensitiveMatch;
+        }
+
+        const partialMatch = availableTables.find(t => 
+          t.includes(expectedTableName) || expectedTableName.includes(t)
+        );
+        if (partialMatch) {
+          console.log(`[DuckDBStore] Found partial match: ${expectedTableName} -> ${partialMatch}`);
+          return partialMatch;
+        }
+
+        console.log(`[DuckDBStore] No suitable table found for: ${expectedTableName}`);
+        return null;
+
+      } catch (listError) {
+        console.error(`[DuckDBStore] Error listing tables:`, listError);
+        return null;
+      }
+    }
+  },
+
+  /**
+   * Import cloud files with streaming support for large files
+   * Inspired by importFileDirectlyStreaming but adapted for cloud file blobs
+   * Provides progress feedback and memory-efficient processing
+   */
+  importCloudFileStreaming: async (
+    cloudFile: File, 
+    fileName: string, 
+    fileSize: number,
+    preservedSchema, 
+    onProgress
+  ) => {
+    const { connection, isInitialized } = get();
+
+    // Initialize if needed
+    if (!connection || !isInitialized) {
+      await get().initialize();
+      if (!get().connection || !get().db) {
+        throw new Error("DuckDB is not initialized");
+      }
+    }
+
+    // Use the actual file extension from the cloudFile, not the original fileName
+    const actualFileExt = cloudFile.name.split(".").pop()?.toLowerCase();
+    const originalFileExt = fileName.split(".").pop()?.toLowerCase();
+    const fileSizeMB = fileSize / (1024 * 1024);
+    
+    // Determine if we should use streaming (for files > 50MB)
+    const shouldUseStreaming = fileSizeMB > 50;
+    
+    console.log(`[DuckDBStore] Cloud import: ${fileName} (${fileSizeMB.toFixed(2)}MB), actual ext: ${actualFileExt}, original ext: ${originalFileExt}, streaming: ${shouldUseStreaming}`);
+
+    try {
+      // Update progress
+      onProgress?.(0.1, "Preparing cloud file import...");
+
+      if (!shouldUseStreaming) {
+        // For smaller files, use existing optimized method
+        onProgress?.(0.2, "Using fast import for small file...");
+        
+        const result = await get().importParquetWithSchema(cloudFile, preservedSchema);
+        
+        onProgress?.(1.0, "Import completed");
+        
+        return {
+          ...result,
+          streamingUsed: false
+        };
+      }
+
+      // === STREAMING IMPORT FOR LARGE FILES ===
+      
+      onProgress?.(0.2, "Initializing streaming import...");
+
+      // Step 1: Create temporary table name  
+      const baseName = fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]/g, "_");
+      const tempTableName = `${baseName}_streaming_${Date.now()}`;
+      const escapedTableName = `"${tempTableName}"`;
+
+      // Step 2: Register file with DuckDB for streaming access
+      // Use the actual file extension (usually .parquet) not the original (.csv)
+      const registeredFileName = `cloud_streaming_${Date.now()}.${actualFileExt}`;
+      await get().db!.registerFileHandle(
+        registeredFileName,
+        cloudFile,
+        duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+        false
+      );
+
+      onProgress?.(0.3, "File registered, analyzing structure...");
+
+      // Step 3: Create streaming connection
+      const conn = await get().db!.connect();
+
+      try {
+        // Step 4: Import with streaming-optimized settings
+        let createTableQuery;
+        
+        if (actualFileExt === 'parquet') {
+          // Parquet streaming import
+          createTableQuery = `CREATE TABLE ${escapedTableName} AS 
+            SELECT * FROM read_parquet('${registeredFileName}')`;
+          
+          onProgress?.(0.5, "Streaming Parquet data...");
+        } else {
+          // CSV streaming import with more lenient settings
+          createTableQuery = `CREATE TABLE ${escapedTableName} AS 
+            SELECT * FROM read_csv('${registeredFileName}', 
+              header=true, 
+              auto_detect=true,
+              parallel=true,
+              buffer_size=16384,
+              strict_mode=false,
+              ignore_errors=true
+            )`;
+          
+          onProgress?.(0.5, "Streaming CSV data...");
+        }
+
+        console.log(`[DuckDBStore] Streaming query:`, createTableQuery);
+        await conn.query(createTableQuery);
+
+        onProgress?.(0.7, "Processing schema corrections...");
+
+        // Step 5: Apply schema corrections if provided
+        let schemaApplied = false;
+        let finalTableName = tempTableName;
+
+        if (preservedSchema && preservedSchema.length > 0) {
+          try {
+            // Get current schema
+            const currentSchemaQuery = `PRAGMA table_info(${escapedTableName})`;
+            const currentSchemaResult = await conn.query(currentSchemaQuery);
+            const currentSchema = currentSchemaResult.toArray();
+
+            // Check if correction is needed (same logic as importParquetWithSchema)
+            const needsCorrection = preservedSchema.some(preservedCol => {
+              const currentCol = currentSchema.find(c => c.name === preservedCol.name);
+              return !currentCol || currentCol.type !== preservedCol.type;
+            });
+
+            if (needsCorrection) {
+              onProgress?.(0.8, "Applying schema corrections...");
+              
+              const correctedTableName = `${tempTableName}_corrected`;
+              const escapedCorrectedName = `"${correctedTableName}"`;
+
+              // Create corrected table with preserved schema
+              const columnDefs = preservedSchema.map(col => {
+                let def = `"${col.name}" ${col.type}`;
+                if (col.notnull) def += ' NOT NULL';
+                if (col.dflt_value !== null && col.dflt_value !== undefined) {
+                  if (typeof col.dflt_value === 'string') {
+                    def += ` DEFAULT '${col.dflt_value.replace(/'/g, "''")}'`;
+                  } else {
+                    def += ` DEFAULT ${col.dflt_value}`;
+                  }
+                }
+                return def;
+              }).join(', ');
+
+              const createCorrectedQuery = `CREATE TABLE ${escapedCorrectedName} (${columnDefs})`;
+              await conn.query(createCorrectedQuery);
+
+              // Copy data with smart casting
+              const selectClauses = preservedSchema.map(targetCol => {
+                const sourceCol = currentSchema.find(c => c.name === targetCol.name);
+                if (!sourceCol) {
+                  return `NULL as "${targetCol.name}"`;
+                } else if (sourceCol.type === targetCol.type) {
+                  return `"${targetCol.name}"`;
+                } else {
+                  return `TRY_CAST("${targetCol.name}" AS ${targetCol.type}) as "${targetCol.name}"`;
+                }
+              }).join(', ');
+
+              const insertQuery = `INSERT INTO ${escapedCorrectedName} SELECT ${selectClauses} FROM ${escapedTableName}`;
+              await conn.query(insertQuery);
+
+              // Clean up original table
+              await conn.query(`DROP TABLE IF EXISTS ${escapedTableName}`);
+              
+              finalTableName = correctedTableName;
+              schemaApplied = true;
+              
+              console.log(`[DuckDBStore] Streaming schema correction applied`);
+            }
+          } catch (schemaError) {
+            console.warn(`[DuckDBStore] Streaming schema correction failed:`, schemaError);
+            // Continue with original table
+          }
+        }
+
+        onProgress?.(0.9, "Finalizing import...");
+
+        // Step 6: Get final row count
+        const finalEscapedName = `"${finalTableName}"`;
+        const countQuery = `SELECT COUNT(*) as count FROM ${finalEscapedName}`;
+        const countResult = await conn.query(countQuery);
+        const rowCount = countResult.toArray()[0]?.count || 0;
+
+        // Step 7: Register table
+        const newTables = new Map(get().registeredTables);
+        newTables.set(finalTableName, finalEscapedName);
+        set({ registeredTables: newTables });
+
+        await conn.close();
+
+        // Step 8: Refresh schema cache
+        await get().refreshSchemaCache();
+
+        onProgress?.(1.0, `Streaming import completed: ${rowCount.toLocaleString()} rows`);
+
+        console.log(`[DuckDBStore] Streaming import successful: ${finalTableName}, ${rowCount} rows, schema applied: ${schemaApplied}`);
+
+        return {
+          tableName: finalTableName,
+          rowCount: rowCount,
+          schemaApplied,
+          streamingUsed: true
+        };
+
+      } catch (streamingError) {
+        await conn.close();
+        throw streamingError;
+      }
+
+    } catch (err) {
+      console.error(`[DuckDBStore] Cloud streaming import failed:`, err);
       throw err;
     }
   },

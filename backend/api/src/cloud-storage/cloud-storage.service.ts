@@ -580,6 +580,41 @@ export class CloudStorageService {
   }
 
   /**
+   * Update project (rename/edit description)
+   */
+  async updateProject(
+    userId: string,
+    projectId: string,
+    dto: { name?: string; description?: string },
+  ): Promise<CloudProjectDto> {
+    const project = await this.cloudProjectRepository.findOne({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Check workspace access with member role (can rename own projects)
+    await this.checkWorkspaceAccess(
+      userId,
+      project.workspaceId,
+      WorkspaceMemberRole.MEMBER,
+    );
+
+    // Update project
+    if (dto.name !== undefined) {
+      project.name = dto.name;
+    }
+    if (dto.description !== undefined) {
+      project.description = dto.description;
+    }
+
+    const updatedProject = await this.cloudProjectRepository.save(project);
+    return this.mapProjectToDto(updatedProject);
+  }
+
+  /**
    * Delete project (and all its files)
    */
   async deleteProject(userId: string, projectId: string): Promise<void> {

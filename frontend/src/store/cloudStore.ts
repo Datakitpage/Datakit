@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { cloudStorageService } from '@/lib/api/cloudStorageService';
 import { useAppStore } from './appStore';
 import { useDuckDBStore } from './duckDBStore';
+import { ColumnType } from '@/types/csv';
 
 export enum WorkspaceType {
   LOCAL = 'local',
@@ -89,6 +90,8 @@ interface CloudStoreState {
   loadCloudProjects: () => Promise<void>;
   loadWorkspaceProjects: (workspaceId: string) => Promise<void>;
   createCloudProject: (workspaceId: string, name: string, description?: string) => Promise<CloudProject>;
+  renameCloudProject: (projectId: string, newName: string) => Promise<void>;
+  deleteCloudProject: (projectId: string) => Promise<void>;
   switchToCloudProject: (projectId: string) => Promise<void>;
   switchToLocalWorkspace: () => void;
   
@@ -215,6 +218,63 @@ export const useCloudStore = create<CloudStoreState>((set, get) => ({
     }
   },
   
+  // Rename cloud project
+  renameCloudProject: async (projectId: string, newName: string) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const updatedProject = await cloudStorageService.renameCloudProject(projectId, newName);
+      
+      set(state => ({
+        cloudProjects: state.cloudProjects.map(p => 
+          p.id === projectId ? { ...p, name: newName } : p
+        ),
+        currentCloudProject: state.currentCloudProject?.id === projectId 
+          ? { ...state.currentCloudProject, name: newName }
+          : state.currentCloudProject,
+        isLoading: false,
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to rename project';
+      set({ 
+        error: message,
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+  
+  // Delete cloud project
+  deleteCloudProject: async (projectId: string) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      await cloudStorageService.deleteCloudProject(projectId);
+      
+      set(state => ({
+        cloudProjects: state.cloudProjects.filter(p => p.id !== projectId),
+        currentCloudProject: state.currentCloudProject?.id === projectId 
+          ? null 
+          : state.currentCloudProject,
+        isLoading: false,
+      }));
+      
+      // If we just deleted the current project, switch to local workspace
+      const state = get();
+      if (!state.currentCloudProject) {
+        const appStore = useAppStore.getState();
+        appStore.clearActiveProject();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete project';
+      set({ 
+        error: message,
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+  
   // Switch to cloud project
   switchToCloudProject: async (projectId: string) => {
     const project = get().cloudProjects.find(p => p.id === projectId);
@@ -259,83 +319,91 @@ export const useCloudStore = create<CloudStoreState>((set, get) => ({
       set({ uploadProgress: 10 });
       console.log('[CloudStore] Exporting data from DuckDB:', file.tableName);
       
-      // Get the actual table name
-      const tableCheckQuery = `SHOW TABLES`;
-      const tables = await duckDBStore.executeQuery(tableCheckQuery);
-      const tableList = tables?.toArray() || [];
+      // Ensure table exists and get correct name (fixes sync issues)
+      const actualTableName = await duckDBStore.ensureTableExists(file.tableName) || file.tableName;
+      console.log('[CloudStore] Verified table name:', actualTableName);
       
-      let actualTableName = file.tableName;
-      if (tableList.length > 0) {
-        const tableNames = tableList.map((t: any) => t.name || t.Name || Object.values(t)[0]);
-        const matchingTable = tableNames.find((name: string) => 
-          name.toLowerCase() === file.tableName.toLowerCase()
-        );
-        
-        if (matchingTable) {
-          actualTableName = matchingTable;
-        }
-      }
+      set({ uploadProgress: 20 });
       
-      // Export data from DuckDB
-      const dataQuery = `SELECT * FROM "${actualTableName}"`;
-      const result = await duckDBStore.executeQuery(dataQuery);
+      // Step 2: Export to Parquet with full type preservation (20-70%)
+      console.log('[CloudStore] Exporting to Parquet for optimal type preservation...');
+      const parquetExport = await duckDBStore.exportTableToParquet(actualTableName);
       
-      if (!result) {
-        throw new Error('Failed to export data from DuckDB');
-      }
+      set({ uploadProgress: 70 });
       
-      set({ uploadProgress: 30 });
+      // Step 3: Create optimized Parquet file (70-80%)
+      const parquetFileName = file.fileName.replace(/\.[^/.]+$/, '') + '.parquet';
+      const parquetBlob = new Blob([parquetExport.parquetBuffer], { 
+        type: 'application/octet-stream' 
+      });
+      const parquetFile = new File([parquetBlob], parquetFileName, {
+        type: 'application/octet-stream',
+        lastModified: Date.now()
+      });
       
-      // Step 2: Convert to CSV (50%)
-      const rows = result.toArray();
-      const headers = Object.keys(rows[0] || {});
+      console.log('[CloudStore] Parquet file created:', {
+        originalName: file.fileName,
+        parquetName: parquetFileName,
+        originalSize: file.fileSize || 'unknown',
+        parquetSize: parquetExport.parquetBuffer.byteLength,
+        compressionRatio: ((1 - parquetExport.parquetBuffer.byteLength / (Number(file.fileSize) || parquetExport.parquetBuffer.byteLength)) * 100).toFixed(1) + '%',
+        rowCount: parquetExport.rowCount,
+        preservedSchema: parquetExport.schema.length + ' columns'
+      });
       
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => 
-          headers.map(h => {
-            const value = row[h];
-            // Handle BigInt values
-            if (typeof value === 'bigint') {
-              return value.toString();
-            }
-            // Escape values containing commas or quotes
-            if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-              return `"${value.replace(/"/g, '""')}"`;
-            }
-            return value ?? '';
-          }).join(',')
-        )
-      ].join('\n');
+      set({ uploadProgress: 80 });
       
-      set({ uploadProgress: 50 });
-      
-      // Step 3: Create file blob (60%)
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const csvFile = new File([blob], file.fileName, { type: 'text/csv' });
-      
-      set({ uploadProgress: 60 });
-      
-      // Step 4: Upload to cloud (60-90%)
+      // Step 4: Upload Parquet file to cloud (80-95%)
       const metadata = {
         originalName: file.fileName,
-        rowCount: typeof file.rowCount === 'bigint' ? Number(file.rowCount) : file.rowCount,
-        columnCount: typeof file.columnCount === 'bigint' ? Number(file.columnCount) : file.columnCount,
-        fileType: 'csv',
         tableName: actualTableName,
+        rowCount: parquetExport.rowCount,
+        columnCount: parquetExport.schema.length,
+        storageFormat: 'parquet',
+        originalFileType: file.sourceType || (file.fileName.toLowerCase().endsWith('.parquet') ? 'PARQUET' : 
+                       file.fileName.toLowerCase().endsWith('.xlsx') ? 'XLSX' : 
+                       file.fileName.toLowerCase().endsWith('.json') ? 'JSON' : 'CSV'),
+        
+        // Enhanced schema preservation metadata
+        schema: parquetExport.schema,
+        typePreservation: {
+          enabled: true,
+          version: '1.0.0',
+          preservedTypes: parquetExport.schema.map(col => ({
+            column: col.name,
+            originalType: col.type,
+            nullable: !col.notnull,
+            isPrimaryKey: col.pk === 1,
+            defaultValue: col.dflt_value
+          }))
+        },
+        
+        // File extension preservation
+        originalExtension: file.fileName.split('.').pop()?.toLowerCase() || 'csv',
+        
+        // Performance metadata
+        compressionRatio: ((1 - parquetExport.parquetBuffer.byteLength / (Number(file.fileSize) || parquetExport.parquetBuffer.byteLength)) * 100).toFixed(1) + '%',
+        parquetSize: parquetExport.parquetBuffer.byteLength,
+        createdAt: new Date().toISOString()
       };
       
+      console.log('[CloudStore] Uploading to cloud with enhanced metadata:', {
+        storageFormat: metadata.storageFormat,
+        typePreservation: metadata.typePreservation.enabled,
+        preservedTypes: metadata.typePreservation.preservedTypes.length
+      });
+      
       const uploadResult = await cloudStorageService.uploadToCloud(
-        csvFile,
+        parquetFile,
         {
           projectId,
-          fileName: file.fileName,
+          fileName: file.fileName, // Keep original display name
           metadata,
           ...options,
         },
         (progress) => {
-          // Update progress from 60 to 90 based on upload
-          set({ uploadProgress: 60 + (progress * 30) });
+          // Update progress from 80 to 95 based on upload
+          set({ uploadProgress: 80 + (progress * 15) });
         }
       );
       
@@ -369,7 +437,7 @@ export const useCloudStore = create<CloudStoreState>((set, get) => ({
     }
   },
   
-  // Load file from cloud
+  // Load file from cloud with Parquet-first schema preservation
   loadFromCloud: async (cloudFileId: string) => {
     const file = get().cloudFiles.find(f => f.id === cloudFileId);
     if (!file) {
@@ -379,6 +447,18 @@ export const useCloudStore = create<CloudStoreState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
+      const appStore = useAppStore.getState();
+      
+      // Check for duplicate files to prevent multiple tabs (simplified and more reliable)
+      const existingFile = appStore.files.find(f => f.cloudFileId === cloudFileId);
+
+      if (existingFile) {
+        appStore.setActiveFile(existingFile.id);
+        set({ isLoading: false });
+        console.log('[CloudStore] Duplicate detected, switching to existing tab:', existingFile.id);
+        return;
+      }
+
       // Get download URL
       const accessData = await cloudStorageService.getFileAccess(cloudFileId);
       
@@ -400,29 +480,128 @@ export const useCloudStore = create<CloudStoreState>((set, get) => ({
         blob = new Blob([decompressed], { type: accessData.mimeType });
       }
       
-      // Create File object
-      const downloadedFile = new File([blob], file.fileName, { 
-        type: accessData.mimeType 
-      });
+      // Determine file type and create appropriate File object
+      const isParquetStorage = file.metadata?.storageFormat === 'parquet';
+      const originalFileName = file.metadata?.originalName || file.fileName;
       
-      // Import into DuckDB
+      let downloadedFile: File;
+      if (isParquetStorage) {
+        // For Parquet files, ensure proper extension for DuckDB recognition
+        const parquetName = originalFileName.replace(/\.[^/.]+$/, '') + '.parquet';
+        downloadedFile = new File([blob], parquetName, { 
+          type: 'application/octet-stream' 
+        });
+        console.log('[CloudStore] Loading Parquet file:', parquetName);
+      } else {
+        // Legacy CSV or other formats
+        downloadedFile = new File([blob], originalFileName, { 
+          type: accessData.mimeType 
+        });
+        console.log('[CloudStore] Loading legacy file:', originalFileName);
+      }
+      
+      // Import with schema preservation and streaming support
       const duckDBStore = useDuckDBStore.getState();
-      const result = await duckDBStore.importFileDirectly(downloadedFile);
+      const fileSizeMB = blob.size / (1024 * 1024);
+      
+      // Progress callback for UI feedback
+      const handleProgress = (progress: number, status: string) => {
+        console.log(`[CloudStore] ${status} (${Math.round(progress * 100)}%)`);
+        // Could emit progress events here for UI progress bars
+      };
+      
+      let result;
+      if (isParquetStorage && file.metadata?.schema) {
+        console.log(`[CloudStore] Using streaming Parquet import with schema preservation (${fileSizeMB.toFixed(1)}MB)...`);
+        console.log('[CloudStore] Preserved schema:', JSON.stringify(file.metadata.schema, null, 2));
+        
+        // Use new streaming method for all cloud files (it handles size detection internally)
+        result = await duckDBStore.importCloudFileStreaming(
+          downloadedFile, 
+          originalFileName, 
+          blob.size, 
+          file.metadata.schema, 
+          handleProgress
+        );
+      } else {
+        console.log(`[CloudStore] Using streaming standard import (${fileSizeMB.toFixed(1)}MB)...`);
+        
+        // Use streaming method for standard imports too
+        result = await duckDBStore.importCloudFileStreaming(
+          downloadedFile, 
+          originalFileName, 
+          blob.size, 
+          undefined, 
+          handleProgress
+        );
+      }
+      
+      // Safe logging that handles BigInt values
+      const safeStringify = (obj: any): string => {
+        return JSON.stringify(obj, (key, value) => 
+          typeof value === 'bigint' ? value.toString() + 'n' : value
+        , 2);
+      };
+      
+      console.log('[CloudStore] Import result structure:', safeStringify(result));
       
       if (result) {
-        // Add to app store
-        const appStore = useAppStore.getState();
+        // Determine final table name (may have been corrected during schema application)
+        let finalTableName = result.tableName;
+        
+        // If we have preserved metadata and original table name, try to use it
+        if (file.metadata?.tableName && file.metadata.tableName !== result.tableName) {
+          // Try to use the original table name if schema was successfully applied
+          if (result.schemaApplied) {
+            finalTableName = file.metadata.tableName;
+          }
+        }
+
+        // Generate columnTypes from schema for proper cell formatting
+        const columnTypes: ColumnType[] = [];
+        if (file.metadata?.schema && Array.isArray(file.metadata.schema)) {
+          file.metadata.schema.forEach((col: any) => {
+            const duckDbType = col.type?.toLowerCase() || '';
+            
+            if (duckDbType.includes('int') || duckDbType.includes('double') || duckDbType.includes('float') || 
+                duckDbType.includes('decimal') || duckDbType.includes('numeric') || duckDbType.includes('smallint')) {
+              columnTypes.push(ColumnType.Number);
+            } else if (duckDbType.includes('bool')) {
+              columnTypes.push(ColumnType.Boolean);
+            } else if (duckDbType.includes('date') || duckDbType.includes('time')) {
+              columnTypes.push(ColumnType.Date);
+            } else {
+              columnTypes.push(ColumnType.Text);
+            }
+          });
+        }
+
         const fileData = {
           ...result,
           id: `cloud_${cloudFileId}`,
-          fileName: file.fileName,
+          fileName: originalFileName,
+          tableName: finalTableName,
+          sourceType: file.metadata?.originalFileType || file.metadata?.originalExtension?.toUpperCase() || 'CSV',
+          columnTypes: columnTypes.length > 0 ? columnTypes : undefined,
           cloudFileId,
           projectId: file.projectId,
+          cloudMetadata: file.metadata,
+          schemaPreserved: result.schemaApplied || false,
         };
         
         appStore.addFile(fileData);
         
-        console.log('[CloudStore] File loaded from cloud:', file.fileName);
+        console.log('[CloudStore] File loaded from cloud with type preservation:', {
+          fileName: originalFileName,
+          tableName: finalTableName,
+          storageFormat: file.metadata?.storageFormat,
+          schemaPreserved: result.schemaApplied || false,
+          typePreservation: file.metadata?.typePreservation?.enabled || false,
+          columnTypes: columnTypes,
+          schemaColumns: file.metadata?.schema?.length || 0,
+          streamingUsed: result.streamingUsed || false,
+          fileSizeMB: fileSizeMB.toFixed(1)
+        });
       }
       
       set({ isLoading: false });

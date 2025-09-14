@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Delete,
+  Patch,
   Param,
   Body,
   UseGuards,
@@ -11,7 +12,6 @@ import {
   Request,
   HttpCode,
   HttpStatus,
-  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -171,6 +171,19 @@ export class CloudStorageController {
     await this.cloudStorageService.getWorkspaceProjects(userId, workspaceId);
 
     return this.cloudStorageService.getWorkspaceStorageStats(workspaceId);
+  }
+
+  /**
+   * Update project
+   */
+  @Patch('project/:projectId')
+  async updateProject(
+    @Request() req,
+    @Param('projectId') projectId: string,
+    @Body() dto: { name?: string; description?: string },
+  ) {
+    const userId = req.user.id;
+    return this.cloudStorageService.updateProject(userId, projectId, dto);
   }
 
   /**

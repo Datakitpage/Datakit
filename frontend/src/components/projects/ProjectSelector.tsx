@@ -48,6 +48,8 @@ export const ProjectSelector: React.FC = () => {
     currentCloudProject,
     storageStats,
     createCloudProject,
+    renameCloudProject,
+    deleteCloudProject,
     switchToCloudProject,
     switchToLocalWorkspace: switchToLocalProject,
     loadCloudProjects,
@@ -71,7 +73,7 @@ export const ProjectSelector: React.FC = () => {
     : activeProject?.name || 'Choose Project';
 
   const currentProjectIcon = isCloudActive ? (
-    <Cloud className="h-4 w-4 text-purple-400" />
+    <Cloud className="h-4 w-4 text-sky-400" />
   ) : (
     <FolderOpen className="h-4 w-4 text-primary/70" />
   );
@@ -172,34 +174,70 @@ export const ProjectSelector: React.FC = () => {
     setIsOpen(false);
   };
 
-  const handleRenameProject = (id: string, newName: string) => {
-    const oldName = projects.find((p) => p.id === id)?.name;
-
-    renameProject(id, newName);
-
-    // Show success notification
-    showSuccess('Project Renamed!', `"${oldName}" is now called "${newName}"`, {
-      icon: 'check',
-      duration: 4000,
-    });
+  const handleRenameProject = async (id: string, newName: string) => {
+    // Check if it's a cloud project
+    const cloudProject = cloudProjects.find((p) => p.id === id);
+    const localProject = projects.find((p) => p.id === id);
+    
+    if (cloudProject) {
+      // Handle cloud project rename
+      try {
+        await renameCloudProject(id, newName);
+        showSuccess('Project Renamed!', `"${cloudProject.name}" is now called "${newName}"`, {
+          icon: 'check',
+          duration: 4000,
+        });
+      } catch (error) {
+        console.error('Failed to rename cloud project:', error);
+      }
+    } else if (localProject) {
+      // Handle local project rename
+      const oldName = localProject.name;
+      renameProject(id, newName);
+      showSuccess('Project Renamed!', `"${oldName}" is now called "${newName}"`, {
+        icon: 'check',
+        duration: 4000,
+      });
+    }
   };
 
-  const handleDeleteProject = (id: string) => {
+  const handleDeleteProject = async (id: string) => {
     if (id === 'draft') return; // Can't delete draft
 
-    const project = projects.find((p) => p.id === id);
-    const confirmed = confirm(
-      `Remove project "${project?.name}"? Your files won't be deleted, just the project organization.`
-    );
-    if (confirmed && project) {
-      deleteProject(id);
-
-      // Show success notification
-      showSuccess(
-        'Project Removed',
-        `"${project.name}" has been removed (files are safe)`,
-        { icon: 'check', duration: 4000 }
+    // Check if it's a cloud project
+    const cloudProject = cloudProjects.find((p) => p.id === id);
+    const localProject = projects.find((p) => p.id === id);
+    
+    if (cloudProject) {
+      // Handle cloud project delete
+      const confirmed = confirm(
+        `Delete cloud project "${cloudProject.name}"? This will permanently delete the project and ALL its files. This cannot be undone.`
       );
+      if (confirmed) {
+        try {
+          await deleteCloudProject(id);
+          showSuccess(
+            'Cloud Project Deleted',
+            `"${cloudProject.name}" has been permanently deleted`,
+            { icon: 'check', duration: 4000 }
+          );
+        } catch (error) {
+          console.error('Failed to delete cloud project:', error);
+        }
+      }
+    } else if (localProject) {
+      // Handle local project delete
+      const confirmed = confirm(
+        `Remove project "${localProject.name}"? Your files won't be deleted, just the project organization.`
+      );
+      if (confirmed) {
+        deleteProject(id);
+        showSuccess(
+          'Project Removed',
+          `"${localProject.name}" has been removed (files are safe)`,
+          { icon: 'check', duration: 4000 }
+        );
+      }
     }
   };
 

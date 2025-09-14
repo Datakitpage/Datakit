@@ -11,6 +11,11 @@ import {
   CloudOff,
   RefreshCw,
   Share2,
+  FileSpreadsheet,
+  Braces,
+  Package,
+  Database,
+  CheckCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCloudStore, CloudFile } from '@/store/cloudStore';
@@ -58,9 +63,8 @@ export const CloudFilesList: React.FC<CloudFilesListProps> = ({ onFileLoad }) =>
         `${file.fileName} has been loaded from cloud`,
         { duration: 3000 }
       );
-      if (onFileLoad) {
-        onFileLoad(file);
-      }
+      // No need to call onFileLoad for cloud files - they are already loaded by loadFromCloud()
+      // onFileLoad is meant for new file imports, not cloud file loading
     } catch (error) {
       showError(
         'Load Failed',
@@ -104,11 +108,34 @@ export const CloudFilesList: React.FC<CloudFilesListProps> = ({ onFileLoad }) =>
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('csv') || mimeType.includes('text')) {
-      return <FileText className="h-4 w-4 text-green-400" />;
+  const getFileIcon = (fileName: string, mimeType: string, metadata?: any) => {
+    // Get file extension from original name or current filename
+    const originalName = metadata?.originalName || fileName;
+    const extension = originalName.split('.').pop()?.toLowerCase() || '';
+    
+    // Match FileUploadButton's icon system
+    switch (extension) {
+      case 'csv':
+        return <FileSpreadsheet className="h-4 w-4 text-emerald-400" />;
+      case 'json':
+        return <Braces className="h-4 w-4 text-amber-400" />;
+      case 'xlsx':
+      case 'xls':
+        return <FileSpreadsheet className="h-4 w-4 text-teal-400" />;
+      case 'parquet':
+        return <Package className="h-4 w-4 text-cyan-400" />;
+      case 'txt':
+        return <FileText className="h-4 w-4 text-slate-400" />;
+      case 'duckdb':
+      case 'db':
+        return <Database className="h-4 w-4 text-violet-400" />;
+      default:
+        // Fallback based on mime type
+        if (mimeType.includes('csv') || mimeType.includes('text')) {
+          return <FileText className="h-4 w-4 text-emerald-400" />;
+        }
+        return <FileText className="h-4 w-4 text-blue-400" />;
     }
-    return <FileText className="h-4 w-4 text-blue-400" />;
   };
 
   if (!isAuthenticated) {
@@ -211,7 +238,7 @@ export const CloudFilesList: React.FC<CloudFilesListProps> = ({ onFileLoad }) =>
                   >
                     {/* File Icon */}
                     <div className="relative">
-                      {getFileIcon(file.mimeType)}
+                      {getFileIcon(file.fileName, file.mimeType, file.metadata)}
                       {file.metadata?.compressed && (
                         <div className="absolute -bottom-1 -right-1 h-2 w-2 bg-purple-500 rounded-full" />
                       )}
@@ -220,11 +247,11 @@ export const CloudFilesList: React.FC<CloudFilesListProps> = ({ onFileLoad }) =>
                     {/* File Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[13px] text-white/90 truncate max-w-[160px]" title={file.fileName}>
+                        <span className="text-[13px] text-white/90 truncate max-w-[140px]" title={file.fileName}>
                           {file.fileName}
                         </span>
                         {file.status === 'synced' && (
-                          <Activity className="h-2 w-2 text-green-400 flex-shrink-0" />
+                          <CheckCircle className="h-2.5 w-2.5 text-green-400 flex-shrink-0" title="Synced" />
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-[9px] text-white/40">
@@ -246,16 +273,16 @@ export const CloudFilesList: React.FC<CloudFilesListProps> = ({ onFileLoad }) =>
                       <>
                         <button
                           onClick={() => handleDeleteFile(file)}
-                          className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded transition-all"
+                          className="p-1.5 hover:bg-red-500/20 rounded transition-all opacity-60 hover:opacity-100"
                           title="Delete from cloud"
                         >
-                          <Trash2 className="h-3.5 w-3.5 text-red-400/60" />
+                          <Trash2 className="h-3.5 w-3.5 text-red-400" />
                         </button>
                         <button
                           onClick={() => setExpandedFileId(
                             expandedFileId === file.id ? null : file.id
                           )}
-                          className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded transition-all"
+                          className="p-1.5 hover:bg-white/10 rounded transition-all opacity-60 hover:opacity-100"
                           title="More info"
                         >
                           <MoreVertical className="h-3.5 w-3.5 text-white/60" />
