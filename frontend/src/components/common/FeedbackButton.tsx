@@ -54,18 +54,18 @@ const FeedbackButton: FC<FeedbackButtonProps> = ({
         onClick={openFeedbackModal}
         className={`flex items-center ${className}`}
       >
-        <MessageSquare size={14} className="mr-1.5 text-white" />
+        <MessageSquare size={14} className="mr-1.5" />
         <span className="text-xs">{text}</span>
       </Button>
 
       {/* Feedback Modal */}
       {showFeedbackModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-black p-4 rounded-lg shadow-lg w-96 border border-white/10">
-            <h3 className="text-lg font-medium mb-4">Share Your Feedback</h3>
+        <div className="fixed inset-0 backdrop-blur-sm bg-background/60 flex items-center justify-center z-50">
+          <div className="bg-popover p-4 rounded-lg shadow-lg w-96 border border-border">
+            <h3 className="text-lg font-medium mb-4 text-foreground">Share Your Feedback</h3>
 
             {feedbackSuccess ? (
-              <div className="bg-primary/10 border border-primary/30 rounded p-3 mb-4 text-white text-sm">
+              <div className="bg-primary/10 border border-primary/30 rounded p-3 mb-4 text-foreground text-sm">
                 <div className="flex items-center">
                   <div className="mr-2 bg-primary rounded-full p-1">
                     <svg
@@ -96,7 +96,7 @@ const FeedbackButton: FC<FeedbackButtonProps> = ({
                 <div className="mb-4">
                   <label
                     htmlFor="feedback-email"
-                    className="block text-sm font-medium text-white/80 mb-1"
+                    className="block text-sm font-medium text-foreground mb-1"
                   >
                     Your Email (optional)
                   </label>
@@ -106,14 +106,14 @@ const FeedbackButton: FC<FeedbackButtonProps> = ({
                     value={feedbackEmail}
                     onChange={(e) => setFeedbackEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-full px-3 py-2 bg-background border border-white/10 rounded-md focus:outline-none focus:border-primary text-sm"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:border-primary text-sm text-foreground"
                   />
                 </div>
 
                 <div className="mb-4">
                   <label
                     htmlFor="feedback-message"
-                    className="block text-sm font-medium text-white/80 mb-1"
+                    className="block text-sm font-medium text-foreground mb-1"
                   >
                     Your Feedback
                   </label>
@@ -123,7 +123,7 @@ const FeedbackButton: FC<FeedbackButtonProps> = ({
                     onChange={(e) => setFeedbackMessage(e.target.value)}
                     placeholder="Tell us what you think about DataKit..."
                     rows={4}
-                    className="w-full px-3 py-2 bg-background border border-white/10 rounded-md focus:outline-none focus:border-primary text-sm"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:outline-none focus:border-primary text-sm text-foreground"
                   />
                 </div>
 
@@ -145,7 +145,7 @@ const FeedbackButton: FC<FeedbackButtonProps> = ({
                     {isSubmitting ? (
                       <div className="flex items-center">
                         <svg
-                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary-foreground"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"

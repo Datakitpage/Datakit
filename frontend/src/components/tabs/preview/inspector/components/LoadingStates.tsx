@@ -138,7 +138,7 @@ export const LoadingState: React.FC<EnhancedLoadingStateProps> = ({
 
           {/* Center content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-xs font-mono text-white">
+            <span className="text-xs font-mono text-foreground">
               {Math.round(progress)}%
             </span>
           </div>
@@ -151,14 +151,14 @@ export const LoadingState: React.FC<EnhancedLoadingStateProps> = ({
           animate={{ y: 0, opacity: 1 }}
           className="text-center space-y-2 max-w-sm"
         >
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="text-sm font-semibold text-foreground">
             {currentStep.label}
           </h3>
-          <p className="text-xs text-white/70">{currentStep.description}</p>
+          <p className="text-xs text-muted-foreground">{currentStep.description}</p>
 
           {/* Column progress for column analysis step */}
           {currentStep.id === "columns" && currentColumn && totalColumns && (
-            <div className="text-xs text-white/60">
+            <div className="text-xs text-muted-foreground">
               Analyzing: {currentColumn} • Column{" "}
               {Math.round(((progress - 35) / 50) * totalColumns)} of{" "}
               {totalColumns}

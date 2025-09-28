@@ -84,9 +84,9 @@ const SplitViewContainer: React.FC<SplitViewContainerProps> = ({ className = '' 
       className={`h-full flex flex-col ${className}`}
     >
       {/* Split View Header */}
-      <div className="flex items-center justify-between p-3 bg-darkNav border-b border-white/10">
+      <div className="flex items-center justify-between p-3 bg-popover border-b border-border">
         <div className="flex items-center space-x-4">
-          <h2 className="text-sm font-medium text-white">Split View</h2>
+          <h2 className="text-sm font-medium text-foreground">Split View</h2>
         </div>
         
         <div className="flex items-center space-x-2">
@@ -121,16 +121,16 @@ const SplitViewContainer: React.FC<SplitViewContainerProps> = ({ className = '' 
         {/* Left Panel */}
         <motion.div
           layout
-          className="flex flex-col overflow-hidden bg-background border-r border-white/10"
+          className="flex flex-col overflow-hidden bg-background border-r border-border"
           style={{ width: `${splitRatio * 100}%` }}
           onClick={() => setActiveFile(leftFile.id)}
         >
-          <div className="flex items-center justify-between p-2 bg-darkNav/50 border-b border-white/5">
+          <div className="flex items-center justify-between p-2 bg-popover/50 border-b border-border">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className="text-sm font-medium text-white truncate">{leftFile.fileName}</span>
+              <span className="text-sm font-medium text-foreground truncate">{leftFile.fileName}</span>
             </div>
-            <div className="text-xs text-white/50">
+            <div className="text-xs text-muted-foreground">
               {leftFile.columnCount} cols
             </div>
           </div>
@@ -142,20 +142,20 @@ const SplitViewContainer: React.FC<SplitViewContainerProps> = ({ className = '' 
         
         {/* Resize Handle */}
         <div
-          className={`relative w-1 bg-white/10 cursor-col-resize hover:bg-primary/50 transition-colors ${
+          className={`relative w-1 bg-border cursor-col-resize hover:bg-primary/50 transition-colors ${
             isDragging ? 'bg-primary/70' : ''
           }`}
           onMouseDown={handleMouseDown}
         >
           <div className="absolute inset-y-0 left-0 w-1 flex items-center justify-center">
-            <div className="w-0.5 h-8 bg-white/20 rounded-full"></div>
+            <div className="w-0.5 h-8 bg-border rounded-full"></div>
           </div>
           
           {/* Resize indicator */}
           <div className={`absolute inset-y-0 left-0 w-1 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity ${
             isDragging ? 'opacity-100' : ''
           }`}>
-            <GripVertical size={12} className="text-white/60" />
+            <GripVertical size={12} className="text-muted-foreground" />
           </div>
         </div>
         
@@ -166,12 +166,12 @@ const SplitViewContainer: React.FC<SplitViewContainerProps> = ({ className = '' 
           style={{ width: `${(1 - splitRatio) * 100}%` }}
           onClick={() => setActiveFile(rightFile.id)}
         >
-          <div className="flex items-center justify-between p-2 bg-darkNav/50 border-b border-white/5">
+          <div className="flex items-center justify-between p-2 bg-popover/50 border-b border-border">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-sm font-medium text-white truncate">{rightFile.fileName}</span>
+              <span className="text-sm font-medium text-foreground truncate">{rightFile.fileName}</span>
             </div>
-            <div className="text-xs text-white/50">
+            <div className="text-xs text-muted-foreground">
               {rightFile.columnCount} cols
             </div>
           </div>
@@ -189,11 +189,11 @@ const SplitViewContainer: React.FC<SplitViewContainerProps> = ({ className = '' 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 pointer-events-none"
+            className="fixed inset-0 bg-background/20 backdrop-blur-sm z-50 pointer-events-none"
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-darkNav/90 px-4 py-2 rounded-lg border border-white/20 shadow-lg">
-                <div className="flex items-center space-x-2 text-white">
+              <div className="bg-popover/90 px-4 py-2 rounded-lg border border-border shadow-lg">
+                <div className="flex items-center space-x-2 text-foreground">
                   <GripVertical size={16} />
                   <span className="text-sm">
                     {Math.round(splitRatio * 100)}% / {Math.round((1 - splitRatio) * 100)}%

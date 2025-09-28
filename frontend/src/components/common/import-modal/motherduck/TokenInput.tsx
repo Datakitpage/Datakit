@@ -43,15 +43,15 @@ export const TokenInput: React.FC<TokenInputProps> = ({
   return (
     <div className="space-y-4 w-100">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-white mb-1">
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           Connect to MotherDuck
         </h3>
-        <p className="text-sm text-white/60">Import your tables for analysis</p>
+        <p className="text-sm text-muted-foreground">Import your tables for analysis</p>
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label htmlFor="token" className="text-sm font-medium text-white/80">
+          <label htmlFor="token" className="text-sm font-medium text-foreground/80">
             API Token
           </label>
           <button
@@ -72,7 +72,7 @@ export const TokenInput: React.FC<TokenInputProps> = ({
             onChange={(e) => setAuthToken(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleConnect()}
             className={cn(
-              "w-full px-3 py-3 h-12 bg-black/30 border border-white/20 rounded-lg text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-white/40 transition-all",
+              "w-full px-3 py-3 h-12 bg-popover border border-border rounded-lg text-foreground/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all",
               error &&
                 "border-destructive focus:ring-destructive/50 focus:border-destructive",
               isValidToken &&
@@ -82,7 +82,7 @@ export const TokenInput: React.FC<TokenInputProps> = ({
 
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isConnecting ? (
-              <Loader2 className="w-4 h-4 text-white/40 animate-spin" />
+              <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
             ) : isValidToken ? (
               <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 text-green-500" />

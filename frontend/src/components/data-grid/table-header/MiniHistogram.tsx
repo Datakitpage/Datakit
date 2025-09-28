@@ -18,7 +18,7 @@ const MiniHistogram: React.FC<MiniHistogramProps> = ({
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center text-[10px] text-white/40">
+      <div className="flex items-center justify-center text-[10px] text-muted-foreground/60">
         No chart data
       </div>
     );

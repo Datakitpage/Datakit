@@ -53,20 +53,20 @@ const AppearanceSettings: React.FC = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-white mb-1">Appearance</h3>
-        <p className="text-sm text-white/60">Customize DataKit's theme color</p>
+        <h3 className="text-lg font-medium text-foreground mb-1">Appearance</h3>
+        <p className="text-sm text-muted-foreground">Customize DataKit's theme color</p>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+      <div className="bg-accent/5 border border-border rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-6 h-6 rounded-md border border-white/30"
+              className="w-6 h-6 rounded-md border border-border"
               style={{ backgroundColor: currentColor }}
             />
             <div>
-              <div className="text-sm font-medium text-white">Current</div>
-              <div className="text-xs text-white/60">{currentColor.toUpperCase()}</div>
+              <div className="text-sm font-medium text-foreground">Current</div>
+              <div className="text-xs text-muted-foreground">{currentColor.toUpperCase()}</div>
             </div>
           </div>
           <ThemeColorPicker />
@@ -77,18 +77,18 @@ const AppearanceSettings: React.FC = () => {
             <button
               key={theme.color}
               onClick={() => handleThemeSelect(theme.color)}
-              className={`p-2 rounded-md border transition-all text-left hover:border-white/30 ${
+              className={`p-2 rounded-md border transition-all text-left hover:border-border ${
                 currentColor === theme.color
-                  ? 'bg-white/10 border-primary/50'
-                  : 'bg-white/5 border-white/10'
+                  ? 'bg-accent/10 border-primary/50'
+                  : 'bg-accent/5 border-border'
               }`}
             >
               <div className="flex items-center gap-2">
                 <div
-                  className="w-4 h-4 rounded-sm border border-white/30 flex-shrink-0"
+                  className="w-4 h-4 rounded-sm border border-border flex-shrink-0"
                   style={{ backgroundColor: theme.color }}
                 />
-                <div className="text-xs text-white truncate">
+                <div className="text-xs text-foreground truncate">
                   {theme.name}
                 </div>
               </div>
@@ -97,24 +97,24 @@ const AppearanceSettings: React.FC = () => {
         </div>
       </div>
 
-      <div className="border-t border-white/10 pt-4">
+      <div className="border-t border-border pt-4">
         <div className="opacity-50 cursor-not-allowed">
-          <h4 className="text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
+          <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             Display Mode
           </h4>
-          <p className="text-xs text-white/40 mb-3">Coming Soon</p>
+          <p className="text-xs text-muted-foreground mb-3">Coming Soon</p>
           
           <div className="grid grid-cols-3 gap-2">
-            <div className="p-2 rounded-md bg-white/5 border border-white/10 text-center">
-              <Monitor className="h-4 w-4 mx-auto mb-1 text-white/40" />
-              <div className="text-xs text-white/40">System</div>
+            <div className="p-2 rounded-md bg-accent/5 border border-border text-center">
+              <Monitor className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+              <div className="text-xs text-muted-foreground">System</div>
             </div>
-            <div className="p-2 rounded-md bg-white/5 border border-white/10 text-center">
-              <Sun className="h-4 w-4 mx-auto mb-1 text-white/40" />
-              <div className="text-xs text-white/40">Light</div>
+            <div className="p-2 rounded-md bg-accent/5 border border-border text-center">
+              <Sun className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+              <div className="text-xs text-muted-foreground">Light</div>
             </div>
-            <div className="p-2 rounded-md bg-white/10 border border-primary/30 text-center">
+            <div className="p-2 rounded-md bg-accent/10 border border-primary/30 text-center">
               <Moon className="h-4 w-4 mx-auto mb-1 text-primary/60" />
               <div className="text-xs text-primary/60">Dark</div>
             </div>

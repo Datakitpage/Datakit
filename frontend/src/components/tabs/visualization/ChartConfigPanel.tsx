@@ -36,19 +36,19 @@ const ChartConfigPanel: React.FC = () => {
             type="text"
             value={currentChart.title}
             onChange={(e) => updateCurrentChart({ title: e.target.value })}
-            className="w-full p-2 bg-background border border-white/10 rounded text-white text-sm"
+            className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
             placeholder="Enter chart title"
           />
         </div>
       </div>
 
       {/* Tab navigation */}
-      <div className="flex border-b border-white/10 mb-3">
+      <div className="flex border-b border-border mb-3">
         <button
           className={`px-3 py-1.5 text-sm flex items-center cursor-pointer ${
             activeTab === "data"
               ? "text-primary border-b-2 border-primary -mb-px"
-              : "text-white/70 hover:text-white/90"
+              : "text-muted-foreground hover:text-foreground"
           }`}
           onClick={() => setActiveTab("data")}
         >
@@ -58,7 +58,7 @@ const ChartConfigPanel: React.FC = () => {
           className={`px-3 py-1.5 text-sm flex items-center cursor-pointer ${
             activeTab === "style"
               ? "text-primary border-b-2 border-primary -mb-px"
-              : "text-white/70 hover:text-white/90"
+              : "text-muted-foreground hover:text-foreground"
           }`}
           onClick={() => setActiveTab("style")}
         >
@@ -68,7 +68,7 @@ const ChartConfigPanel: React.FC = () => {
           className={`px-3 py-1.5 text-sm flex items-center cursor-pointer ${
             activeTab === "transforms"
               ? "text-primary border-b-2 border-primary -mb-px"
-              : "text-white/70 hover:text-white/90"
+              : "text-muted-foreground hover:text-foreground"
           }`}
           onClick={() => setActiveTab("transforms")}
         >
@@ -89,7 +89,7 @@ const ChartConfigPanel: React.FC = () => {
       </div>
 
       {/* Action buttons */}
-      <div className="mt-3 pt-3 border-t border-white/10">
+      <div className="mt-3 pt-3 border-t border-border">
         <Button
           variant="ghost"
           size="sm"

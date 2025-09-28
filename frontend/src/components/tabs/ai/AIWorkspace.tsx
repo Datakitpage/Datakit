@@ -216,7 +216,7 @@ const AIWorkspace: React.FC = () => {
               animate={{ width: 250 }}
               exit={{ width: 0 }}
               transition={{ duration: 0.2 }}
-              className="border-r border-white/10 overflow-hidden"
+              className="border-r border-border overflow-hidden"
             >
               <SchemaBrowser onInsertQuery={() => {}} />
             </motion.div>
@@ -227,7 +227,7 @@ const AIWorkspace: React.FC = () => {
         <div className="flex-1 flex min-w-0">
           {/* Left: Prompt Panel */}
           <div 
-            className="border-r border-white/10 min-w-0 flex-shrink-0"
+            className="border-r border-border min-w-0 flex-shrink-0"
             style={{ 
               width: vizCustomizeMode ? '20%' : (activeViz ? '30%' : '40%'),
               display: vizCustomizeMode ? 'none' : 'block'
@@ -246,7 +246,7 @@ const AIWorkspace: React.FC = () => {
           {/* Middle: Response Panel or Customization Panel */}
           <div 
             className={`min-w-0 overflow-hidden relative ${
-              activeViz && vizExpanded ? 'border-r border-white/10' : ''
+              activeViz && vizExpanded ? 'border-r border-border' : ''
             }`}
             style={{ 
               width: vizCustomizeMode 
@@ -298,7 +298,7 @@ const AIWorkspace: React.FC = () => {
                 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="min-w-0 overflow-hidden bg-black/20"
+                className="min-w-0 overflow-hidden bg-background"
               >
                 <AIVisualizationPanel
                   data={activeViz.data}
@@ -325,7 +325,7 @@ const AIWorkspace: React.FC = () => {
             animate={{ height: resultsPanelHeight }}
             exit={{ height: 0 }}
             transition={{ duration: 0.2 }}
-            className="border-t border-white/10 bg-darkNav relative"
+            className="border-t border-border bg-popover relative"
           >
             {/* Resize Handle */}
             <div
@@ -337,9 +337,9 @@ const AIWorkspace: React.FC = () => {
             {/* Collapse Button - Centered */}
             <button
               onClick={() => setResultsExpanded(false)}
-              className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black border border-white rounded-full p-2 hover:border-primary/50 transition-colors shadow-lg"
+              className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background border border-border rounded-full p-2 hover:border-primary/50 transition-colors shadow-lg"
             >
-              <ChevronDown className="h-4 w-4 text-white/70" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
 
             <ResultsPanel height={resultsPanelHeight} />

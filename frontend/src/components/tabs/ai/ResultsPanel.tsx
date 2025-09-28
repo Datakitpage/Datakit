@@ -14,7 +14,7 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ height }) => {
   if (!queryResults) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center text-white/50">
+        <div className="text-center text-muted-foreground">
           <Table className="h-12 w-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm">Query results will appear here</p>
         </div>
@@ -27,8 +27,8 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ height }) => {
       <div className="h-full flex items-center justify-center p-8">
         <div className="text-center max-w-md">
           <AlertCircle className="h-12 w-12 mx-auto mb-3 text-red-400" />
-          <h3 className="text-sm font-medium text-white mb-2">Query Error</h3>
-          <p className="text-xs text-white/60">{queryResults.error}</p>
+          <h3 className="text-sm font-medium text-foreground mb-2">Query Error</h3>
+          <p className="text-xs text-muted-foreground">{queryResults.error}</p>
         </div>
       </div>
     );

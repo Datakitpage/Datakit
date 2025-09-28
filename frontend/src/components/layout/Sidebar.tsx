@@ -8,6 +8,7 @@ import {
   WorkspaceFile,
 } from '@/components/workspace/FileTreeView';
 import { ThemeColorPicker } from '@/components/common/ThemeColorPicker';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useDuckDBStore } from '@/store/duckDBStore';
 import useDirectFileImport from '@/hooks/useDirectFileImport';
 import { useAppStore } from '@/store/appStore';
@@ -486,10 +487,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
   // File upload popup for collapsed mode
   const renderFileUploadPopup = () => (
-    <div className="absolute left-16 top-0 bg-darkNav rounded-lg shadow-lg border border-white/10 p-3 w-64">
+    <div className="absolute left-16 top-0 bg-popover rounded-lg shadow-lg border border-border p-3 w-64">
       <div className="mb-3">
-        <h3 className="text-sm font-medium text-white mb-1">Upload File</h3>
-        <p className="text-xs text-white/70">
+        <h3 className="text-sm font-medium text-foreground mb-1">Upload File</h3>
+        <p className="text-xs text-muted-foreground">
           Import your data file for analysis
         </p>
       </div>
@@ -526,9 +527,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
       />
 
       {(isLoading || loadingStatus) && (
-        <div className="mt-3 bg-background/30 p-2 border border-white/5 rounded-md">
+        <div className="mt-3 bg-background/30 p-2 border border-border rounded-md">
           {loadingStatus && (
-            <div className="text-xs font-medium text-white text-opacity-80 mb-2 flex items-center">
+            <div className="text-xs font-medium text-muted-foreground mb-2 flex items-center">
               <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2 animate-pulse"></div>
               {loadingStatus}
             </div>
@@ -572,7 +573,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
         </div>
       </div>
 
-      <div className="mt-auto p-4 flex flex-col items-center gap-4 border-t border-white/10">
+      <div className="mt-auto p-4 flex flex-col items-center gap-4 border-t border-border">
         <UserMenu variant="collapsed" />
 
         <div className="flex flex-col gap-2 items-center">
@@ -580,7 +581,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
             href="https://amin.contact"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:text-primary-foreground transition-custom p-2 hover:bg-background hover:bg-opacity-30 rounded"
+            className="text-primary hover:text-primary-foreground transition-custom p-2 hover:bg-accent hover:bg-opacity-30 rounded"
             aria-label="Visit Amin"
           >
             <ExternalLink size={16} />
@@ -594,7 +595,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   const renderExpandedContent = () => (
     <>
       {/* Header with logo and title */}
-      <div className="px-5 py-4 border-b border-white border-opacity-10 flex items-center justify-between">
+      <div className="px-5 py-4 border-b border-border flex items-center justify-between">
         {customLogoUrl ? (
           <img
             src={customLogoUrl}
@@ -602,14 +603,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
             crossOrigin="anonymous"
           />
         ) : (
-          <h1 className="text-white font-heading font-medium text-lg">
+          <h1 className="text-foreground font-heading font-medium text-lg">
             DataKit
           </h1>
         )}
       </div>
 
       {/* Workspace Selector */}
-      <div className="px-5 py-3 border-b border-white/10">
+      <div className="px-5 py-3 border-b border-border">
         <WorkspaceSelector />
       </div>
 
@@ -645,7 +646,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
         {/* Loading Status - Combined for both local and remote */}
       </div>
-      <div className="flex-1 overflow-y-auto border-t border-white/10 mt-2">
+      <div className="flex-1 overflow-y-auto border-t border-border mt-2">
         <FileTreeView
           files={workspaceFiles}
           onFileSelect={handleFileSelect}
@@ -657,9 +658,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
       {/* File Tree - Main content area */}
 
       {(isLoading || loadingStatus) && (
-        <div className="mt-3 bg-background/30 p-3 border border-white/5 rounded-md">
+        <div className="mt-3 bg-background/30 p-3 border border-border rounded-md">
           {loadingStatus && (
-            <div className="text-xs font-medium text-white text-opacity-80 mb-2 flex items-center">
+            <div className="text-xs font-medium text-muted-foreground mb-2 flex items-center">
               <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2 animate-pulse"></div>
               {loadingStatus}
             </div>
@@ -688,9 +689,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           <UserMenu variant="sidebar" />
         </div>
 
-        <div className="px-2 py-3 border-t border-white border-opacity-5">
+        <div className="px-2 py-3 border-t border-border">
           <div className="flex items-center justify-end">
-            <p className="text-xs text-white text-opacity-50 flex items-center">
+            <p className="text-xs text-muted-foreground flex items-center">
               Powered by{' '}
               <a
                 href="https://duckdb.org/"
@@ -720,7 +721,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
                 DataKit
               </a>
             </p>
-            <div className="flex-shrink-0 ml-1">
+            <div className="flex items-center gap-2 flex-shrink-0 ml-1">
+              <ThemeToggle variant="sidebar" />
               <ThemeColorPicker variant="sidebar" />
             </div>
           </div>
@@ -732,7 +734,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
   return (
     <>
       <motion.div
-        className="relative bg-darkNav flex flex-col h-full border-r border-white border-opacity-10 overflow-hidden"
+        className="relative bg-popover flex flex-col h-full border-r border-border overflow-hidden"
         initial={sidebarCollapsed ? 'collapsed' : 'expanded'}
         animate={sidebarCollapsed ? 'collapsed' : 'expanded'}
         variants={sidebarVariants}
@@ -742,7 +744,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
         <button
           onClick={toggleSidebar}
-          className="absolute top-5 right-3 w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:border-white/10 transition-colors shadow-lg cursor-pointer"
+          className="absolute top-5 right-3 w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-border transition-colors shadow-lg cursor-pointer"
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {sidebarCollapsed ? (

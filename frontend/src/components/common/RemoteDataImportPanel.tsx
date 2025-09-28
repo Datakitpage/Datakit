@@ -155,7 +155,7 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
         return <PostgreSQLPanel onImport={handleImportSuccess} />;
       default:
         return (
-          <div className="p-8 text-center text-white/60">
+          <div className="p-8 text-center text-muted-foreground">
             Select a provider to continue
           </div>
         );
@@ -170,7 +170,7 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm bg-background/60"
           onClick={onClose}
         >
           <motion.div
@@ -178,19 +178,19 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ delay: 0.1, duration: 0.2 }}
-            className="w-full max-w-6xl h-[85vh] bg-black border border-white/20 rounded-lg shadow-xl shadow-black/30 overflow-hidden flex"
+            className="w-full max-w-6xl h-[85vh] bg-popover border border-border rounded-lg shadow-xl shadow-black/30 overflow-hidden flex"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left Sidebar */}
-            <div className="w-64 bg-gradient-to-b from-darkNav to-black border-r border-white/10 flex flex-col">
+            <div className="w-64 bg-gradient-to-b from-popover to-background border-r border-border flex flex-col">
               {/* Header */}
-              <div className="p-4 border-b border-white/10">
+              <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-heading font-medium text-white">
+                  <h2 className="text-lg font-heading font-medium text-foreground">
                     Import Remote Sources
                   </h2>
                 </div>
-                <p className="text-xs text-white/60 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Connect to various data sources
                 </p>
               </div>
@@ -224,8 +224,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                             ? 'bg-blue-600/10 border border-blue-600/20 text-white' // PostgreSQL blue
                             : 'bg-primary/20 border border-primary/30 text-white'
                           : tab.comingSoon
-                          ? 'text-white/40 cursor-not-allowed'
-                          : 'text-white/70 hover:text-white hover:bg-white/5 border border-transparent'
+                          ? 'text-muted-foreground cursor-not-allowed'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
                       )}
                     >
                       <div className="flex items-center">
@@ -251,8 +251,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                                 ? 'border-blue-600/50 text-blue-600'
                                 : 'bg-primary/30 border-primary/50 text-primary'
                               : tab.comingSoon
-                              ? 'bg-white/5 border-white/10 text-white/40'
-                              : 'bg-white/5 border-white/10 text-white/60 group-hover:border-white/20'
+                              ? 'bg-accent/5 border-border text-muted-foreground'
+                              : 'bg-accent/5 border-border text-muted-foreground group-hover:border-border/60'
                           )}
                         >
                           {tab.icon}
@@ -263,7 +263,7 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                               {tab.label}
                             </p>
                             {tab.comingSoon && (
-                              <span className="ml-2 text-xs bg-white/10 text-white/50 px-1.5 py-0.5 rounded">
+                              <span className="ml-2 text-xs bg-accent/10 text-muted-foreground px-1.5 py-0.5 rounded">
                                 Soon
                               </span>
                             )}
@@ -320,7 +320,7 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
             {/* Right Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Content Header */}
-              <div className="p-4 border-b border-white/10 bg-gradient-to-r from-background/50 to-background/30">
+              <div className="p-4 border-b border-border bg-gradient-to-r from-background/50 to-background/30">
                 <div className="flex items-center">
                   <div
                     className={cn(
@@ -350,13 +350,13 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                     }
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-white">
+                    <h3 className="text-lg font-medium text-foreground">
                       {
                         PROVIDER_TABS.find((tab) => tab.id === activeProvider)
                           ?.label
                       }
                     </h3>
-                    <p className="text-sm text-white/70">
+                    <p className="text-sm text-muted-foreground">
                       {
                         PROVIDER_TABS.find((tab) => tab.id === activeProvider)
                           ?.description
@@ -367,7 +367,7 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={onClose}
-                    className="h-8 w-8 p-0 rounded-full text-white/70 hover:text-white hover:bg-white/10"
+                    className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
                   >
                     <X className="h-4 w-4" />
                   </Button>

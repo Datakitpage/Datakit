@@ -25,11 +25,11 @@ const S3DatasetCard = ({ dataset, onImport, isImporting }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/8 hover:border-white/20 transition-all duration-200"
+      className="bg-accent/5 border border-border rounded-lg p-4 hover:bg-accent/8 hover:border-border transition-all duration-200"
     >
       <div className="mb-3">
         <div className="flex items-center mb-1">
-          <h4 className="text-sm font-medium text-white truncate mr-2">
+          <h4 className="text-sm font-medium text-foreground truncate mr-2">
             {dataset.name}
           </h4>
           {dataset.featured && (
@@ -38,21 +38,21 @@ const S3DatasetCard = ({ dataset, onImport, isImporting }) => {
             </span>
           )}
         </div>
-        <p className="text-xs text-white/70 line-clamp-2 leading-relaxed">
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
           {dataset.description}
         </p>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-white/60 mb-3">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
         <div className="flex items-center space-x-3">
           <span className="flex items-center">
             <Globe className="h-3 w-3 mr-1" />
             {dataset.region}
           </span>
-          <span className="bg-white/10 text-white/80 px-1.5 py-0.5 rounded">
+          <span className="bg-accent/10 text-foreground/80 px-1.5 py-0.5 rounded">
             {dataset.format.join(", ")}
           </span>
-          <span className="text-white/50">{dataset.size}</span>
+          <span className="text-muted-foreground">{dataset.size}</span>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
           <div>
             <label
               htmlFor="s3-url"
-              className="block text-sm font-medium text-white/80 mb-2"
+              className="block text-sm font-medium text-foreground/80 mb-2"
             >
               S3 URL (public bucket)
             </label>
@@ -181,7 +181,7 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
                 type="text"
                 placeholder="s3://bucket/path/file.csv or https://bucket.s3.amazonaws.com/file.csv"
                 className={cn(
-                  "w-full px-3 py-3 h-12 bg-black/30 border border-white/20 rounded-lg text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-white/40 transition-all",
+                  "w-full px-3 py-3 h-12 bg-popover border border-border rounded-lg text-foreground/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all",
                   inputError &&
                     "border-destructive focus:ring-destructive/50 focus:border-destructive",
                   isValidS3Url &&
@@ -195,7 +195,7 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
               {/* Status indicator */}
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 {isImporting ? (
-                  <Loader2 className="h-4 w-4 text-white/40 animate-spin" />
+                  <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
                 ) : isValidS3Url ? (
                   <div className="bg-green-500/20 text-green-500 p-1.5 rounded-full">
                     <CheckCircle className="h-4 w-4" />
@@ -228,7 +228,7 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
                 className="mt-3 overflow-hidden"
               >
                 <div className="bg-green-500/10 rounded-lg border border-green-500/20 p-4">
-                  <div className="flex items-center text-sm text-white/90 mb-2">
+                  <div className="flex items-center text-sm text-foreground/90 mb-2">
                     <Database className="h-4 w-4 mr-2 text-green-500" />
                     <span className="font-medium font-mono">
                       {urlValidation.bucket}
@@ -240,8 +240,8 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center text-xs text-white/70">
-                    <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-white/50" />
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                     <span>Valid S3 URL - ready to import</span>
                   </div>
                 </div>
@@ -294,12 +294,12 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
         </form>
 
         {/* Example Datasets */}
-        <div className="border-t border-white/10 pt-6">
+        <div className="border-t border-border pt-6">
           <div className="mb-4">
-            <h4 className="text-base font-medium text-white mb-2 flex items-center">
+            <h4 className="text-base font-medium text-foreground mb-2 flex items-center">
               Example Datasets
             </h4>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-muted-foreground">
               Try these curated public datasets to get started
             </p>
           </div>
@@ -307,7 +307,7 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
           {datasetsLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-              <span className="text-white/60">Loading datasets...</span>
+              <span className="text-muted-foreground">Loading datasets...</span>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -325,25 +325,25 @@ const S3ImportPanel: FC<S3ImportPanelProps> = ({ onImport }) => {
       </div>
 
       {/* Footer Info */}
-      <div className="border-t border-white/10 p-4 bg-white/5">
-        <div className="text-xs text-white/60">
+      <div className="border-t border-border p-4 bg-accent/5">
+        <div className="text-xs text-muted-foreground">
           <div className="flex items-center mb-2">
             <Shield className="h-3 w-3 mr-1.5 text-primary" />
-            <span className="font-medium text-white/80">
+            <span className="font-medium text-foreground/80">
               S3 Browser Access:
             </span>
           </div>
           <ul className="space-y-1 ml-4">
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Most S3 buckets require proxy access due to CORS
             </li>
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Supports CSV, JSON, Parquet, Excel formats
             </li>
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Auto-detects file format and compression
             </li>
           </ul>

@@ -146,7 +146,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
     switch (output.type) {
       case 'text':
         return (
-          <div className="font-mono text-sm text-white/90 whitespace-pre-wrap">
+          <div className="font-mono text-sm text-foreground whitespace-pre-wrap">
             {output.content}
           </div>
         );
@@ -166,15 +166,15 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
       case 'image':
         return (
-          <div className="bg-white/5 p-3 rounded border border-white/10">
+          <div className="bg-accent/5 p-3 rounded border border-border">
             <div className="flex items-center gap-2 mb-2">
               <Image size={16} className="text-blue-400" />
-              <span className="text-sm text-white/70">Plot Output</span>
+              <span className="text-sm text-muted-foreground">Plot Output</span>
             </div>
             <img
               src={output.content}
               alt="Python plot output"
-              className="max-w-full h-auto rounded border border-white/10"
+              className="max-w-full h-auto rounded border border-border"
             />
           </div>
         );
@@ -182,14 +182,14 @@ const PythonCell: React.FC<PythonCellProps> = ({
       case 'dataframe':
         const dfInfo = formatDataFrame(output.content);
         return (
-          <div className="bg-white/5 p-3 rounded border border-white/10">
+          <div className="bg-accent/5 p-3 rounded border border-border">
             <div className="flex items-center gap-2 mb-3">
               <Table size={16} className="text-green-400" />
-              <span className="text-sm text-white/70">
+              <span className="text-sm text-muted-foreground">
                 DataFrame ({dfInfo.shape[0]} rows × {dfInfo.shape[1]} columns)
               </span>
               {dfInfo.memory_usage && (
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-muted-foreground">
                   {(dfInfo.memory_usage / 1024 / 1024).toFixed(2)} MB
                 </span>
               )}
@@ -197,12 +197,12 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
             {/* Column info */}
             <div className="mb-3">
-              <div className="text-xs text-white/60 mb-1">Columns:</div>
+              <div className="text-xs text-muted-foreground mb-1">Columns:</div>
               <div className="flex flex-wrap gap-1">
                 {dfInfo.columns.map((col, idx) => (
                   <span
                     key={idx}
-                    className="text-xs bg-white/10 px-2 py-1 rounded"
+                    className="text-xs bg-accent/10 px-2 py-1 rounded"
                     title={`${col}: ${dfInfo.dtypes[col] || 'unknown'}`}
                   >
                     {col}
@@ -216,11 +216,11 @@ const PythonCell: React.FC<PythonCellProps> = ({
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-white/10">
+                    <tr className="border-b border-border">
                       {dfInfo.columns.map((col, idx) => (
                         <th
                           key={idx}
-                          className="text-left p-2 text-white/80 font-medium"
+                          className="text-left p-2 text-foreground font-medium"
                         >
                           {col}
                         </th>
@@ -229,9 +229,9 @@ const PythonCell: React.FC<PythonCellProps> = ({
                   </thead>
                   <tbody>
                     {dfInfo.preview.slice(0, 10).map((row, rowIdx) => (
-                      <tr key={rowIdx} className="border-b border-white/5">
+                      <tr key={rowIdx} className="border-b border-border">
                         {row.map((cell, cellIdx) => (
-                          <td key={cellIdx} className="p-2 text-white/70">
+                          <td key={cellIdx} className="p-2 text-muted-foreground">
                             {String(cell).length > 50
                               ? String(cell).substring(0, 50) + '...'
                               : String(cell)}
@@ -242,7 +242,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
                   </tbody>
                 </table>
                 {dfInfo.preview.length > 10 && (
-                  <div className="text-xs text-white/50 p-2">
+                  <div className="text-xs text-muted-foreground p-2">
                     ... and {dfInfo.preview.length - 10} more rows
                   </div>
                 )}
@@ -253,10 +253,10 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
       case 'html':
         return (
-          <div className="bg-white/5 p-3 rounded border border-white/10">
+          <div className="bg-accent/5 p-3 rounded border border-border">
             <div className="flex items-center gap-2 mb-2">
               <FileText size={16} className="text-purple-400" />
-              <span className="text-sm text-white/70">HTML Output</span>
+              <span className="text-sm text-muted-foreground">HTML Output</span>
             </div>
             <div
               className="prose prose-invert max-w-none"
@@ -267,7 +267,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
       default:
         return (
-          <div className="font-mono text-sm text-white/70 whitespace-pre-wrap">
+          <div className="font-mono text-sm text-muted-foreground whitespace-pre-wrap">
             {output.content}
           </div>
         );
@@ -280,12 +280,12 @@ const PythonCell: React.FC<PythonCellProps> = ({
       className={`border rounded-lg overflow-visible transition-colors ${
         isActive
           ? 'border-primary/50 bg-primary/5'
-          : 'border-white/10 bg-black/20'
+          : 'border-border bg-background/20'
       }`}
       onClick={onActivate}
     >
       {/* Cell Header */}
-      <div className="flex items-center justify-between px-2.5 py-1.5 bg-darkNav/50 border-b border-white/10 relative">
+      <div className="flex items-center justify-between px-2.5 py-1.5 bg-popover/50 border-b border-border relative">
         <div className="flex items-center gap-3">
           {/* Collapse/Expand Input Button */}
           <button
@@ -293,12 +293,12 @@ const PythonCell: React.FC<PythonCellProps> = ({
               e.stopPropagation();
               toggleCellInputCollapse(cell.id);
             }}
-            className="p-1 hover:bg-white/10 rounded transition-colors"
+            className="p-1 hover:bg-accent/10 rounded transition-colors"
             title={cell.isInputCollapsed ? "Expand input" : "Collapse input"}
           >
             <ChevronRight 
               size={14} 
-              className={`text-white/50 transition-transform ${
+              className={`text-muted-foreground transition-transform ${
                 cell.isInputCollapsed ? '' : 'rotate-90'
               }`}
             />
@@ -306,8 +306,8 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
           {/* Cell Number */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/50">In</span>
-            <span className="text-xs font-mono bg-white/10 px-2 py-1 rounded">
+            <span className="text-xs text-muted-foreground">In</span>
+            <span className="text-xs font-mono bg-accent/10 px-2 py-1 rounded">
               {cell.executionCount || cellNumber}
             </span>
           </div>
@@ -321,7 +321,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
           )}
 
           {executionTime && !cell.isExecuting && (
-            <div className="flex items-center gap-1 text-xs text-white/50">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock size={12} />
               <span>{executionTime.toFixed(0)}ms</span>
             </div>
@@ -396,9 +396,9 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
             {/* Dropdown Menu */}
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-black border border-white/10 rounded shadow-xl z-50 min-w-40">
+              <div className="absolute right-0 top-full mt-1 bg-background border border-border rounded shadow-xl z-50 min-w-40">
                 <button
-                  className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -410,7 +410,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
                   Move Up
                 </button>
                 <button
-                  className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -421,16 +421,16 @@ const PythonCell: React.FC<PythonCellProps> = ({
                   <ChevronDown size={14} />
                   Move Down
                 </button>
-                <div className="border-t border-white/10" />
+                <div className="border-t border-border" />
                 <button
-                  className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2"
                   onClick={handleCopyCell}
                 >
                   <Copy size={14} />
                   Copy Code
                 </button>
                 <button
-                  className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2"
                   onClick={() => {
                     clearCell(cell.id);
                     setShowMenu(false);
@@ -439,9 +439,9 @@ const PythonCell: React.FC<PythonCellProps> = ({
                   <Square size={14} />
                   Clear Output
                 </button>
-                <div className="border-t border-white/10" />
+                <div className="border-t border-border" />
                 <button
-                  className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2"
                   onClick={() => {
                     toggleCellInputCollapse(cell.id);
                     setShowMenu(false);
@@ -452,7 +452,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
                 </button>
                 {cell.type === 'code' && cell.output.length > 0 && (
                   <button
-                    className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2"
                     onClick={() => {
                       toggleCellOutputCollapse(cell.id);
                       setShowMenu(false);
@@ -470,69 +470,69 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
       {/* Markdown Toolbar (for markdown cells in edit mode) */}
       {cell.type === 'markdown' && cell.isEditing && (
-        <div className="px-3 py-2 bg-darkNav/30 border-b border-white/10">
+        <div className="px-3 py-2 bg-popover/30 border-b border-border">
           <div className="flex items-center gap-1 text-xs">
             <button
               onClick={() => insertMarkdownFormat('bold')}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title="Bold"
             >
               <Bold size={12} />
             </button>
             <button
               onClick={() => insertMarkdownFormat('italic')}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title="Italic"
             >
               <Italic size={12} />
             </button>
-            <div className="w-px h-4 bg-white/20 mx-1" />
+            <div className="w-px h-4 bg-border mx-1" />
             <button
               onClick={() => insertMarkdownFormat('h1')}
-              className="px-2 py-1 hover:bg-white/10 rounded transition-colors font-mono"
+              className="px-2 py-1 hover:bg-accent/10 rounded transition-colors font-mono"
               title="Header 1"
             >
               H1
             </button>
             <button
               onClick={() => insertMarkdownFormat('h2')}
-              className="px-2 py-1 hover:bg-white/10 rounded transition-colors font-mono"
+              className="px-2 py-1 hover:bg-accent/10 rounded transition-colors font-mono"
               title="Header 2"
             >
               H2
             </button>
             <button
               onClick={() => insertMarkdownFormat('h3')}
-              className="px-2 py-1 hover:bg-white/10 rounded transition-colors font-mono"
+              className="px-2 py-1 hover:bg-accent/10 rounded transition-colors font-mono"
               title="Header 3"
             >
               H3
             </button>
-            <div className="w-px h-4 bg-white/20 mx-1" />
+            <div className="w-px h-4 bg-border mx-1" />
             <button
               onClick={() => insertMarkdownFormat('list')}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title="List"
             >
               <List size={12} />
             </button>
             <button
               onClick={() => insertMarkdownFormat('quote')}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title="Quote"
             >
               <Quote size={12} />
             </button>
             <button
               onClick={() => insertMarkdownFormat('link')}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title="Link"
             >
               <Link size={12} />
             </button>
             <button
               onClick={() => insertMarkdownFormat('code')}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title="Inline Code"
             >
               <Code2 size={12} />
@@ -543,7 +543,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
 
       {/* Code Editor or Markdown Content */}
       {!cell.isInputCollapsed && (
-        <div className="border-b border-white/10">
+        <div className="border-b border-border">
           {cell.type === 'code' ||
           (cell.type === 'markdown' && cell.isEditing) ? (
             <MonacoErrorBoundary cellId={cell.id}>
@@ -569,53 +569,53 @@ const PythonCell: React.FC<PythonCellProps> = ({
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold text-white font-heading mb-4">
+                      <h1 className="text-2xl font-bold text-foreground font-heading mb-4">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold text-white font-heading mb-3">
+                      <h2 className="text-xl font-semibold text-foreground font-heading mb-3">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-lg font-medium text-white font-heading mb-2">
+                      <h3 className="text-lg font-medium text-foreground font-heading mb-2">
                         {children}
                       </h3>
                     ),
                     p: ({ children }) => (
-                      <p className="text-white/90 leading-relaxed mb-3">
+                      <p className="text-foreground leading-relaxed mb-3">
                         {children}
                       </p>
                     ),
                     strong: ({ children }) => (
-                      <strong className="text-white font-semibold">
+                      <strong className="text-foreground font-semibold">
                         {children}
                       </strong>
                     ),
                     em: ({ children }) => (
-                      <em className="text-white/80 italic">{children}</em>
+                      <em className="text-foreground italic">{children}</em>
                     ),
                     ul: ({ children }) => (
-                      <ul className="text-white/90 list-disc list-inside mb-3 space-y-1">
+                      <ul className="text-foreground list-disc list-inside mb-3 space-y-1">
                         {children}
                       </ul>
                     ),
                     ol: ({ children }) => (
-                      <ol className="text-white/90 list-decimal list-inside mb-3 space-y-1">
+                      <ol className="text-foreground list-decimal list-inside mb-3 space-y-1">
                         {children}
                       </ol>
                     ),
                     li: ({ children }) => (
-                      <li className="text-white/90">{children}</li>
+                      <li className="text-foreground">{children}</li>
                     ),
                     code: ({ children }) => (
-                      <code className="text-green-400 bg-white/10 px-1 py-0.5 rounded text-sm font-mono">
+                      <code className="text-green-400 bg-accent/10 px-1 py-0.5 rounded text-sm font-mono">
                         {children}
                       </code>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-primary bg-white/5 p-3 rounded-r mb-3">
+                      <blockquote className="border-l-4 border-primary bg-accent/5 p-3 rounded-r mb-3">
                         {children}
                       </blockquote>
                     ),
@@ -633,7 +633,7 @@ const PythonCell: React.FC<PythonCellProps> = ({
                 </ReactMarkdown>
               </div>
             ) : (
-              <div className="text-white/50 italic">
+              <div className="text-muted-foreground italic">
                 Click to edit markdown...
               </div>
             )}
@@ -646,23 +646,23 @@ const PythonCell: React.FC<PythonCellProps> = ({
       {cell.type === 'code' && cell.output.length > 0 && (
         <>
           {/* Output Header with Collapse Button */}
-          <div className="flex items-center gap-2 px-2.5 py-1.5 bg-darkNav/30 border-b border-white/10">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 bg-popover/30 border-b border-border">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 toggleCellOutputCollapse(cell.id);
               }}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="p-1 hover:bg-accent/10 rounded transition-colors"
               title={cell.isOutputCollapsed ? "Expand output" : "Collapse output"}
             >
               <ChevronRight 
                 size={14} 
-                className={`text-white/50 transition-transform ${
+                className={`text-muted-foreground transition-transform ${
                   cell.isOutputCollapsed ? '' : 'rotate-90'
                 }`}
               />
             </button>
-            <span className="text-xs text-white/50">Output</span>
+            <span className="text-xs text-muted-foreground">Output</span>
           </div>
 
           {/* Output Content */}

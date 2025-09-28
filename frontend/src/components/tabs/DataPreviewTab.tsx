@@ -62,7 +62,7 @@ const DataPreviewTab: React.FC = () => {
               <DataPreviewGrid />
             ) : (
               <div className="h-full flex items-center justify-center">
-                <div className="text-center text-white/70">
+                <div className="text-center text-muted-foreground">
                   <p className="text-lg mb-2">No data to preview</p>
                   <p className="text-sm">
                     Select a file tab to view its contents

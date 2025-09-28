@@ -22,7 +22,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   // Color variants for the tooltip
   const colorStyles = {
-    default: 'bg-black/90',
+    default: 'bg-popover/90',
     primary: 'bg-primary/90',
     secondary: 'bg-secondary/90',
   };
@@ -39,27 +39,27 @@ export const Tooltip: React.FC<TooltipProps> = ({
   // Arrow styles matching the tooltip color
   const arrowStyles = {
     top: {
-      default: 'top-full left-1/2 -translate-x-1/2 border-t-black/90 border-l-transparent border-r-transparent border-b-transparent',
+      default: 'top-full left-1/2 -translate-x-1/2 border-t-popover/90 border-l-transparent border-r-transparent border-b-transparent',
       primary: 'top-full left-1/2 -translate-x-1/2 border-t-primary/90 border-l-transparent border-r-transparent border-b-transparent',
       secondary: 'top-full left-1/2 -translate-x-1/2 border-t-secondary/90 border-l-transparent border-r-transparent border-b-transparent',
     },
     right: {
-      default: 'right-full top-1/2 -translate-y-1/2 border-r-black/90 border-t-transparent border-b-transparent border-l-transparent',
+      default: 'right-full top-1/2 -translate-y-1/2 border-r-popover/90 border-t-transparent border-b-transparent border-l-transparent',
       primary: 'right-full top-1/2 -translate-y-1/2 border-r-primary/90 border-t-transparent border-b-transparent border-l-transparent',
       secondary: 'right-full top-1/2 -translate-y-1/2 border-r-secondary/90 border-t-transparent border-b-transparent border-l-transparent',
     },
     bottom: {
-      default: 'bottom-full left-1/2 -translate-x-1/2 border-b-black/90 border-l-transparent border-r-transparent border-t-transparent',
+      default: 'bottom-full left-1/2 -translate-x-1/2 border-b-popover/90 border-l-transparent border-r-transparent border-t-transparent',
       primary: 'bottom-full left-1/2 -translate-x-1/2 border-b-primary/90 border-l-transparent border-r-transparent border-t-transparent',
       secondary: 'bottom-full left-1/2 -translate-x-1/2 border-b-secondary/90 border-l-transparent border-r-transparent border-t-transparent',
     },
     left: {
-      default: 'left-full top-1/2 -translate-y-1/2 border-l-black/90 border-t-transparent border-b-transparent border-r-transparent',
+      default: 'left-full top-1/2 -translate-y-1/2 border-l-popover/90 border-t-transparent border-b-transparent border-r-transparent',
       primary: 'left-full top-1/2 -translate-y-1/2 border-l-primary/90 border-t-transparent border-b-transparent border-r-transparent',
       secondary: 'left-full top-1/2 -translate-y-1/2 border-l-secondary/90 border-t-transparent border-b-transparent border-r-transparent',
     },
     'bottom-left': {
-      default: 'bottom-full right-2 border-b-black/90 border-l-transparent border-r-transparent border-t-transparent',
+      default: 'bottom-full right-2 border-b-popover/90 border-l-transparent border-r-transparent border-t-transparent',
       primary: 'bottom-full right-2 border-b-primary/90 border-l-transparent border-r-transparent border-t-transparent',
       secondary: 'bottom-full right-2 border-b-secondary/90 border-l-transparent border-r-transparent border-t-transparent',
     },
@@ -102,7 +102,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.15 }}
           >
-            <div className={`${colorStyles[color]} text-white rounded-md px-2.5 py-1.5 text-xs font-medium whitespace-nowrap shadow-lg border border-white/10`}>
+            <div className={`${colorStyles[color]} text-foreground rounded-md px-2.5 py-1.5 text-xs font-medium whitespace-nowrap shadow-lg border border-border`}>
               {content}
             </div>
             <div 

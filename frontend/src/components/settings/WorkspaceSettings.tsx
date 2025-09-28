@@ -183,8 +183,8 @@ const WorkspaceSettings: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="text-center text-white/60 py-8">
-        <SettingsIcon className="h-12 w-12 mx-auto mb-4 text-white/40" />
+      <div className="text-center text-muted-foreground py-8">
+        <SettingsIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
         <p>Loading user data...</p>
       </div>
     );
@@ -192,8 +192,8 @@ const WorkspaceSettings: React.FC = () => {
 
   if (!displayWorkspace && workspaces.length === 0) {
     return (
-      <div className="text-center text-white/60 py-8">
-        <SettingsIcon className="h-12 w-12 mx-auto mb-4 text-white/40" />
+      <div className="text-center text-muted-foreground py-8">
+        <SettingsIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
         <p>Loading workspaces...</p>
       </div>
     );
@@ -201,8 +201,8 @@ const WorkspaceSettings: React.FC = () => {
 
   if (!displayWorkspace) {
     return (
-      <div className="text-center text-white/60 py-8">
-        <SettingsIcon className="h-12 w-12 mx-auto mb-4 text-white/40" />
+      <div className="text-center text-muted-foreground py-8">
+        <SettingsIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
         <p>No workspace found. Please create a workspace or contact support.</p>
       </div>
     );
@@ -211,7 +211,7 @@ const WorkspaceSettings: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Workspace Info */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+      <div className="bg-accent/5 border border-border rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             {/* Workspace Name - Editable for Pro/Team users */}
@@ -222,7 +222,7 @@ const WorkspaceSettings: React.FC = () => {
                     type="text"
                     value={workspaceName}
                     onChange={(e) => setWorkspaceName(e.target.value)}
-                    className="flex-1 px-3 py-1 bg-white/5 border border-white/20 rounded-md text-white placeholder-white/40 focus:outline-none focus:border-primary/50"
+                    className="flex-1 px-3 py-1 bg-accent/5 border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
                     placeholder="Workspace name"
                     maxLength={50}
                     autoFocus
@@ -248,13 +248,13 @@ const WorkspaceSettings: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 flex-1">
-                  <h4 className="text-lg font-medium text-white">
+                  <h4 className="text-lg font-medium text-foreground">
                     {displayWorkspace.name}
                   </h4>
 
                   <button
                     onClick={() => setIsEditingName(true)}
-                    className="p-1 text-white/40 hover:text-white/80 transition-colors"
+                    className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                     title="Edit workspace name"
                   >
                     <Edit3 className="h-4 w-4" />
@@ -262,15 +262,15 @@ const WorkspaceSettings: React.FC = () => {
                 </div>
               )}
             </div>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-muted-foreground">
               {displayWorkspace.description || "Personal workspace"}
             </p>
           </div>
           <div className="text-right">
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-medium text-foreground">
               {displayWorkspace.subscription?.planType?.toUpperCase() || "FREE"}
             </div>
-            <div className="text-xs text-white/60">
+            <div className="text-xs text-muted-foreground">
               {displayWorkspace.subscription?.creditsRemaining === -1
                 ? "Unlimited credits"
                 : `${
@@ -319,9 +319,9 @@ const WorkspaceSettings: React.FC = () => {
 
       {/* Team Management - Only show for Team plans */}
       {isTeamPlan && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-accent/5 border border-border rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-white flex items-center gap-2">
+            <h4 className="text-lg font-medium text-foreground flex items-center gap-2">
               <Users className="h-5 w-5" />
               Team Members
             </h4>
@@ -343,27 +343,27 @@ const WorkspaceSettings: React.FC = () => {
           {showInviteForm && canManageTeam && (
             <form
               onSubmit={handleInviteMember}
-              className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4"
+              className="bg-accent/5 border border-border rounded-lg p-4 mb-4"
             >
-              <h5 className="text-sm font-medium text-white mb-3">
+              <h5 className="text-sm font-medium text-foreground mb-3">
                 Invite New Member
               </h5>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white placeholder-white/40 focus:outline-none focus:border-primary/50"
+                    className="w-full px-3 py-2 bg-accent/5 border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
                     placeholder="Enter email address"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Role
                   </label>
                   <select
@@ -371,7 +371,7 @@ const WorkspaceSettings: React.FC = () => {
                     onChange={(e) =>
                       setInviteRole(e.target.value as "admin" | "member")
                     }
-                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-md text-white focus:outline-none focus:border-primary/50"
+                    className="w-full px-3 py-2 bg-accent/5 border border-border rounded-md text-foreground focus:outline-none focus:border-primary/50"
                   >
                     <option value="member">Member</option>
                     <option value="admin">Admin</option>
@@ -401,7 +401,7 @@ const WorkspaceSettings: React.FC = () => {
 
           {/* Members List */}
           {isLoadingMembers ? (
-            <div className="text-center text-white/60 py-4">
+            <div className="text-center text-muted-foreground py-4">
               Loading members...
             </div>
           ) : (
@@ -409,19 +409,19 @@ const WorkspaceSettings: React.FC = () => {
               {currentWorkspaceMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-accent/5 border border-border rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-white">
+                    <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-foreground">
                       {member.user?.name?.charAt(0) ||
                         member.user?.email.charAt(0) ||
                         "?"}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white">
+                      <div className="text-sm font-medium text-foreground">
                         {member.user?.name || "Unknown User"}
                       </div>
-                      <div className="text-xs text-white/60 flex items-center gap-2">
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <Mail className="h-3 w-3" />
                         {member.user?.email || member.inviteEmail}
                       </div>
@@ -431,7 +431,7 @@ const WorkspaceSettings: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 text-xs">
                       {getRoleIcon(member.role)}
-                      <span className="text-white/80">
+                      <span className="text-foreground">
                         {getRoleName(member.role)}
                       </span>
                     </div>
@@ -449,7 +449,7 @@ const WorkspaceSettings: React.FC = () => {
                                   e.target.value as "admin" | "member"
                                 )
                               }
-                              className="text-xs bg-white/5 border border-white/20 rounded px-2 py-1 text-white"
+                              className="text-xs bg-accent/5 border border-border rounded px-2 py-1 text-foreground"
                             >
                               <option value="member">Member</option>
                               <option value="admin">Admin</option>

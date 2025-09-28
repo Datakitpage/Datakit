@@ -62,8 +62,8 @@ const ConfigSplitSelector = ({
 
   if (loading) {
     return (
-      <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg border border-white/10">
-        <span className="text-sm text-white/60">Loading configurations...</span>
+      <div className="flex items-center space-x-2 p-3 bg-accent/5 rounded-lg border border-border">
+        <span className="text-sm text-muted-foreground">Loading configurations...</span>
       </div>
     );
   }
@@ -76,9 +76,9 @@ const ConfigSplitSelector = ({
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
-      className="space-y-3 p-4 bg-white/5 rounded-lg border border-white/10"
+      className="space-y-3 p-4 bg-accent/5 rounded-lg border border-border"
     >
-      <div className="flex items-center text-sm text-white/80 mb-2">
+      <div className="flex items-center text-sm text-foreground/80 mb-2">
         <Settings className="h-4 w-4 mr-2" />
         <span className="font-medium">Dataset Configuration</span>
       </div>
@@ -86,14 +86,14 @@ const ConfigSplitSelector = ({
       {/* Config Selector */}
       {configs.length > 1 && (
         <div>
-          <label className="block text-xs text-white/60 mb-1">
+          <label className="block text-xs text-muted-foreground mb-1">
             Configuration (Subset)
           </label>
           <select
             value={selectedConfig || configs[0]?.config_name || ""}
             onChange={(e) => onConfigChange(e.target.value)}
             disabled={disabled}
-            className="w-full px-3 py-2 bg-black/30 border border-white/20 rounded text-white/90 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-popover border border-border rounded text-foreground/90 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
           >
             {configs.map((config) => (
               <option key={config.config_name} value={config.config_name}>
@@ -104,7 +104,7 @@ const ConfigSplitSelector = ({
           </select>
           
           {selectedConfig && (
-            <div className="mt-2 p-2 bg-black/20 rounded text-xs text-white/70">
+            <div className="mt-2 p-2 bg-background/20 rounded text-xs text-muted-foreground">
               <div className="flex items-center justify-between">
                 <span>Available splits:</span>
                 <span className="text-primary">
@@ -119,14 +119,14 @@ const ConfigSplitSelector = ({
       {/* Split Selector */}
       {availableSplits.length > 1 && (
         <div>
-          <label className="block text-xs text-white/60 mb-1">
+          <label className="block text-xs text-muted-foreground mb-1">
             Split
           </label>
           <select
             value={selectedSplit || availableSplits[0]?.split || ""}
             onChange={(e) => onSplitChange(e.target.value)}
             disabled={disabled}
-            className="w-full px-3 py-2 bg-black/30 border border-white/20 rounded text-white/90 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-popover border border-border rounded text-foreground/90 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
           >
             {availableSplits.map((split) => (
               <option key={`${split.config}-${split.split}`} value={split.split}>
@@ -144,7 +144,7 @@ const ConfigSplitSelector = ({
       <div className="flex items-center text-xs text-white/60 pt-1">
         <Info className="h-3 w-3 mr-1" />
         <span>
-          Will import: <span className="text-white/80 font-medium">
+          Will import: <span className="text-foreground/80 font-medium">
             {selectedConfig || configs[0]?.config_name || "default"}/
             {selectedSplit || availableSplits[0]?.split || "train"}
           </span>
@@ -216,7 +216,7 @@ const DatasetIdInput = ({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label htmlFor="dataset-id" className="block text-sm font-medium text-white/80">
+        <label htmlFor="dataset-id" className="block text-sm font-medium text-foreground/80">
           Dataset ID
         </label>
       
@@ -228,7 +228,7 @@ const DatasetIdInput = ({
           type="text"
           placeholder="microsoft/DialoGPT-medium or yandex/yambda:SelfRC/train"
           className={cn(
-            "w-full px-3 py-3 h-12 bg-black/30 border border-white/20 rounded-lg text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-white/40 transition-all",
+            "w-full px-3 py-3 h-12 bg-popover border border-border rounded-lg text-foreground/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all",
             error && "border-destructive focus:ring-destructive/50 focus:border-destructive",
             isValid && "border-green-500/50 focus:ring-green-500/50 focus:border-green-500"
           )}
@@ -240,7 +240,7 @@ const DatasetIdInput = ({
         {/* Status indicator */}
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           {disabled ? (
-            <Loader2 className="h-4 w-4 text-white/40 animate-spin" />
+            <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
           ) : isValid ? (
             <div className="bg-green-500/20 text-green-500 p-1.5 rounded-full">
               <CheckCircle className="h-4 w-4" />
@@ -275,11 +275,11 @@ const HFDatasetCard = ({ dataset, onImport, isImporting }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/8 hover:border-white/20 transition-all duration-200"
+      className="bg-accent/5 border border-border rounded-lg p-4 hover:bg-accent/8 hover:border-border transition-all duration-200"
     >
       <div className="mb-3">
         <div className="flex items-center mb-1">
-          <h4 className="text-sm font-medium text-white truncate mr-2">
+          <h4 className="text-sm font-medium text-foreground truncate mr-2">
             {dataset.name}
           </h4>
           {dataset.featured && (
@@ -289,12 +289,12 @@ const HFDatasetCard = ({ dataset, onImport, isImporting }) => {
           )}
           {dataset.gated && <Lock className="h-3 w-3 text-yellow-500 ml-1" />}
         </div>
-        <p className="text-xs text-white/70 line-clamp-2 leading-relaxed">
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
           {dataset.description}
         </p>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-white/60 mb-3">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
         <div className="flex items-center space-x-3">
           <span className="flex items-center">
             <Users className="h-3 w-3 mr-1" />
@@ -304,12 +304,12 @@ const HFDatasetCard = ({ dataset, onImport, isImporting }) => {
       </div>
 
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center text-xs text-white/60">
+        <div className="flex items-center text-xs text-muted-foreground">
           <Calendar className="h-3 w-3 mr-1" />
           <span>Updated {dataset.lastModified || "Recently"}</span>
         </div>
         {dataset.likes && (
-          <div className="flex items-center text-xs text-white/60">
+          <div className="flex items-center text-xs text-muted-foreground">
             <span>❤️ {dataset.likes}</span>
           </div>
         )}
@@ -615,7 +615,7 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
               className="mt-3 overflow-hidden space-y-4"
             >
               <div className="bg-green-500/10 rounded-lg border border-green-500/20 p-4">
-                <div className="flex items-center text-sm text-white/90 mb-2">
+                <div className="flex items-center text-sm text-foreground/90 mb-2">
                   <Database className="h-4 w-4 mr-2 text-green-500" />
                   <span className="font-medium font-mono">
                     {idValidation.organization}/{idValidation.dataset}
@@ -631,8 +631,8 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
                   </a>
                 </div>
 
-                <div className="flex items-center text-xs text-white/70">
-                  <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-white/50" />
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                   <span>Valid dataset ID - ready to import</span>
                 </div>
               </div>
@@ -652,11 +652,11 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
           )}
 
           {/* Authentication Section */}
-          <div className="border border-white/10 rounded-lg p-4 bg-white/5">
+          <div className="border border-border rounded-lg p-4 bg-accent/5">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Key className="h-4 w-4 mr-2 text-yellow-500" />
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-foreground">
                   Authentication (Optional)
                 </span>
               </div>
@@ -677,7 +677,7 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <p className="text-xs text-white/60 mb-3">
+                  <p className="text-xs text-muted-foreground mb-3">
                     Required for private or gated datasets. Get your token from{" "}
                     <a
                       href="https://huggingface.co/settings/tokens"
@@ -691,7 +691,7 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
                   <input
                     type="password"
                     placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxx"
-                    className="w-full px-3 py-2 bg-black/30 border border-white/20 rounded text-white/90 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/40"
+                    className="w-full px-3 py-2 bg-popover border border-border rounded text-foreground/90 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground"
                     value={authToken}
                     onChange={(e) => setAuthToken(e.target.value)}
                   />
@@ -773,14 +773,14 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
         {/* Search Section */}
         <div className="border-t border-white/10 pt-6 mb-6">
           <div className="mb-4">
-            <h4 className="text-base font-medium text-white mb-2 flex items-center">
+            <h4 className="text-base font-medium text-foreground mb-2 flex items-center">
               Search Datasets
             </h4>
             <form onSubmit={handleSearch} className="flex gap-2">
               <input
                 type="text"
                 placeholder="Search datasets by name, task, or description..."
-                className="flex-1 px-3 py-2 bg-black/30 border border-white/20 rounded text-white/90 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/40"
+                className="flex-1 px-3 py-2 bg-popover border border-border rounded text-foreground/90 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 disabled={isSearching}
@@ -823,10 +823,10 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
         {/* Example Datasets */}
         <div className="border-t border-white/10 pt-6">
           <div className="mb-4">
-            <h4 className="text-base font-medium text-white mb-2 flex items-center">
+            <h4 className="text-base font-medium text-foreground mb-2 flex items-center">
               Featured Datasets
             </h4>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-muted-foreground">
               Popular datasets to get you started
             </p>
           </div>
@@ -834,7 +834,7 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
           {datasetsLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-              <span className="text-white/60">Loading datasets...</span>
+              <span className="text-muted-foreground">Loading datasets...</span>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -852,21 +852,21 @@ const HuggingFacePanel: FC<HuggingFacePanelProps> = ({ onImport }) => {
       </div>
 
       {/* Footer Info */}
-      <div className="border-t border-white/10 p-4 bg-white/5">
-        <div className="text-xs text-white/60">
+      <div className="border-t border-border p-4 bg-accent/5">
+        <div className="text-xs text-muted-foreground">
           <div className="flex items-center mb-2">
          
-            <span className="font-medium text-white/80">
+            <span className="font-medium text-foreground/80">
               HuggingFace Integration:
             </span>
           </div>
           <ul className="space-y-1 ml-4">
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Memory-efficient processing for large datasets
             </li>
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Multi-format support (Parquet, CSV, JSON, XLSX, TXT)
             </li>
           </ul>

@@ -57,7 +57,7 @@ const QueryResults: React.FC<QueryResultsProps> = ({
 
   return (
     <div 
-      className="flex flex-col h-full border border-white/10 rounded-md overflow-hidden"
+      className="flex flex-col h-full border border-border rounded-md overflow-hidden"
       aria-busy={isLoading}
       aria-live="polite"
     >

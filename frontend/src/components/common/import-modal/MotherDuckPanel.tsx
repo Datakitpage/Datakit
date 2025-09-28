@@ -44,7 +44,7 @@ const MotherDuckPanel: React.FC<MotherDuckPanelProps> = ({ onImport }) => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/10">
+      <div className="px-6 py-4 border-b border-border">
         <ConnectionStatus
           isConnected={isConnected}
           isConnecting={isConnecting}
@@ -74,10 +74,10 @@ const MotherDuckPanel: React.FC<MotherDuckPanelProps> = ({ onImport }) => {
               animate={{ opacity: 1, y: 0 }}
               className="text-center space-y-4"
             >
-              <h2 className="text-xl text-white font-medium">
+              <h2 className="text-xl text-foreground font-medium">
                 You're all set!
               </h2>
-              <p className="text-white/70">
+              <p className="text-muted-foreground">
                 Connection successful. You can query your MotherDuck in the
                 query tab.
               </p>

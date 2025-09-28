@@ -7,6 +7,7 @@ import { useConsentManager } from "@/components/common/ConsentPopup";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { useSignupPrompt } from "@/hooks/useSignupPrompt";
 import { usePostHogIdentification } from "@/hooks/usePostHogIdentification";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 import Home from "@/pages/Home";
 import Privacy from "@/pages/Privacy";
@@ -37,15 +38,15 @@ const MobileWarning = () => {
         url="/"
       />
 
-      <div className="flex flex-col bg-black items-center justify-center h-screen p-6 text-center">
-        <div className="bg-black p-8 rounded-lg shadow-lg max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-4 text-white">
+      <div className="flex flex-col bg-background items-center justify-center h-screen p-6 text-center">
+        <div className="bg-card p-8 rounded-lg shadow-lg max-w-md w-full border border-border">
+          <h1 className="text-2xl font-bold mb-4 text-foreground">
             DataKit works best on desktop
           </h1>
-          <p className="text-white/80 mb-2 leading-relaxed">
+          <p className="text-muted-foreground mb-2 leading-relaxed">
             Experience powerful data analysis and seamless file processing.
           </p>
-          <p className="text-white/60 text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-6">
             Switch to desktop for the full experience, or
           </p>
           
@@ -67,7 +68,7 @@ const MobileWarning = () => {
               title="Join our Discord community"
             >
               <img src={discord} alt="Discord" className="w-6 h-6 mr-1.5" />
-              <span className="text-md text-white">Discord</span>
+              <span className="text-md text-foreground">Discord</span>
             </a>
           </Button>
         </div>
@@ -161,9 +162,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <Router>
-      <NotificationProvider>
-        <AppContent />
-      </NotificationProvider>
+      <ThemeProvider>
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
+      </ThemeProvider>
     </Router>
   );
 };

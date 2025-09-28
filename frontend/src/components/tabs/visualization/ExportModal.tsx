@@ -113,8 +113,8 @@ const ExportModal: React.FC = () => {
   };
   
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-black p-6 rounded-lg shadow-lg w-96 border border-white/10">
+    <div className="fixed inset-0 backdrop-blur-sm bg-background/60 flex items-center justify-center z-50">
+      <div className="bg-popover p-6 rounded-lg shadow-lg w-96 border border-border">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Export Chart</h3>
           <Button
@@ -272,7 +272,7 @@ const FormatOption: React.FC<FormatOptionProps> = ({ id, label, icon, selected, 
       className={`flex flex-col items-center justify-center p-2 cursor-pointer rounded ${
         selected 
           ? 'bg-primary/20 text-primary border border-primary/50' 
-          : 'bg-background border border-white/10 text-white/70 hover:text-white'
+          : 'bg-background border border-border text-muted-foreground hover:text-foreground'
       }`}
       onClick={onClick}
       id={id}

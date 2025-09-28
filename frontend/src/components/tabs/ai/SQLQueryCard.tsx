@@ -102,15 +102,15 @@ const SQLQueryCardWithViz: React.FC<SQLQueryCardWithVizProps> = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1 }}
-        className={`group relative bg-white/5 border rounded-lg transition-all hover:bg-white/[0.07] w-full ${
-          isPrimary ? 'border-primary/30' : 'border-white/10'
+        className={`group relative bg-accent/5 border rounded-lg transition-all hover:bg-accent/10 w-full ${
+          isPrimary ? 'border-primary/30' : 'border-border'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border">
           <div className="flex items-center gap-2">
-            <Code className="h-4 w-4 text-white/50" />
-            <span className="text-xs font-medium text-white/70">
+            <Code className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">
               Query {index + 1}
               {isPrimary && (
                 <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
@@ -181,7 +181,7 @@ const SQLQueryCardWithViz: React.FC<SQLQueryCardWithVizProps> = ({
         <div className="p-4 overflow-hidden">
           <pre className="text-sm overflow-x-auto whitespace-pre">
             <code
-              className="language-sql text-white/80"
+              className="language-sql text-foreground"
               dangerouslySetInnerHTML={{ __html: getHighlightedSQL() }}
             />
           </pre>
@@ -195,7 +195,7 @@ const SQLQueryCardWithViz: React.FC<SQLQueryCardWithVizProps> = ({
             exit={{ opacity: 0, scaleY: 0 }}
             transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
             style={{ transformOrigin: 'top' }}
-            className="px-4 py-2 border-t border-white/10 bg-purple-500/10"
+            className="px-4 py-2 border-t border-border bg-accent/10"
           >
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse" />
@@ -212,7 +212,7 @@ const SQLQueryCardWithViz: React.FC<SQLQueryCardWithVizProps> = ({
             exit={{ opacity: 0, scaleY: 0 }}
             transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
             style={{ transformOrigin: 'top' }}
-            className="px-4 py-2 border-t border-white/10 bg-primary/10"
+            className="px-4 py-2 border-t border-border bg-primary/10"
           >
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />

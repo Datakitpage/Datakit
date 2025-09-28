@@ -125,7 +125,7 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
 
       return (
         <div
-          className={`h-3 bg-white/10 rounded animate-pulse ${widthClass}`}
+          className={`h-3 bg-accent/10 rounded animate-pulse ${widthClass}`}
         />
       );
     }
@@ -270,8 +270,8 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
   if (error) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center text-white/70">
-          <p className="text-lg mb-2 text-red-400">Error loading data</p>
+        <div className="text-center text-muted-foreground">
+          <p className="text-lg mb-2 text-destructive">Error loading data</p>
           <p className="text-sm">{error}</p>
         </div>
       </div>
@@ -323,7 +323,7 @@ const DataPreviewGrid: React.FC<DataPreviewGridProps> = ({ fileId, hideHeader = 
               getCellClass={(row, col) => {
                 const baseClass = getCellClass(row, col);
                 if ((isLoading || isChangingPage) && row > 0 && col > 0) {
-                  return `${baseClass} bg-white/5`;
+                  return `${baseClass} bg-accent/5`;
                 }
                 return baseClass;
               }}

@@ -78,11 +78,11 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
   const showSearchInput = filterType === "name" || searchTerm.length > 0;
 
   return (
-    <div className="p-4 border-b border-white/10">
+    <div className="p-4 border-b border-border">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-white/90">Columns</h3>
-          <span className="text-xs text-white/50">
+          <h3 className="text-sm font-medium text-foreground">Columns</h3>
+          <span className="text-xs text-muted-foreground">
             {filteredCount !== totalColumns ? `${filteredCount} of ` : ""}
             {totalColumns}
           </span>
@@ -92,7 +92,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-card/30 hover:bg-card/50 border border-white/10 rounded-lg text-xs text-white/80 hover:text-white transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-card/30 hover:bg-card/50 border border-border rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             {currentFilter.icon}
             <span>{currentFilter.label}</span>
@@ -111,7 +111,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 5, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 bg-card/95 backdrop-blur-sm border border-white/20 rounded-lg shadow-xl z-50 min-w-48"
+                className="absolute right-0 top-full mt-2 bg-popover backdrop-blur-sm border border-border rounded-lg shadow-xl z-50 min-w-48"
               >
                 {FILTER_OPTIONS.map((option) => (
                   <button
@@ -125,7 +125,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
                       }
                     }}
                     className={cn(
-                      "w-full flex items-start gap-3 p-3 text-left hover:bg-white/10 transition-colors first:rounded-t-lg last:rounded-b-lg",
+                      "w-full flex items-start gap-3 p-3 text-left hover:bg-accent/10 transition-colors first:rounded-t-lg last:rounded-b-lg",
                       filterType === option.value &&
                         "bg-primary/20 text-primary"
                     )}
@@ -133,7 +133,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
                     <div className="mt-0.5">{option.icon}</div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium">{option.label}</div>
-                      <div className="text-xs text-white/60 mt-0.5">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         {option.description}
                       </div>
                     </div>
@@ -156,7 +156,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
             className="overflow-hidden"
           >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-white/50" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search column names..."
@@ -165,7 +165,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 className={cn(
-                  "w-full pl-9 pr-3 py-2 bg-card/20 border border-white/10 rounded-lg text-sm text-white placeholder-white/50 transition-all duration-200",
+                  "w-full pl-9 pr-3 py-2 bg-card/20 border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground transition-all duration-200",
                   "focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary/50",
                   isSearchFocused && "bg-card/30"
                 )}
@@ -181,7 +181,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-2 text-xs text-white/60"
+          className="mt-2 text-xs text-muted-foreground"
         >
           {filteredCount === 0 ? (
             <span className="text-yellow-400">
@@ -197,7 +197,7 @@ export const ColumnSearch: React.FC<ColumnSearchProps> = ({
         </motion.div>
       )}
 
-      <p className="text-xs text-white/60 mt-1">
+      <p className="text-xs text-muted-foreground mt-1">
         Click columns to explore patterns
       </p>
     </div>

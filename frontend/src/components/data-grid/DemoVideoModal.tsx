@@ -25,7 +25,7 @@ const DemoVideoModal: React.FC<DemoVideoModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 backdrop-blur-sm bg-black/60"
+            className="absolute inset-0 backdrop-blur-sm bg-background/60"
           />
 
           {/* Modal */}
@@ -34,25 +34,25 @@ const DemoVideoModal: React.FC<DemoVideoModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="relative w-full max-w-6xl bg-black border border-white/10 rounded-lg shadow-2xl"
+            className="relative w-full max-w-6xl bg-popover border border-border rounded-lg shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <Play className="h-5 w-5"/>
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
+                <h2 className="text-lg font-semibold text-foreground">{title}</h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
+                className="p-1 hover:bg-accent/10 rounded transition-colors"
                 aria-label="Close modal"
               >
-                <X className="h-5 w-5 text-white/70" />
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
 
             {/* Video Container */}
-            <div className="relative w-full aspect-video bg-black/50 rounded-b-lg overflow-hidden">
+            <div className="relative w-full aspect-video bg-background/50 rounded-b-lg overflow-hidden">
               <video
                 src={videoUrl}
                 controls

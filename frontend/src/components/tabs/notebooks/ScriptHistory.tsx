@@ -99,19 +99,19 @@ const ScriptHistory: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
           <Notebook className="w-5 h-5 text-primary" />
-          <h3 className="font-medium text-white">Notebooks</h3>
+          <h3 className="font-medium text-foreground">Notebooks</h3>
         </div>
 
         {/* Search */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search Notebooks..."
-            className="w-full pl-10 pr-4 py-2 bg-background border border-white/10 rounded text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-primary/50"
+            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -122,7 +122,7 @@ const ScriptHistory: React.FC = () => {
           variant="outline"
           size="sm"
           onClick={handleCreateNewNotebook}
-          className="w-full mb-3 h-8 border-white/30 text-white/80 hover:bg-white/10 hover:border-white/30"
+          className="w-full mb-3 h-8 border-border30 text-muted-foreground hover:bg-accent/10 hover:border-border30"
           title="Create New Notebook"
         >
           <FilePlus className="w-4 h-4 mr-2" />
@@ -131,7 +131,7 @@ const ScriptHistory: React.FC = () => {
 
         {/* Import button */}
         <div className="flex justify-between items-center">
-          <span className="text-xs text-white/60">
+          <span className="text-xs text-muted-foreground">
             {savedScripts.length} saved scripts
           </span>
 
@@ -160,12 +160,12 @@ const ScriptHistory: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         {filteredScripts.length === 0 ? (
           <div className="p-4 text-center">
-            <History className="w-8 h-8 text-white/30 mx-auto mb-2" />
-            <p className="text-sm text-white/60">
+            <History className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">
               {searchQuery ? 'No scripts found' : 'No saved scripts'}
             </p>
             {!searchQuery && (
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Save your first script to see it here
               </p>
             )}
@@ -178,7 +178,7 @@ const ScriptHistory: React.FC = () => {
                 className={`relative group rounded-lg p-3 transition-colors ${
                   currentScript?.id === script.id
                     ? 'bg-primary/20 border border-primary/30'
-                    : 'bg-white/5 hover:bg-white/10'
+                    : 'bg-accent/5 hover:bg-accent/10'
                 }`}
                 onClick={() =>
                   setSelectedScript(
@@ -194,7 +194,7 @@ const ScriptHistory: React.FC = () => {
                           type="text"
                           value={newName}
                           onChange={(e) => setNewName(e.target.value)}
-                          className="flex-1 px-2 py-1 bg-background border border-white/20 rounded text-sm text-white focus:outline-none focus:border-primary/50"
+                          className="flex-1 px-2 py-1 bg-background border border-border20 rounded text-sm text-foreground focus:outline-none focus:border-primary/50"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') saveRename(script.id);
                             if (e.key === 'Escape') cancelRename();
@@ -205,7 +205,7 @@ const ScriptHistory: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-white text-sm truncate">
+                        <h4 className="font-medium text-foreground text-sm truncate">
                           {script.name}
                         </h4>
                         {currentScript?.id === script.id && (
@@ -217,12 +217,12 @@ const ScriptHistory: React.FC = () => {
                     )}
 
                     {script.description && (
-                      <p className="text-xs text-white/60 mb-2 line-clamp-2">
+                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                         {script.description}
                       </p>
                     )}
 
-                    <div className="flex items-center gap-4 text-xs text-white/50">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         <span>{formatRelativeTime(script.updatedAt)}</span>
@@ -257,9 +257,9 @@ const ScriptHistory: React.FC = () => {
 
                     {/* Dropdown menu */}
                     {showMenu === script.id && (
-                      <div className="absolute right-0 top-full mt-1 bg-black border border-white/10 rounded shadow-lg z-20 min-w-40">
+                      <div className="absolute right-0 top-full mt-1 bg-popover border border-border rounded shadow-lg z-20 min-w-40">
                         <button
-                          className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                          className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent/10 flex items-center gap-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleLoadScript(script);
@@ -270,7 +270,7 @@ const ScriptHistory: React.FC = () => {
                         </button>
 
                         <button
-                          className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                          className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent/10 flex items-center gap-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             startRenaming(script);
@@ -281,7 +281,7 @@ const ScriptHistory: React.FC = () => {
                         </button>
 
                         <button
-                          className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                          className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent/10 flex items-center gap-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDuplicateScript(script.id);
@@ -292,7 +292,7 @@ const ScriptHistory: React.FC = () => {
                         </button>
 
                         <button
-                          className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2"
+                          className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent/10 flex items-center gap-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleExportScript(script);
@@ -302,7 +302,7 @@ const ScriptHistory: React.FC = () => {
                           Export
                         </button>
 
-                        <div className="border-t border-white/10" />
+                        <div className="border-t border-border" />
 
                         <button
                           className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"

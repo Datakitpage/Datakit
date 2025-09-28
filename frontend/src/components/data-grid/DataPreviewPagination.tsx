@@ -51,7 +51,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
       : Math.min(currentPage * rowsPerPage, totalRows);
 
   return (
-    <div className={`flex items-center justify-between bg-darkNav border-t border-white/10 ${
+    <div className={`flex items-center justify-between bg-popover border-t border-border ${
       compact 
         ? 'px-1 sm:px-2 py-1 sm:py-2' 
         : 'px-4 py-3'
@@ -62,7 +62,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
           ? 'space-x-1' 
           : 'space-x-3'
       }`}>
-        <span className={`font-medium text-white/80 ${
+        <span className={`font-medium text-muted-foreground ${
           compact 
             ? 'text-xs hidden md:inline' 
             : 'text-sm'
@@ -71,7 +71,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
           value={rowsPerPage}
           onChange={handleRowsPerPageChange}
           disabled={disabled}
-          className={`bg-background text-white font-medium rounded-md border border-white/20 hover:border-white/30 focus:border-primary focus:ring-1 focus:ring-primary/20 disabled:opacity-50 transition-all duration-200 ${
+          className={`bg-background text-foreground font-medium rounded-md border border-border hover:border-border/60 focus:border-primary focus:ring-1 focus:ring-primary/20 disabled:opacity-50 transition-all duration-200 ${
             compact 
               ? 'text-xs px-1 sm:px-2 py-0.5 sm:py-1' 
               : 'text-sm px-3 py-1.5'
@@ -83,7 +83,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
           <option value={5000}>{compact ? '5K' : '5,000'}</option>
           <option value={10000}>{compact ? '10K' : '10,000'}</option>
         </select>
-        <span className={`text-white/60 ${
+        <span className={`text-muted-foreground ${
           compact 
             ? 'text-xs hidden sm:inline' 
             : 'text-sm'
@@ -108,7 +108,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
                   ? 'w-1 h-1' 
                   : 'w-1.5 h-1.5 mr-2'
               }`}></div>
-              <span className={`font-medium text-white/90 ${
+              <span className={`font-medium text-foreground ${
                 compact 
                   ? 'text-xs' 
                   : 'text-sm'
@@ -136,13 +136,13 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
             </div>
           </div>
         ) : isView ? (
-          <span className={`font-medium text-white/90 ${
+          <span className={`font-medium text-foreground ${
             compact 
               ? 'text-xs' 
               : 'text-sm'
           }`}>
             {startRow.toLocaleString()} - {endRow.toLocaleString()}
-            <span className={`text-white/60 ml-1 ${
+            <span className={`text-muted-foreground ml-1 ${
               compact 
                 ? 'hidden sm:inline' 
                 : ''
@@ -154,25 +154,25 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
               ? 'space-x-2' 
               : 'space-x-3'
           }`}>
-            <span className={`font-medium text-white/90 ${
+            <span className={`font-medium text-foreground ${
               compact 
                 ? 'text-xs' 
                 : 'text-sm'
             }`}>
               {startRow.toLocaleString()} - {endRow.toLocaleString()}<span className={compact ? 'hidden md:inline' : 'hidden sm:inline'}> of{" "}
-              <span className="text-white font-semibold">{totalRows.toLocaleString()}</span> rows</span>
+              <span className="text-foreground font-semibold">{totalRows.toLocaleString()}</span> rows</span>
             </span>
             
             {columnCount && columnCount > 0 && (
               <>
-                <span className="text-white/30">•</span>
+                <span className="text-muted-foreground/60">•</span>
                 <span className={`flex items-center gap-1 ${
                   compact 
                     ? 'text-xs' 
                     : 'text-sm'
                 }`}>
-                  <span className="font-semibold text-white">{columnCount}</span>
-                  <span className="text-white/60">columns</span>
+                  <span className="font-semibold text-foreground">{columnCount}</span>
+                  <span className="text-muted-foreground">columns</span>
                 </span>
               </>
             )}
@@ -190,7 +190,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className={`p-0 flex items-center justify-center rounded-md hover:bg-white/10 disabled:opacity-40 transition-all duration-200 ${
+          className={`p-0 flex items-center justify-center rounded-md hover:bg-accent/10 disabled:opacity-40 transition-all duration-200 ${
             compact 
               ? 'h-5 w-5 sm:h-6 sm:w-6 hidden sm:flex' 
               : 'h-8 w-8'
@@ -205,7 +205,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className={`p-0 flex items-center justify-center rounded-md hover:bg-white/10 disabled:opacity-40 transition-all duration-200 ${
+          className={`p-0 flex items-center justify-center rounded-md hover:bg-accent/10 disabled:opacity-40 transition-all duration-200 ${
             compact 
               ? 'h-5 w-5 sm:h-6 sm:w-6' 
               : 'h-8 w-8'
@@ -223,7 +223,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
             : 'px-3 min-w-[140px]'
         }`}>
           {isCountLoading && totalPages === 0 ? (
-            <span className={`font-medium text-white/90 ${
+            <span className={`font-medium text-foreground ${
               compact 
                 ? 'text-xs' 
                 : 'text-sm'
@@ -236,7 +236,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
               }`}>{compact ? ' / ?' : ' of ?'}</span>
             </span>
           ) : isView ? (
-            <span className={`font-medium text-white/90 ${
+            <span className={`font-medium text-foreground ${
               compact 
                 ? 'text-xs' 
                 : 'text-sm'
@@ -244,7 +244,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
               <span className={compact ? 'hidden md:inline' : ''}>{compact ? '' : 'Page '}</span><span className="font-semibold">{currentPage}</span>
             </span>
           ) : totalPages === 0 ? (
-            <span className={`font-medium text-white/90 ${
+            <span className={`font-medium text-foreground ${
               compact 
                 ? 'text-xs' 
                 : 'text-sm'
@@ -252,7 +252,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
               <span className={compact ? 'hidden md:inline' : ''}>{compact ? '' : 'Page '}</span><span className="font-semibold">{currentPage}</span>
             </span>
           ) : (
-            <span className={`font-medium text-white/90 ${
+            <span className={`font-medium text-foreground ${
               compact 
                 ? 'text-xs' 
                 : 'text-sm'
@@ -265,7 +265,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className={`p-0 flex items-center justify-center rounded-md hover:bg-white/10 disabled:opacity-40 transition-all duration-200 ${
+          className={`p-0 flex items-center justify-center rounded-md hover:bg-accent/10 disabled:opacity-40 transition-all duration-200 ${
             compact 
               ? 'h-5 w-5 sm:h-6 sm:w-6' 
               : 'h-8 w-8'
@@ -283,7 +283,7 @@ const DataPreviewPagination: React.FC<DataPreviewPaginationProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className={`p-0 flex items-center justify-center rounded-md hover:bg-white/10 disabled:opacity-40 transition-all duration-200 ${
+          className={`p-0 flex items-center justify-center rounded-md hover:bg-accent/10 disabled:opacity-40 transition-all duration-200 ${
             compact 
               ? 'h-5 w-5 sm:h-6 sm:w-6 hidden sm:flex' 
               : 'h-8 w-8'

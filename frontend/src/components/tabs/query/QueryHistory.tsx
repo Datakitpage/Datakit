@@ -108,25 +108,25 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         <h3 className="text-sm font-medium flex items-center">
           <Clock size={16} className="mr-2 text-primary" />
           <span className="flex items-center">
            
             Query History
-            <span className="text-[10px] bg-white/10 text-white/60 px-1.5 py-0.5 rounded ml-1.5">
+            <span className="text-[10px] bg-accent/10 text-muted-foreground px-1.5 py-0.5 rounded ml-1.5">
               from indexedDB
             </span>
           </span>
         </h3>
 
         {/* Tabs */}
-        <div className="flex mt-3 border-b border-white/10">
+        <div className="flex mt-3 border-b border-border">
           <button
             className={`px-3 py-1.5 text-xs font-medium ${
               activeTab === "recent"
                 ? "text-primary border-b-2 border-primary"
-                : "text-white/70 hover:text-white/90"
+                : "text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => setActiveTab("recent")}
           >
@@ -136,7 +136,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
             className={`px-3 py-1.5 text-xs font-medium ${
               activeTab === "saved"
                 ? "text-primary border-b-2 border-primary"
-                : "text-white/70 hover:text-white/90"
+                : "text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => setActiveTab("saved")}
           >
@@ -147,7 +147,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
 
       <div className="flex-1 overflow-auto p-2">
         {queries.length === 0 ? (
-          <div className="p-4 text-center text-white/50 text-xs">
+          <div className="p-4 text-center text-muted-foreground text-xs">
             {activeTab === "recent"
               ? "No recent queries. Execute a query to see it here."
               : "No saved queries. Click the star icon to save a query."}
@@ -157,7 +157,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
             {queries.map((query) => (
               <div
                 key={query.id}
-                className="p-2 rounded bg-background hover:bg-background/80 border border-white/5"
+                className="p-2 rounded bg-background hover:bg-background/80 border border-border"
               >
                 {editingQuery?.id === query.id ? (
                   <div className="flex items-center justify-between mb-1">
@@ -165,7 +165,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="flex-1 bg-darkNav px-2 py-1 text-xs rounded border border-white/10"
+                      className="flex-1 bg-popover px-2 py-1 text-xs rounded border border-border"
                       autoFocus
                     />
                     <div className="flex items-center ml-2">
@@ -176,7 +176,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
                         onClick={() => setEditingQuery(null)}
                         title="Cancel"
                       >
-                        <X size={14} className="text-white/70" />
+                        <X size={14} className="text-muted-foreground" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -192,7 +192,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
                   </div>
                 ) : (
                   <div className="flex items-center justify-between mb-1 group">
-                    <div className="text-xs font-medium text-white/80 truncate flex-1">
+                    <div className="text-xs font-medium text-foreground truncate flex-1">
                       {query.name || "Unnamed Query"}
                     </div>
                     <div className="flex items-center space-x-1">
@@ -216,7 +216,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
                           onClick={() => startEditing(query)}
                           title="Edit Name"
                         >
-                          <Edit size={14} className="text-white/70" />
+                          <Edit size={14} className="text-muted-foreground" />
                         </Button>
                       )}
 
@@ -230,7 +230,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
                         {copiedId === query.id ? (
                           <Check size={14} className="text-primary" />
                         ) : (
-                          <Copy size={14} className="text-white/70" />
+                          <Copy size={14} className="text-muted-foreground" />
                         )}
                       </Button>
 
@@ -248,17 +248,17 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ onSelectQuery }) => {
                 )}
 
                 <div
-                  className="text-xs mt-1 p-2 bg-darkNav/60 rounded font-mono overflow-hidden max-h-20 cursor-pointer"
+                  className="text-xs mt-1 p-2 bg-popover/60 rounded font-mono overflow-hidden max-h-20 cursor-pointer"
                   onClick={() => onSelectQuery(query.query)}
                 >
                   {query.query.split("\n").slice(0, 3).join("\n")}
                   {query.query.split("\n").length > 3 && (
-                    <div className="text-white/50 text-center">...</div>
+                    <div className="text-muted-foreground text-center">...</div>
                   )}
                 </div>
 
                 <div className="mt-1 flex justify-between items-center">
-                  <div className="text-[10px] text-white/50">
+                  <div className="text-[10px] text-muted-foreground">
                     {formatDate(query.timestamp)}
                   </div>
                   <Button

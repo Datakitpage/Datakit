@@ -249,13 +249,13 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
   const renderConnectionsList = () => (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium text-white">
+            <h3 className="text-lg font-medium text-foreground">
               PostgreSQL Connections
             </h3>
-            <p className="text-sm text-white/60 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Connect to your PostgreSQL databases
             </p>
           </div>
@@ -285,14 +285,14 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
         {isConnecting ? (
           <div className="flex items-center justify-center py-12">
             <Loader className="h-6 w-6 animate-spin text-blue-400" />
-            <span className="ml-2 text-white/60">Loading connections...</span>
+            <span className="ml-2 text-muted-foreground">Loading connections...</span>
           </div>
         ) : connections.length === 0 ? (
           <div className="text-center py-12">
-            <h4 className="text-lg font-medium text-white mb-2">
+            <h4 className="text-lg font-medium text-foreground mb-2">
               No Connections
             </h4>
-            <p className="text-white/60 mb-6 max-w-sm mx-auto">
+            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
               Create your first PostgreSQL connection to start importing data.
             </p>
             <Button
@@ -311,8 +311,8 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                 className={cn(
                   'group relative p-4 rounded-lg border transition-all duration-200 cursor-pointer',
                   selectedConnection?.id === connection.id
-                    ? 'bg-blue-500/10 border-blue-500/30 text-white'
-                    : 'bg-white/5 border-white/10 hover:border-white/20 text-white/80 hover:text-white'
+                    ? 'bg-blue-500/10 border-blue-500/30 text-foreground'
+                    : 'bg-accent/5 border border-border hover:border-border text-muted-foreground hover:text-foreground'
                 )}
                 onClick={() => handleSelectConnection(connection)}
               >
@@ -377,15 +377,15 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
   const renderConnectionForm = () => (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium text-white">
+            <h3 className="text-lg font-medium text-foreground">
               {editingConnection
                 ? 'Edit Connection'
                 : 'New PostgreSQL Connection'}
             </h3>
-            <p className="text-sm text-white/60 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Enter your PostgreSQL database connection details
             </p>
           </div>
@@ -398,7 +398,7 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
         <div className="max-w-md space-y-6">
           {/* Basic Info */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Connection Name
             </label>
             <input
@@ -408,13 +408,13 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="My PostgreSQL DB"
-              className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+              className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
             />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Host
               </label>
               <input
@@ -424,11 +424,11 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                   setFormData({ ...formData, host: e.target.value })
                 }
                 placeholder="localhost"
-                className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+                className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Port
               </label>
               <input
@@ -441,13 +441,13 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                   })
                 }
                 placeholder="5432"
-                className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+                className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Database
             </label>
             <input
@@ -457,12 +457,12 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                 setFormData({ ...formData, database: e.target.value })
               }
               placeholder="my_database"
-              className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+              className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Username
             </label>
             <input
@@ -472,12 +472,12 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                 setFormData({ ...formData, username: e.target.value })
               }
               placeholder="username"
-              className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+              className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Password
             </label>
             <input
@@ -487,12 +487,12 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                 setFormData({ ...formData, password: e.target.value })
               }
               placeholder="password"
-              className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+              className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Default Schema
             </label>
             <input
@@ -502,7 +502,7 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                 setFormData({ ...formData, schema: e.target.value })
               }
               placeholder="public"
-              className="w-full p-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+              className="w-full p-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
             />
           </div>
 
@@ -515,9 +515,9 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
               onChange={(e) =>
                 setFormData({ ...formData, sslEnabled: e.target.checked })
               }
-              className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500"
+              className="w-4 h-4 rounded border-border bg-accent/5 text-blue-500"
             />
-            <label htmlFor="ssl-enabled" className="text-sm text-white">
+            <label htmlFor="ssl-enabled" className="text-sm text-foreground">
               Enable SSL
             </label>
           </div>
@@ -535,7 +535,7 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-white/10">
+      <div className="p-6 border-t border-border">
         <div className="flex justify-end space-x-3">
           <Button
             variant="ghost"
@@ -579,11 +579,11 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
   const renderTableSelector = () => (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium text-white">Select Tables</h3>
-            <p className="text-sm text-white/60 mt-1">
+            <h3 className="text-lg font-medium text-foreground">Select Tables</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               Choose tables to connect from {selectedConnection?.name}.
             </p>
           </div>
@@ -598,13 +598,13 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
 
         {/* Search */}
         <div className="mt-4 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search tables..."
-            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/20 rounded text-white placeholder:text-white/50 focus:outline-none focus:border-blue-500/50"
+            className="w-full pl-10 pr-4 py-2 bg-accent/5 border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50"
           />
         </div>
       </div>
@@ -624,15 +624,15 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
         {isLoadingSchemas || isLoadingTables ? (
           <div className="flex items-center justify-center py-12">
             <Loader className="h-6 w-6 animate-spin text-blue-400" />
-            <span className="ml-2 text-white/60">Loading tables...</span>
+            <span className="ml-2 text-muted-foreground">Loading tables...</span>
           </div>
         ) : filteredTables.length === 0 ? (
           <div className="text-center py-12">
-            <Table className="h-12 w-12 text-white/30 mx-auto mb-4" />
-            <h4 className="text-lg font-medium text-white mb-2">
+            <Table className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+            <h4 className="text-lg font-medium text-foreground mb-2">
               No Tables Found
             </h4>
-            <p className="text-white/60">
+            <p className="text-muted-foreground">
               {searchTerm
                 ? 'No tables match your search.'
                 : 'No tables found in this database.'}
@@ -654,7 +654,7 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                     'group p-4 rounded-lg border transition-all duration-200 cursor-pointer',
                     isSelected
                       ? 'bg-blue-500/10 border-blue-500/30'
-                      : 'bg-white/5 border-white/10 hover:border-white/20'
+                      : 'bg-accent/5 border border-border hover:border-border'
                   )}
                   onClick={() => handleTableSelect(table)}
                 >
@@ -671,10 +671,10 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
                         <Table className="h-4 w-4" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-white">
+                        <h4 className="font-medium text-foreground">
                           {table.schemaName}.{table.tableName}
                         </h4>
-                        <p className="text-sm text-white/60">
+                        <p className="text-sm text-muted-foreground">
                           {table.tableType} 
                           {/* •{' '} */}
                           {/* {table.rowCount?.toLocaleString() || '?'} rows */}
@@ -695,9 +695,9 @@ const PostgreSQLPanel: React.FC<PostgreSQLPanelProps> = ({ onImport }) => {
 
       {/* Footer */}
       {(selectedTables || []).length > 0 && (
-        <div className="p-6 border-t border-white/10">
+        <div className="p-6 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/60">
+            <span className="text-sm text-muted-foreground">
               {(selectedTables || []).length} table
               {(selectedTables || []).length === 1 ? '' : 's'} selected
             </span>

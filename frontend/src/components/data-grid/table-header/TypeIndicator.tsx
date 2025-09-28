@@ -28,13 +28,13 @@ const TypeIndicator: React.FC<TypeIndicatorProps> = ({
       return <ToggleLeft size={size} className="text-primary" />;
     }
     if (normalizedType.includes('array') || normalizedType.includes('list') || normalizedType === 'array') {
-      return <List size={size} className="text-white/60" />;
+      return <List size={size} className="text-muted-foreground" />;
     }
     if (normalizedType.includes('blob') || normalizedType.includes('binary') || normalizedType === 'object') {
-      return <Binary size={size} className="text-white/60" />;
+      return <Binary size={size} className="text-muted-foreground" />;
     }
     // Default for varchar, text, etc.
-    return <Type size={size} className="text-white/60" />;
+    return <Type size={size} className="text-muted-foreground" />;
   };
 
   return (

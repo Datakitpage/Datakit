@@ -87,8 +87,8 @@ const QueryResultsTable: React.FC<QueryResultsTableProps> = ({
               display: "flex",
             }}
             className={`${
-              index % 2 === 0 ? "bg-black/20" : ""
-            } hover:bg-white/5`}
+              index % 2 === 0 ? "bg-background/20" : ""
+            } hover:bg-accent/5`}
             role="row"
           >
             {columns.map((column, colIndex) => {
@@ -112,7 +112,7 @@ const QueryResultsTable: React.FC<QueryResultsTableProps> = ({
 
   // Early return for no data
   if (!results?.length || !columns?.length) {
-    return <div className="p-4 text-white/70">No data to display</div>;
+    return <div className="p-4 text-muted-foreground">No data to display</div>;
   }
 
   return (
@@ -128,14 +128,14 @@ const QueryResultsTable: React.FC<QueryResultsTableProps> = ({
         <div style={{ width: totalTableWidth, minWidth: "100%" }}>
           {/* Table Header - sticky positioning for vertical scrolling */}
           <div
-            className="sticky top-0 bg-darkNav z-10 border-b border-white/10 shadow-sm"
+            className="sticky top-0 bg-popover z-10 border-b border-border shadow-sm"
             role="rowgroup"
           >
             <div className="flex" role="row">
               {columns.map((column, index) => (
                 <div
                   key={index}
-                  className="text-left p-2 text-xs font-medium text-white/90 border-r border-white/10 whitespace-nowrap z-100 bg-black"
+                  className="text-left p-2 text-xs font-medium text-foreground border-r border-border whitespace-nowrap z-100 bg-background"
                   style={{
                     width: columnWidths[index] || 150,
                     minWidth: columnWidths[index] || 150,

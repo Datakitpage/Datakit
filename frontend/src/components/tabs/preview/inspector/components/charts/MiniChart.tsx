@@ -37,7 +37,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
     if (frequentValues && frequentValues.values.length > 0) {
       return <PieChart className="h-3 w-3 text-secondary" />;
     }
-    return <TrendingUp className="h-3 w-3 text-white/40" />;
+    return <TrendingUp className="h-3 w-3 text-muted-foreground" />;
   };
 
   // Get chart insights
@@ -86,7 +86,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {getChartTypeIcon()}
-            <span className="text-xs text-white/60">Distribution</span>
+            <span className="text-xs text-muted-foreground">Distribution</span>
           </div>
           <div className="flex items-center gap-1">
            
@@ -129,7 +129,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {getChartTypeIcon()}
-            <span className="text-xs text-white/60">Top Values</span>
+            <span className="text-xs text-muted-foreground">Top Values</span>
           </div>
           <div className="flex items-center gap-1">
            
@@ -172,7 +172,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {getChartTypeIcon()}
-            <span className="text-xs text-white/60">Statistics</span>
+            <span className="text-xs text-muted-foreground">Statistics</span>
           </div>
         
         </div>
@@ -180,20 +180,20 @@ const MiniChart: React.FC<MiniChartProps> = ({
         <div className="p-3 bg-card/20 rounded-lg">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-white/60">Min:</span>
-              <span className="text-white font-mono">{column.numericStats.min.toLocaleString()}</span>
+              <span className="text-muted-foreground">Min:</span>
+              <span className="text-foreground font-mono">{column.numericStats.min.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Max:</span>
-              <span className="text-white font-mono">{column.numericStats.max.toLocaleString()}</span>
+              <span className="text-muted-foreground">Max:</span>
+              <span className="text-foreground font-mono">{column.numericStats.max.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Mean:</span>
-              <span className="text-white font-mono">{column.numericStats.mean.toFixed(2)}</span>
+              <span className="text-muted-foreground">Mean:</span>
+              <span className="text-foreground font-mono">{column.numericStats.mean.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Median:</span>
-              <span className="text-white font-mono">{column.numericStats.median.toFixed(2)}</span>
+              <span className="text-muted-foreground">Median:</span>
+              <span className="text-foreground font-mono">{column.numericStats.median.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {getChartTypeIcon()}
-            <span className="text-xs text-white/60">Text Statistics</span>
+            <span className="text-xs text-muted-foreground">Text Statistics</span>
           </div>
          
         </div>
@@ -220,20 +220,20 @@ const MiniChart: React.FC<MiniChartProps> = ({
         <div className="p-3 bg-card/20 rounded-lg">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-white/60">Avg Length:</span>
-              <span className="text-white font-mono">{column.textStats.avgLength.toFixed(1)}</span>
+              <span className="text-muted-foreground">Avg Length:</span>
+              <span className="text-foreground font-mono">{column.textStats.avgLength.toFixed(1)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Max Length:</span>
-              <span className="text-white font-mono">{column.textStats.maxLength}</span>
+              <span className="text-muted-foreground">Max Length:</span>
+              <span className="text-foreground font-mono">{column.textStats.maxLength}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Empty:</span>
-              <span className="text-white font-mono">{column.textStats.emptyStrings}</span>
+              <span className="text-muted-foreground">Empty:</span>
+              <span className="text-foreground font-mono">{column.textStats.emptyStrings}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Total Chars:</span>
-              <span className="text-white font-mono">{column.textStats.totalChars.toLocaleString()}</span>
+              <span className="text-muted-foreground">Total Chars:</span>
+              <span className="text-foreground font-mono">{column.textStats.totalChars.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -270,10 +270,10 @@ const MiniChart: React.FC<MiniChartProps> = ({
           </div>
         
         </div>
-        <div className="text-xs text-white/70 mb-2">
+        <div className="text-xs text-muted-foreground mb-2">
           {reason.message}
         </div>
-        <div className="text-xs text-white/50">
+        <div className="text-xs text-muted-foreground">
           Column: {column.name} • Type: {column.type} • Unique: {column.uniqueCount} • Nulls: {column.nullCount}
         </div>
       </div>

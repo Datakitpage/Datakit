@@ -27,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-white/70">Loading...</div>
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -39,10 +39,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         {fallback || (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Authentication Required
               </h3>
-              <p className="text-white/70 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Please sign in to access this feature.
               </p>
               <button

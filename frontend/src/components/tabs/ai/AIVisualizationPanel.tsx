@@ -404,11 +404,11 @@ const AIVisualizationPanel: React.FC<AIVisualizationPanelProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-black/20 backdrop-blur-sm border border-white/10 rounded-lg" data-viz-id="current-viz">
+    <div className="h-full flex flex-col bg-popover/20 backdrop-blur-sm border border-border rounded-lg" data-viz-id="current-viz">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-white">
+          <h3 className="text-sm font-medium text-foreground">
             {title || 'Visualization'}
           </h3>
         </div>
@@ -457,7 +457,7 @@ const AIVisualizationPanel: React.FC<AIVisualizationPanelProps> = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
-              <p className="text-sm text-white/60">Generating visualization...</p>
+              <p className="text-sm text-muted-foreground">Generating visualization...</p>
             </div>
           </div>
         ) : (
@@ -471,12 +471,12 @@ const AIVisualizationPanel: React.FC<AIVisualizationPanelProps> = ({
 
       {/* Insights Panel */}
       {insights && insights.length > 0 && (
-        <div className="px-4 py-3 border-t border-white/10 bg-white/5">
+        <div className="px-4 py-3 border-t border-border bg-accent/5">
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 text-primary mt-0.5" />
             <div className="flex-1">
-              <p className="text-xs font-medium text-white/80 mb-1">Insights</p>
-              <ul className="text-xs text-white/60 space-y-1">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Insights</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
                 {insights.map((insight, idx) => (
                   <li key={idx} className="flex items-start gap-1">
                     <span className="text-primary">•</span>

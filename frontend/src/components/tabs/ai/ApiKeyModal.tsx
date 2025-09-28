@@ -167,7 +167,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm bg-background/60"
           onClick={onClose}
         >
           <motion.div
@@ -175,16 +175,16 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ delay: 0.1, duration: 0.2 }}
-            className="w-full max-w-4xl h-[85vh] bg-black border border-white/20 rounded-lg shadow-xl shadow-black/30 overflow-hidden flex"
+            className="w-full max-w-4xl h-[85vh] bg-background border border-border rounded-lg shadow-xl shadow-background/30 overflow-hidden flex"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left Sidebar - Provider Selection */}
-            <div className="w-64 bg-gradient-to-b from-darkNav to-black border-r border-white/10 flex flex-col">
-              <div className="p-4 border-b border-white/10">
-                <h2 className="text-lg font-heading font-medium text-white">
+            <div className="w-64 bg-gradient-to-b from-popover to-background border-r border-border flex flex-col">
+              <div className="p-4 border-b border-border">
+                <h2 className="text-lg font-heading font-medium text-foreground">
                   Configuration
                 </h2>
-                <p className="text-xs text-white/60 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Configure AI providers and settings
                 </p>
               </div>
@@ -210,8 +210,8 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                                 )} ${getProviderColorClass(
                                   provider,
                                   "border"
-                                )} border text-white`
-                              : "text-white/70 hover:text-white hover:bg-white/5 border border-transparent"
+                                )} border text-foreground`
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/5 border border-transparent"
                           )}
                         >
                           <div className="flex items-center">
@@ -226,7 +226,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                                       provider,
                                       "text"
                                     )}`
-                                  : "bg-white/5 border-white/10 text-white/60"
+                                  : "bg-accent/5 border-border text-muted-foreground"
                               )}
                             >
                               {config.icon}
@@ -288,10 +288,10 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                       {PROVIDER_CONFIG[activeProvider].icon}
                     </div>
                     <div>
-                      <h3 className="text-lg font-medium text-white">
+                      <h3 className="text-lg font-medium text-foreground">
                         {PROVIDER_CONFIG[activeProvider].name}
                       </h3>
-                      <p className="text-sm text-white/70">
+                      <p className="text-sm text-muted-foreground">
                         {PROVIDER_CONFIG[activeProvider].description}
                       </p>
                     </div>
@@ -300,7 +300,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                     variant="ghost"
                     size="sm"
                     onClick={onClose}
-                    className="h-8 w-8 p-0 rounded-full text-white/70 hover:text-white hover:bg-white/10"
+                    className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -317,11 +317,11 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                   <div className="space-y-6">
                     {/* URL Configuration */}
                     <div>
-                      <h4 className="text-sm font-medium text-white mb-3">
+                      <h4 className="text-sm font-medium text-foreground mb-3">
                         Server Configuration
                       </h4>
                       <div>
-                        <label className="block text-sm font-medium text-white/80 mb-2">
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">
                           Ollama Server URL
                         </label>
                         <input
@@ -329,9 +329,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                           value={keyInputs.get('ollama') || ""}
                           onChange={(e) => handleKeyChange('ollama', e.target.value)}
                           placeholder="http://localhost:11434"
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-primary/50"
+                          className="w-full px-3 py-2 bg-accent/5 border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
                         />
-                        <p className="text-xs text-white/60 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           The URL where your Ollama server is running
                         </p>
                       </div>
@@ -353,13 +353,13 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                   // API Key Configuration
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-sm font-medium text-white mb-3">
+                      <h4 className="text-sm font-medium text-foreground mb-3">
                         API Key Configuration
                       </h4>
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-white/80 mb-2">
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">
                             {activeProvider === 'ollama' ? 'Ollama Server URL' : 'API Key'}
                           </label>
                           <div className="relative">
@@ -378,7 +378,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                                   ? "http://localhost:11434"
                                   : `Enter your ${PROVIDER_CONFIG[activeProvider].name} API key`
                               }
-                              className="w-full px-3 py-2 pr-20 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-primary/50"
+                              className="w-full px-3 py-2 pr-20 bg-accent/5 border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
                             />
                             {activeProvider !== 'ollama' && (
                               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
@@ -406,10 +406,10 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                           <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 mt-4">
                             <div className="flex items-start gap-3">
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-white mb-1">
+                                <p className="text-sm font-medium text-foreground mb-1">
                                   Skip the API keys with DataKit credits
                                 </p>
-                                <p className="text-xs text-white/70 mb-3">
+                                <p className="text-xs text-muted-foreground mb-3">
                                   Get instant access to powerful AI models
                                   without managing API keys. Credits included
                                   with your account.
@@ -428,10 +428,10 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         )}
 
                         {PROVIDER_CONFIG[activeProvider].websiteUrl && (
-                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                          <div className="bg-accent/5 border border-border rounded-lg p-4">
                             <div className="flex items-start gap-3">
                               <div className="flex-1">
-                                <p className="text-sm text-white/80 mb-2">
+                                <p className="text-sm text-muted-foreground mb-2">
                                   {PROVIDER_CONFIG[activeProvider].helpText}
                                 </p>
                                 <div className="flex items-center gap-2">
@@ -468,7 +468,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-sm text-white/80">
+                            <label className="text-sm text-muted-foreground">
                               Auto-execute generated SQL
                             </label>
                             <p className="text-xs text-white/60">
@@ -500,7 +500,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         {/* TODO: Make this work to show cost estimates as part of Response header */}
                         {/* <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-sm text-white/80">
+                            <label className="text-sm text-muted-foreground">
                               Show cost estimates
                             </label>
                             <p className="text-xs text-white/60">
@@ -530,7 +530,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         </div> */}
 
                         {/* <div>
-                          <label className="block text-sm text-white/80 mb-2">
+                          <label className="block text-sm text-muted-foreground mb-2">
                             Query history limit
                           </label>
                           <select
@@ -540,7 +540,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                                 maxHistoryItems: parseInt(e.target.value),
                               })
                             }
-                            className="w-32 px-3 py-1 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-primary/50"
+                            className="w-32 px-3 py-1 bg-accent/5 border border-border rounded text-sm text-foreground focus:outline-none focus:border-primary/50"
                           >
                             <option value={25}>25</option>
                             <option value={50}>50</option>
@@ -555,7 +555,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t border-white/10 bg-darkNav/30">
+              <div className="p-4 border-t border-border bg-popover/30">
                 <div className="flex justify-end gap-3">
                   <Button variant="ghost" onClick={onClose}>
                     Cancel

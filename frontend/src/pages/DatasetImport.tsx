@@ -52,15 +52,15 @@ const DatasetImport = () => {
 
   // Show a minimal loading state while processing
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="text-center">
         <div className="flex items-center justify-center mb-4">
           <img src={HuggingFace} alt="HuggingFace" className="w-12 h-12 animate-pulse" />
         </div>
-        <h2 className="text-xl font-medium text-white mb-2">
+        <h2 className="text-xl font-medium text-foreground mb-2">
           Importing Dataset
         </h2>
-        <p className="text-white/70">
+        <p className="text-muted-foreground">
           Processing {organization}/{dataset}...
         </p>
       </div>

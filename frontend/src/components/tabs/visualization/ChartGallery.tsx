@@ -111,7 +111,7 @@ const ChartGallery: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         <h3 className="text-lg font-medium mb-4">Chart Gallery</h3>
 
         {/* Filter input */}
@@ -121,18 +121,18 @@ const ChartGallery: React.FC = () => {
             placeholder="Search charts..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full p-2 pl-8 bg-background border border-white/10 rounded text-white"
+            className="w-full p-2 pl-8 bg-background border border-border rounded text-foreground"
           />
-          <Filter size={16} className="absolute left-2 top-2.5 text-white/50" />
+          <Filter size={16} className="absolute left-2 top-2.5 text-muted-foreground" />
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10">
+        <div className="flex border-b border-border">
           <button
             className={`px-3 py-2 text-sm ${
               activeTab === "saved"
                 ? "text-primary border-b-2 border-primary -mb-px"
-                : "text-white/70 hover:text-white/90"
+                : "text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => setActiveTab("saved")}
           >
@@ -143,7 +143,7 @@ const ChartGallery: React.FC = () => {
             className={`px-3 py-2 text-sm ${
               activeTab === "templates"
                 ? "text-primary border-b-2 border-primary -mb-px"
-                : "text-white/70 hover:text-white/90"
+                : "text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => setActiveTab("templates")}
           >
@@ -156,12 +156,12 @@ const ChartGallery: React.FC = () => {
       {/* Chart grid */}
       <div className="flex-1 overflow-auto p-4">
         {filteredCharts.length === 0 ? (
-          <div className="text-center p-8 bg-darkNav/20 rounded-lg border border-white/5">
-            <div className="text-white/50 mb-3">
+          <div className="text-center p-8 bg-popover/20 rounded-lg border border-border">
+            <div className="text-muted-foreground mb-3">
               <BarChart4 size={48} className="inline-block" />
             </div>
             <h3 className="text-lg font-medium mb-2">No Charts Found</h3>
-            <p className="text-sm text-white/60 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               {activeTab === "saved"
                 ? "You haven't saved any charts yet. Create and save a chart to see it here."
                 : filter
@@ -180,7 +180,7 @@ const ChartGallery: React.FC = () => {
             {filteredCharts.map((chart) => (
               <div
                 key={chart.id}
-                className="bg-darkNav/30 rounded-lg border border-white/10 overflow-hidden hover:border-primary/50 transition-all"
+                className="bg-popover/30 rounded-lg border border-border overflow-hidden hover:border-primary/50 transition-all"
               >
                 {/* Chart preview (placeholder) */}
                 <div
@@ -204,7 +204,7 @@ const ChartGallery: React.FC = () => {
                       </h4>
                       {chart.description && (
                         <p
-                          className="text-xs text-white/70 mt-1 line-clamp-2"
+                          className="text-xs text-muted-foreground mt-1 line-clamp-2"
                           title={chart.description}
                         >
                           {chart.description}
@@ -220,7 +220,7 @@ const ChartGallery: React.FC = () => {
                   </div>
 
                   <div className="mt-3 flex justify-between items-center">
-                    <div className="text-xs text-white/50">
+                    <div className="text-xs text-muted-foreground">
                       {chart.isTemplate
                         ? "Template"
                         : new Date(chart.timestamp).toLocaleDateString()}
@@ -257,7 +257,7 @@ const ChartGallery: React.FC = () => {
         )}
       </div>
       {activeTab === "saved" && (
-        <div className="p-3 border-t border-white/10 bg-darkNav/50">
+        <div className="p-3 border-t border-border bg-popover/50">
           <Button variant="primary" className="w-full">
             <Plus size={16} className="mr-1" />
             Create New Chart

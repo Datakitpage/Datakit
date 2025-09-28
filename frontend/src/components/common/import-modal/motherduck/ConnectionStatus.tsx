@@ -83,13 +83,13 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
         {/* Status Text */}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium text-foreground">
               {getStatusText()}
             </span>
           </div>
 
           {isConnected && connectionInfo && (
-            <div className="flex items-center gap-3 text-xs text-white/60">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span>{databaseCount} databases</span>
               <span>•</span>
               <span>Connected {formatConnectionTime()}</span>
@@ -121,7 +121,7 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
             <Tooltip placement="left" content="Disconnect">
               <button
                 onClick={onDisconnect}
-                className="p-1.5 text-white/50 hover:text-white/70 hover:bg-white/10 rounded transition-all"
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/10 rounded transition-all"
               >
                 <Power size={14} />
               </button>

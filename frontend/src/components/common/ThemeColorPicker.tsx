@@ -77,7 +77,7 @@ export const ThemeColorPicker = ({
               stiffness: 500,
               duration: 0.05
             }}
-            className="fixed p-4 bg-darkNav/90 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-50 w-56"
+            className="fixed p-4 bg-popover backdrop-blur-xl border border-border rounded-xl shadow-2xl z-50 w-56"
             style={{
               top: variant === 'sidebar' && buttonRect 
                 ? buttonRect.top - 200 // Position above the button
@@ -89,8 +89,8 @@ export const ThemeColorPicker = ({
           >
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Palette size={14} className="text-white/60" />
-                  <span className="text-sm font-medium text-white">Theme Color</span>
+                  <Palette size={14} className="text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Theme Color</span>
                 </div>
                 
                 {/* TODO: Decision on having this for future or not */}
@@ -116,8 +116,8 @@ export const ThemeColorPicker = ({
                         whileTap={{ scale: 0.9 }}
                         className={`w-10 h-10 rounded-lg border-2 transition-all ${
                           color === presetColor
-                            ? 'border-white/60 ring-2 ring-white/30'
-                            : 'border-white/20 hover:border-white/40'
+                            ? 'border-foreground ring-2 ring-foreground/30'
+                            : 'border-border hover:border-border/60'
                         }`}
                         style={{ backgroundColor: presetColor }}
                         onClick={() => {
@@ -144,12 +144,12 @@ export const ThemeColorPicker = ({
         ref={buttonRef}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-1 p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+        className="flex items-center gap-1 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         onClick={handleToggle}
       >
         <Palette size={14} />
         <div
-          className="w-4 h-4 rounded-full border-2 border-white/30 shadow-sm"
+          className="w-4 h-4 rounded-full border-2 border-border shadow-sm"
           style={{ backgroundColor: color }}
         ></div>
       </motion.button>
@@ -180,28 +180,28 @@ export const ThemeColorPicker = ({
                   damping: 30,
                   duration: 0.2 
                 }}
-                className="absolute bottom-full left-0 mb-2 p-4 bg-darkNav/90 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-50 w-56"
+                className="absolute bottom-full left-0 mb-2 p-4 bg-popover backdrop-blur-xl border border-border rounded-xl shadow-2xl z-50 w-56"
               >
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Palette size={14} className="text-white/60" />
-                    <span className="text-sm font-medium text-white">Theme Color</span>
+                    <Palette size={14} className="text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Theme Color</span>
                   </div>
                   
                   {/* Custom Color Picker */}
                   <div className="space-y-2">
-                    <label className="text-xs text-white/60">Custom Color</label>
+                    <label className="text-xs text-muted-foreground">Custom Color</label>
                     <input
                       type="color"
                       value={color}
                       onChange={handleColorChange}
-                      className="w-full h-10 cursor-pointer border border-white/20 rounded-lg overflow-hidden bg-white/5"
+                      className="w-full h-10 cursor-pointer border border-border rounded-lg overflow-hidden bg-accent/5"
                     />
                   </div>
 
                   {/* Preset Colors */}
                   <div className="space-y-2">
-                    <label className="text-xs text-white/60">Presets</label>
+                    <label className="text-xs text-muted-foreground">Presets</label>
                     <div className="grid grid-cols-4 gap-2">
                       {presetColors.map(({ color: presetColor, name }) => (
                         <motion.button
@@ -210,8 +210,8 @@ export const ThemeColorPicker = ({
                           whileTap={{ scale: 0.9 }}
                           className={`w-10 h-10 rounded-lg border-2 transition-all ${
                             color === presetColor
-                              ? 'border-white/60 ring-2 ring-white/30'
-                              : 'border-white/20 hover:border-white/40'
+                              ? 'border-foreground ring-2 ring-foreground/30'
+                              : 'border-border hover:border-border/60'
                           }`}
                           style={{ backgroundColor: presetColor }}
                           onClick={() => {

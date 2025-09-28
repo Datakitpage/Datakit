@@ -25,16 +25,16 @@ export const UnsavedChangesDialog: React.FC<UnsavedChangesDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-darkNav p-6 rounded-lg shadow-lg w-96 max-w-[90vw]">
+    <div className="fixed inset-0 backdrop-blur-sm bg-background/60 flex items-center justify-center z-50">
+      <div className="bg-popover p-6 rounded-lg shadow-lg w-96 max-w-[90vw]">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center">
             <span className="text-yellow-400 text-sm">!</span>
           </div>
-          <h3 className="text-lg font-medium text-white">{title}</h3>
+          <h3 className="text-lg font-medium text-foreground">{title}</h3>
         </div>
         
-        <p className="text-white/70 mb-6 leading-relaxed">
+        <p className="text-muted-foreground mb-6 leading-relaxed">
           {message}
         </p>
         

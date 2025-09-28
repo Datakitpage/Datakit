@@ -81,8 +81,8 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
 
   return (
     <div 
-      className={`h-full w-full flex flex-col border-b-2 border-white/10 border-r border-white/15 overflow-hidden group cursor-pointer transition-all duration-300 ease-in-out column-header-cell ${
-        isSorted ? 'sorted' : 'bg-dark-nav hover:bg-primary/5'
+      className={`h-full w-full flex flex-col border-b-2 border-border border-r border-border/60 overflow-hidden group cursor-pointer transition-all duration-300 ease-in-out column-header-cell ${
+        isSorted ? 'sorted' : 'bg-popover hover:bg-primary/5'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -94,7 +94,7 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
           {!isRowNumberColumn && (
             <TypeIndicator type={columnType} size={12} />
           )}
-          <span className="text-sm font-semibold text-white truncate">
+          <span className="text-sm font-semibold text-foreground truncate">
             {columnName}
           </span>
         </div>
@@ -107,12 +107,12 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
             {/* {onColumnAction && !isView && (
               <button
                 onClick={handleColumnAction}
-                className={`p-1 rounded hover:bg-white/10 transition-all duration-200 ${
+                className={`p-1 rounded hover:bg-accent/10 transition-all duration-200 ${
                   isHovered ? 'opacity-100' : 'opacity-40'
                 }`}
                 title="AI Column Actions"
               >
-                <MoreVertical size={14} className="text-white/80 hover:text-primary" />
+                <MoreVertical size={14} className="text-muted-foreground hover:text-primary" />
               </button>
             )} */}
             
@@ -122,12 +122,12 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
             }`}>
               {isSorted ? (
                 sortState.direction === 'asc' ? (
-                  <ArrowUp size={14} className={`${isSorted ? 'text-white drop-shadow-sm' : 'text-primary'}`} />
+                  <ArrowUp size={14} className={`${isSorted ? 'text-foreground drop-shadow-sm' : 'text-primary'}`} />
                 ) : (
-                  <ArrowDown size={14} className={`${isSorted ? 'text-white drop-shadow-sm' : 'text-primary'}`} />
+                  <ArrowDown size={14} className={`${isSorted ? 'text-foreground drop-shadow-sm' : 'text-primary'}`} />
                 )
               ) : (
-                <ArrowUpDown size={12} className="text-white/60" />
+                <ArrowUpDown size={12} className="text-muted-foreground" />
               )}
             </div>
           </div>
@@ -149,7 +149,7 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
               />
             ) : (
               <div 
-                className="flex items-center justify-center text-white/20 text-[8px] font-mono transition-all duration-300 ease-in-out"
+                className="flex items-center justify-center text-muted-foreground/40 text-[8px] font-mono transition-all duration-300 ease-in-out"
                 style={{ 
                   height: 20,
                   width: Math.max(40, Math.min(width - 16, 100))
@@ -160,7 +160,7 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
           </div>
           
           {/* Quick stats or placeholder */}
-          <div className="flex flex-wrap gap-x-2 text-[10px] text-white/60 min-h-[12px] justify-center transition-all duration-300 ease-in-out">
+          <div className="flex flex-wrap gap-x-2 text-[10px] text-muted-foreground min-h-[12px] justify-center transition-all duration-300 ease-in-out">
             {hasStats && (stats.nullPercentage > 0 || stats.uniqueCount > 0 || stats.numericStats) ? (
               <>
                 {stats.nullPercentage > 0 && (
@@ -184,7 +184,7 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
                 )}
               </>
             ) : (
-              <span className="text-white/20 text-[8px]">no stats</span>
+              <span className="text-muted-foreground/40 text-[8px]">no stats</span>
             )}
           </div>
         </div>
@@ -193,8 +193,8 @@ const ColumnHeaderCell: React.FC<ColumnHeaderCellProps> = ({
       {/* Loading state */}
       {isLoading && !isRowNumberColumn && (
         <div className="px-2 pb-1">
-          <div className="h-4 bg-white/10 rounded animate-pulse mb-1" />
-          <div className="h-3 bg-white/10 rounded animate-pulse w-3/4" />
+          <div className="h-4 bg-accent/10 rounded animate-pulse mb-1" />
+          <div className="h-3 bg-accent/10 rounded animate-pulse w-3/4" />
         </div>
       )}
     </div>

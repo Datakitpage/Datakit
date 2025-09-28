@@ -27,7 +27,7 @@ const DropZonesOverlay: React.FC<DropZonesOverlayProps> = ({
           className={`absolute inset-0 z-50 pointer-events-none ${className}`}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-background/20 backdrop-blur-sm" />
 
           {/* Drop zones container */}
           <div className="absolute inset-0 flex items-center justify-center">

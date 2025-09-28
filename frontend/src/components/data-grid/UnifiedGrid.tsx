@@ -450,7 +450,7 @@ const UnifiedGrid = React.forwardRef<UnifiedGridRef, UnifiedGridProps>(({
   if (!hasHeaders || !columnCount || totalRowCount === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center text-white/70">
+        <div className="text-center text-muted-foreground">
           <p>No data to display</p>
         </div>
       </div>
@@ -482,7 +482,7 @@ const UnifiedGrid = React.forwardRef<UnifiedGridRef, UnifiedGridProps>(({
             style={{ 
               width: `var(--grid-col-0, 60px)`, 
               flexShrink: 0,
-              background: 'var(--dark-nav)'
+              background: 'hsl(var(--popover))'
             }}
             className="grid-cell"
           />

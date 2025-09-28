@@ -132,7 +132,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
         return <AlertCircle className="h-4 w-4 text-red-400" />;
       case 'loading':
         return (
-          <div className="h-4 w-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+          <div className="h-4 w-4 border-2 border-border border-t-foreground rounded-full animate-spin" />
         );
     }
   };
@@ -141,10 +141,10 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Export Options
         </h3>
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-muted-foreground">
           Export your analysis for {fileName} in various formats
         </p>
       </div>
@@ -167,10 +167,10 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
           >
             {getStatusIcon(exportStatus.status)}
             <div>
-              <div className="text-sm font-medium text-white">
+              <div className="text-sm font-medium text-foreground">
                 {exportStatus.format} Export
               </div>
-              <div className="text-xs text-white/70">
+              <div className="text-xs text-muted-foreground">
                 {exportStatus.message}
               </div>
             </div>
@@ -189,7 +189,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
               'border rounded-lg p-4 cursor-pointer transition-all duration-200',
               selectedOption === option.id
                 ? 'border-primary/30 bg-primary/5'
-                : 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                : 'border-border hover:border-border hover:bg-accent/5'
             )}
             onClick={() =>
               setSelectedOption(selectedOption === option.id ? null : option.id)
@@ -199,7 +199,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
               <div
                 className={cn(
                   'p-3 rounded-lg',
-                  selectedOption === option.id ? 'bg-primary/20' : 'bg-white/10'
+                  selectedOption === option.id ? 'bg-primary/20' : 'bg-accent/10'
                 )}
               >
                 {option.icon}
@@ -207,7 +207,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
 
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-lg font-medium text-white">
+                  <h4 className="text-lg font-medium text-foreground">
                     {option.name}
                   </h4>
 
@@ -216,7 +216,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                   )}
                 </div>
 
-                <p className="text-sm text-white/70 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   {option.description}
                 </p>
 
@@ -224,7 +224,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                   {option.formats.map((format) => (
                     <span
                       key={format}
-                      className="px-2 py-1 bg-white/10 text-white/80 rounded text-xs"
+                      className="px-2 py-1 bg-accent/10 text-muted-foreground rounded text-xs"
                     >
                       {format}
                     </span>
@@ -235,7 +235,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                   {option.features.map((feature, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 text-xs text-white/60"
+                      className="flex items-center gap-2 text-xs text-muted-foreground"
                     >
                       <div className="w-1 h-1 bg-primary rounded-full"></div>
                       {feature}
@@ -253,7 +253,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="mt-4 pt-4 border-t border-white/10"
+                  className="mt-4 pt-4 border-t border-border"
                 >
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {option.formats.map((format) => (
@@ -267,14 +267,14 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
                         className={cn(
                           'p-3 rounded-lg border transition-colors text-left',
                           exportStatus?.status === 'loading'
-                            ? 'bg-white/5 border-white/10 cursor-not-allowed'
-                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                            ? 'bg-accent/5 border-border cursor-not-allowed'
+                            : 'bg-accent/5 border-border hover:bg-accent/10 hover:border-border'
                         )}
                       >
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm font-medium text-foreground">
                           {format}
                         </div>
-                        <div className="text-xs text-white/60 mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           {format === 'PDF' && 'Print-ready HTML report'}
                           {format === 'CSV' && 'Comma-separated values'}
                           {format === 'Excel' && 'CSV format (Excel compatible)'}
@@ -305,13 +305,13 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
               Export Features
             </span>
           </div>
-          <p className="text-xs text-white/70 mb-3">
+          <p className="text-xs text-muted-foreground mb-3">
             Sign in to unlock downloading.
           </p>
           <Button
             variant="ghost"
             onClick={onAuthRequired}
-            className="px-4 py-2 text-white rounded-lg border border-blue-500/20 text-sm transition-colors"
+            className="px-4 py-2 text-foreground rounded-lg border border-blue-500/20 text-sm transition-colors"
           >
             Sign In
           </Button>

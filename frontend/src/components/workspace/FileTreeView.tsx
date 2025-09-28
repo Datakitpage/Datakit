@@ -68,7 +68,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
       case 'remote':
         return <Cloud {...iconProps} className={`${iconProps.className} text-blue-400`} />;
       default:
-        return <FileText {...iconProps} className={`${iconProps.className} text-white/50`} />;
+        return <FileText {...iconProps} className={`${iconProps.className} text-muted-foreground`} />;
     }
   };
 
@@ -101,16 +101,16 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
   if (files.length === 0) {
     return (
       <div className="px-5 py-8 text-center">
-        <FolderOpen className="h-8 w-8 text-white/20 mx-auto mb-2" />
-        <p className="text-xs text-white/40">No files in workspace</p>
-        <p className="text-[10px] text-white/30 mt-1">Add files using the source panel above</p>
+        <FolderOpen className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+        <p className="text-xs text-muted-foreground">No files in workspace</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-1">Add files using the source panel above</p>
       </div>
     );
   }
 
   return (
     <div className="px-3 py-2">
-      <div className="text-[10px] text-white/40 uppercase tracking-wider mb-2 px-2">
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 px-2">
         Workspace Files ({files.length})
       </div>
       
@@ -123,7 +123,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
               transition-all duration-150
               ${activeFileId === file.id 
                 ? 'bg-primary/10 text-primary' 
-                : 'hover:bg-white/5 text-white/80 hover:text-white'
+                : 'hover:bg-accent/5 text-muted-foreground hover:text-foreground'
               }
             `}
             onClick={() => !renamingFileId && onFileSelect?.(file)}
@@ -146,7 +146,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                     e.stopPropagation();
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-1 bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-xs text-white outline-none focus:border-primary"
+                  className="flex-1 bg-accent/10 border border-border rounded px-1.5 py-0.5 text-xs text-foreground outline-none focus:border-primary"
                   autoFocus
                 />
                 <button
@@ -154,7 +154,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                     e.stopPropagation();
                     handleConfirmRename(file.id);
                   }}
-                  className="p-0.5 hover:bg-white/10 rounded"
+                  className="p-0.5 hover:bg-accent/10 rounded"
                 >
                   <svg className="h-3 w-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -165,7 +165,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                     e.stopPropagation();
                     handleCancelRename();
                   }}
-                  className="p-0.5 hover:bg-white/10 rounded"
+                  className="p-0.5 hover:bg-accent/10 rounded"
                 >
                   <X className="h-3 w-3 text-red-400" />
                 </button>
@@ -175,7 +175,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="text-xs truncate">{file.name}</div>
                   {file.isRemote && (
-                    <div className="text-[10px] text-white/40 truncate">
+                    <div className="text-[10px] text-muted-foreground truncate">
                       {file.remoteUrl}
                     </div>
                   )}
@@ -183,7 +183,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
 
                 {/* File Size */}
                 {file.size && (
-                  <span className="text-[10px] text-white/40">
+                  <span className="text-[10px] text-muted-foreground">
                     {formatFileSize(file.size)}
                   </span>
                 )}
@@ -195,7 +195,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                       e.stopPropagation();
                       setContextMenuFileId(contextMenuFileId === file.id ? null : file.id);
                     }}
-                    className="p-1 hover:bg-white/10 rounded"
+                    className="p-1 hover:bg-accent/10 rounded"
                   >
                     <MoreVertical className="h-3 w-3" />
                   </button>
@@ -208,7 +208,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 top-full mt-1 bg-black border border-white/15 rounded-md shadow-xl overflow-hidden z-50"
+                        className="absolute right-0 top-full mt-1 bg-popover border border-border rounded-md shadow-xl overflow-hidden z-50"
                         onMouseLeave={() => setContextMenuFileId(null)}
                       >
                         {/* // TOOD: Disabled for now */}
@@ -217,7 +217,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                             e.stopPropagation();
                             handleStartRename(file);
                           }}
-                          className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/5 w-full text-left text-xs cursor-pointer"
+                          className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent/5 w-full text-left text-xs cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
                           Rename
@@ -228,7 +228,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
                             onFileRemove?.(file.id);
                             setContextMenuFileId(null);
                           }}
-                          className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/5 w-full text-left text-xs text-red-400 cursor-pointer"
+                          className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent/5 w-full text-left text-xs text-destructive cursor-pointer"
                         >
                           <Trash2 className="h-3 w-3" />
                           Remove

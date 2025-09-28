@@ -45,7 +45,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({
     if (lowerType.includes('date') || lowerType.includes('time')) {
       return <Calendar className="h-4 w-4 text-purple-400" />;
     }
-    return <FileText className="h-4 w-4 text-white/50" />;
+    return <FileText className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getQuickStat = () => {
@@ -77,7 +77,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="border-b border-white/5"
+      className="border-b border-border"
     >
       <motion.div
         whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.02)" }}
@@ -92,23 +92,23 @@ const ColumnRow: React.FC<ColumnRowProps> = ({
                 animate={{ rotate: isExpanded ? 90 : 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <ChevronRight className="h-4 w-4 text-white/50" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </motion.div>
               {getColumnIcon(column.type)}
             </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <div className="font-medium text-white truncate">{column.name}</div>
+                <div className="font-medium text-foreground truncate">{column.name}</div>
                 {qualityIndicator.icon}
                 
               </div>
-              <div className="text-xs text-white/60">{column.type}</div>
+              <div className="text-xs text-muted-foreground">{column.type}</div>
             </div>
             
             <div className="text-right">
-              <div className="text-sm text-white font-mono">{getQuickStat()}</div>
-              <div className="text-xs text-white/50">
+              <div className="text-sm text-foreground font-mono">{getQuickStat()}</div>
+              <div className="text-xs text-muted-foreground">
                 {column.uniqueCount} distinct
               </div>
             </div>
@@ -124,7 +124,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({
             
             <button
               onClick={() => onViewDetails(column.name, 'nulls')}
-              className="p-1 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"
+              className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
               title="View details"
             >
               <Eye className="h-4 w-4" />
@@ -155,7 +155,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({
               <div className="mt-4 flex items-center gap-2">
                 <button
                   onClick={() => onViewDetails(column.name, 'nulls')}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-xs text-white/80 hover:text-white transition-colors"
+                  className="px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   View Nulls ({column.nullCount})
                 </button>
@@ -163,7 +163,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({
                 {column.numericStats && column.numericStats.outliers > 0 && (
                   <button
                     onClick={() => onViewDetails(column.name, 'outliers')}
-                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-xs text-white/80 hover:text-white transition-colors"
+                    className="px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     View Outliers ({column.numericStats.outliers})
                   </button>

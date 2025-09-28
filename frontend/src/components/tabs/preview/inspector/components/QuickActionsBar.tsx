@@ -20,13 +20,13 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
   } | null>(null);
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-white/10 bg-background/50 backdrop-blur-sm">
+    <div className="flex items-center justify-between p-4 border-b border-border bg-background/50 backdrop-blur-sm">
       {/* Left side - File info */}
       <div className="flex items-center gap-3">
         <div>
-          <div className="text-sm font-medium text-white">{fileName}</div>
+          <div className="text-sm font-medium text-foreground">{fileName}</div>
           {lastAnalyzed && (
-            <div className="text-xs text-white/60">
+            <div className="text-xs text-muted-foreground">
               Last analyzed: {lastAnalyzed.toLocaleTimeString()}
             </div>
           )}

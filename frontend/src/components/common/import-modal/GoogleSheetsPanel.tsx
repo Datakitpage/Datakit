@@ -124,7 +124,7 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
           <div>
             <label
               htmlFor="google-sheets-url"
-              className="block text-sm font-medium text-white/80 mb-2"
+              className="block text-sm font-medium text-foreground/80 mb-2"
             >
               Google Sheets URL (published to the web)
             </label>
@@ -134,7 +134,7 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
                 type="text"
                 placeholder="https://docs.google.com/spreadsheets/d/e/2PACX..."
                 className={cn(
-                  "w-full px-3 py-3 h-12 bg-black/30 border border-white/20 rounded-lg text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-white/40 transition-all",
+                  "w-full px-3 py-3 h-12 bg-popover border border-border rounded-lg text-foreground/90 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 placeholder:text-muted-foreground transition-all",
                   inputError &&
                     "border-destructive focus:ring-destructive/50 focus:border-destructive",
                   isGoogleSheet &&
@@ -148,7 +148,7 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
               {/* Status indicator */}
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 {isImporting ? (
-                  <Loader2 className="h-4 w-4 text-white/40 animate-spin" />
+                  <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
                 ) : isGoogleSheet ? (
                   <div className="bg-green-500/20 text-green-500 p-1.5 rounded-full">
                     <Check className="h-4 w-4" />
@@ -181,7 +181,7 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
                 className="mt-3 overflow-hidden"
               >
                 <div className="bg-green-500/10 rounded-lg border border-green-500/20 p-4">
-                  <div className="flex items-center text-sm text-white/90 mb-2">
+                  <div className="flex items-center text-sm text-foreground/90 mb-2">
                     <FileSpreadsheet className="h-4 w-4 mr-2 text-green-500" />
                     <span className="font-medium">
                       {googleSheetInfo.sheetName || "Google Sheet"}
@@ -193,8 +193,8 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center text-xs text-white/70">
-                    <Table className="h-3.5 w-3.5 mr-1.5 text-white/50" />
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Table className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                     <span>Published sheet - ready to import</span>
                   </div>
 
@@ -254,7 +254,7 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
                     <p className="text-green-400 font-medium">{importStatus}</p>
                   </div>
                   {/* Progress bar */}
-                  <div className="w-full bg-black/30 h-2 mt-3 rounded-full overflow-hidden">
+                  <div className="w-full bg-background h-2 mt-3 rounded-full overflow-hidden">
                     <motion.div
                       className="bg-green-500 h-full rounded-full"
                       initial={{ width: "5%" }}
@@ -298,23 +298,23 @@ const GoogleSheetsPanel: React.FC<GoogleSheetsPanelProps> = ({ onImport }) => {
       </div>
 
       {/* Footer Info */}
-      <div className="border-t border-white/10 p-4 bg-white/5">
-        <div className="text-xs text-white/60">
+      <div className="border-t border-border p-4 bg-accent/5">
+        <div className="text-xs text-muted-foreground">
           <div className="flex items-center mb-2">
             <GoogleSheetsIcon className="h-3 w-3 mr-1.5 text-green-500" />
-            <span className="font-medium text-white/80">Requirements:</span>
+            <span className="font-medium text-foreground/80">Requirements:</span>
           </div>
           <ul className="space-y-1 ml-4">
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Sheet must be published to the web
             </li>
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               Supports CSV, Excel, and web page formats
             </li>
             <li className="flex items-center">
-              <span className="h-1 w-1 bg-white/40 rounded-full mr-2"></span>
+              <span className="h-1 w-1 bg-muted-foreground rounded-full mr-2"></span>
               No authentication required for published sheets
             </li>
           </ul>

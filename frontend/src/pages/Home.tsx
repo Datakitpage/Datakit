@@ -190,7 +190,7 @@ const Home = () => {
                 {/* Column Stats Button - Aligned with navigation style */}
                 <motion.button
                   onClick={handleColumnStatsToggle}
-                  className="relative group flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-black/50 backdrop-blur-sm border border-white/10 transition-all duration-200 hover:border-white/20 cursor-pointer"
+                  className="relative group flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-popover backdrop-blur-sm border border-border transition-all duration-200 hover:border-border cursor-pointer"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -219,11 +219,11 @@ const Home = () => {
                     </svg>
                   ) : (
                     <BarChart3 className={`h-4 w-4 relative z-10 ${
-                      showColumnStats && columnStats.length > 0 ? 'text-white' : 'text-white/50'
+                      showColumnStats && columnStats.length > 0 ? 'text-foreground' : 'text-muted-foreground'
                     }`} />
                   )}
                   <span className={`relative z-10 font-medium ${
-                    showColumnStats && columnStats.length > 0 ? 'text-white' : 'text-white/50'
+                    showColumnStats && columnStats.length > 0 ? 'text-foreground' : 'text-muted-foreground'
                   }`}>
                     {columnStats.length > 0 
                       ? (showColumnStats ? 'Hide Stats' : 'Show Stats')
@@ -235,12 +235,12 @@ const Home = () => {
                 {/* Inspector Button - Aligned with navigation style */}
                 <motion.button
                   onClick={handleInspectorClick}
-                  className="relative group flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-black/50 backdrop-blur-sm border border-white/10 transition-all duration-200 hover:border-white/20 cursor-pointer"
+                  className="relative group flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-popover backdrop-blur-sm border border-border transition-all duration-200 hover:border-border cursor-pointer"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Search className="h-4 w-4 text-white/50 hover:text-white/70 relative z-10" />
-                  <span className="text-white/50 hover:text-white/70 relative z-10 font-medium">Inspector</span>
+                  <Search className="h-4 w-4 text-muted-foreground hover:text-foreground relative z-10" />
+                  <span className="text-muted-foreground hover:text-foreground relative z-10 font-medium">Inspector</span>
                 </motion.button>
               </motion.div>
             )}
@@ -249,12 +249,12 @@ const Home = () => {
           {/* JSON View Mode Toggle (contextual, only for JSON files) */}
           {sourceType === DataSourceType.JSON && jsonSchema?.isNested && currentViewMode === 'preview' && (
             <div className="flex justify-center pb-2">
-              <div className="border border-white/20 rounded-lg overflow-hidden bg-black/40 backdrop-blur-sm">
+              <div className="border border-border rounded-lg overflow-hidden bg-popover backdrop-blur-sm">
                 <button
                   className={`px-3 py-1 text-xs ${
                     jsonViewMode === "table"
-                      ? "bg-primary text-white"
-                      : "text-white/70 hover:text-white/90 hover:bg-white/10"
+                      ? "bg-primary text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
                   } transition-colors`}
                   onClick={() => setJsonViewMode("table")}
                 >
@@ -263,8 +263,8 @@ const Home = () => {
                 <button
                   className={`px-3 py-1 text-xs ${
                     jsonViewMode === "tree"
-                      ? "bg-primary text-white"
-                      : "text-white/70 hover:text-white/90 hover:bg-white/10"
+                      ? "bg-primary text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
                   } transition-colors`}
                   onClick={() => setJsonViewMode("tree")}
                 >

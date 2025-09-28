@@ -233,29 +233,29 @@ export const FileUploadButton = ({
           <Button
             type="button"
             variant="outline"
-            className={`w-full bg-white/5 border border-white/20 hover:border-primary/50 hover:bg-white/10 transition-all p-0 h-auto rounded-lg ${className}`}
+            className={`w-full bg-accent/5 border border-border hover:border-primary/50 hover:bg-accent/10 transition-all p-0 h-auto rounded-lg ${className}`}
             onClick={handleButtonClick}
             disabled={isLoading}
           >
             <div className="flex flex-col items-center w-full py-6 px-6">
               {isLoading ? (
                 <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mb-2" />
-                  <span className="text-sm">Processing...</span>
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-foreground border-t-transparent mb-2" />
+                  <span className="text-sm text-foreground">Processing...</span>
                 </div>
               ) : (
                 <>
                   <div className="flex flex-col items-center">
                     <div className="text-center mb-4 px-4">
-                      <p className="text-sm font-medium text-white mb-2">
+                      <p className="text-sm font-medium text-foreground mb-2">
                         Drop files here or click
                       </p>
-                      <p className="text-xs text-white/60">
+                      <p className="text-xs text-muted-foreground">
                         Supports large data files
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-center space-x-2.5 text-white/50">
+                    <div className="flex items-center justify-center space-x-2.5 text-muted-foreground">
                       {fileTypes.map((type, index) => {
                         const Icon = type.icon;
                         return (

@@ -457,7 +457,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
 
         {/* Panel */}
         <motion.div
-          className="relative h-full bg-background/95 backdrop-blur-md border-l border-white/10 shadow-2xl flex"
+          className="relative h-full bg-background/95 backdrop-blur-md border-l border-border shadow-2xl flex"
           style={{ width: `${Math.max(600, width)}px` }}
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
@@ -470,16 +470,16 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between p-4 border-b border-white/10"
+              className="flex items-center justify-between p-4 border-b border-border"
             >
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="text-lg font-semibold text-foreground">
                   Data Inspector
                 </h2>
               </div>
               <button
                 onClick={closePanel}
-                className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors cursor-pointer"
+                className="p-2 hover:bg-accent/10 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -490,10 +490,10 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
               <div className="p-6 text-center">
                 <div className="flex flex-col items-center justify-center max-w-md mx-auto">
                   <img src={PostgreSQLIcon} className="h-10 w-10 mb-4" alt="PostgreSQL" />
-                  <h3 className="text-lg font-medium text-white mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     PostgreSQL Inspector
                   </h3>
-                  <p className="text-white/70 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     Coming soon! We're working on data inspection for PostgreSQL tables.
                   </p>
                 </div>
@@ -515,15 +515,15 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
     if (fileTabs.length <= 1) return null;
 
     return (
-      <div className="relative p-4 border-b border-white/10">
+      <div className="relative p-4 border-b border-border">
         <motion.button
           whileHover={{ scale: 1.01 }}
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between p-3 bg-card/30 hover:bg-card/50 rounded-lg border border-white/10 transition-colors"
+          className="w-full flex items-center justify-between p-3 bg-card/30 hover:bg-card/50 rounded-lg border border-border transition-colors"
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <FileText className="h-4 w-4 text-white/60" />
-            <span className="text-sm text-white truncate">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-foreground truncate">
               {currentFile?.fileName || 'Select file...'}
             </span>
           </div>
@@ -531,7 +531,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="h-4 w-4 text-white/60" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
         </motion.button>
 
@@ -541,7 +541,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-full left-4 right-4 mt-1 bg-card backdrop-blur-sm border border-white/20 rounded-lg shadow-xl z-51 max-h-48 overflow-y-auto"
+              className="absolute top-full left-4 right-4 mt-1 bg-card backdrop-blur-sm border border-border rounded-lg shadow-xl z-51 max-h-48 overflow-y-auto"
             >
               {fileTabs.map((tab) => (
                 <motion.button
@@ -580,7 +580,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
       {/* Panel */}
       <motion.div
         ref={panelRef}
-        className="relative h-full bg-background/95 backdrop-blur-md border-l border-white/10 shadow-2xl flex"
+        className="relative h-full bg-background/95 backdrop-blur-md border-l border-border shadow-2xl flex"
         style={{ width: `${Math.max(600, width)}px` }}
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
@@ -603,16 +603,16 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between p-4 border-b border-white/10"
+            className="flex items-center justify-between p-4 border-b border-border"
           >
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-foreground">
                 Data Inspector
               </h2>
             </div>
             <button
               onClick={closePanel}
-              className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors cursor-pointer"
+              className="p-2 hover:bg-accent/10 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -637,7 +637,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ className }) => {
 
           {/* View Switcher */}
           {currentResults && !isAnalyzing && !error && (
-            <div className="p-4 border-b border-white/10">
+            <div className="p-4 border-b border-border">
               <ViewSwitcher
                 currentView={currentView}
                 onViewChange={setCurrentView}

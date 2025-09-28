@@ -121,19 +121,19 @@ Run the code cell below to execute this template.`;
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
           <FileText className="w-5 h-5 text-primary" />
-          <h3 className="font-medium text-white">Templates</h3>
+          <h3 className="font-medium text-foreground">Templates</h3>
         </div>
 
         {/* Search */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search templates..."
-            className="w-full pl-10 pr-4 py-2 bg-background border border-white/10 rounded text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-primary/50"
+            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -145,7 +145,7 @@ Run the code cell below to execute this template.`;
             className={`text-xs px-2 py-1 rounded transition-colors ${
               selectedCategory === null
                 ? 'bg-primary/20 text-primary'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                : 'bg-accent/10 text-muted-foreground hover:bg-accent/20'
             }`}
             onClick={() => setSelectedCategory(null)}
           >
@@ -159,7 +159,7 @@ Run the code cell below to execute this template.`;
                 className={`text-xs px-2 py-1 rounded transition-colors flex items-center gap-1 ${
                   selectedCategory === category
                     ? 'bg-primary/20 text-primary'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'
+                    : 'bg-accent/10 text-muted-foreground hover:bg-accent/20'
                 }`}
                 onClick={() =>
                   setSelectedCategory(
@@ -178,8 +178,8 @@ Run the code cell below to execute this template.`;
       <div className="flex-1 overflow-y-auto">
         {filteredTemplates.length === 0 ? (
           <div className="p-4 text-center">
-            <FileText className="w-8 h-8 text-white/30 mx-auto mb-2" />
-            <p className="text-sm text-white/60">
+            <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">
               {searchQuery ? 'No templates found' : 'No templates available'}
             </p>
           </div>
@@ -197,11 +197,11 @@ Run the code cell below to execute this template.`;
                     {selectedCategory === null && (
                       <div className="flex items-center gap-2 px-2 py-1">
                         {Icon && <Icon className={`w-4 h-4 ${config.color}`} /> }
-                        <h4 className="font-medium text-white text-sm">
+                        <h4 className="font-medium text-foreground text-sm">
                           {config.label}
                         </h4>
-                        <div className="flex-1 h-px bg-white/10" />
-                        <span className="text-xs text-white/50">
+                        <div className="flex-1 h-px bg-accent/10" />
+                        <span className="text-xs text-muted-foreground">
                           {templates.length}
                         </span>
                       </div>
@@ -211,15 +211,15 @@ Run the code cell below to execute this template.`;
                     {templates.map((template) => (
                       <div
                         key={template.id}
-                        className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
+                        className="bg-accent/5 rounded-lg overflow-hidden hover:bg-accent/10 transition-colors"
                       >
                         <div className="p-3">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
-                              <h5 className="font-medium text-white text-sm mb-1">
+                              <h5 className="font-medium text-foreground text-sm mb-1">
                                 {template.name}
                               </h5>
-                              <p className="text-xs text-white/60 line-clamp-2">
+                              <p className="text-xs text-muted-foreground line-clamp-2">
                                 {template.description}
                               </p>
                             </div>
@@ -252,7 +252,7 @@ Run the code cell below to execute this template.`;
                             template.requiredPackages.length > 0 && (
                               <div className="flex items-center gap-1 mb-2">
                                 <Package className="w-3 h-3 text-secondary" />
-                                <span className="text-xs text-white/60">
+                                <span className="text-xs text-muted-foreground">
                                   Requires:{' '}
                                   {template.requiredPackages.join(', ')}
                                 </span>
@@ -261,7 +261,7 @@ Run the code cell below to execute this template.`;
 
                           {/* Expand/collapse code preview */}
                           <button
-                            className="flex items-center gap-1 text-xs text-white/50 hover:text-white/70 transition-colors"
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
                             onClick={() =>
                               setExpandedTemplate(
                                 expandedTemplate === template.id
@@ -287,8 +287,8 @@ Run the code cell below to execute this template.`;
 
                         {/* Code preview */}
                         {expandedTemplate === template.id && (
-                          <div className="border-t border-white/10 bg-black/20">
-                            <pre className="text-xs text-white/80 p-3 overflow-x-auto max-h-64 overflow-y-auto">
+                          <div className="border-t border-border bg-popover/20">
+                            <pre className="text-xs text-muted-foreground p-3 overflow-x-auto max-h-64 overflow-y-auto">
                               <code>{template.code}</code>
                             </pre>
                           </div>
@@ -304,8 +304,8 @@ Run the code cell below to execute this template.`;
       </div>
 
       {/* Footer with template count */}
-      <div className="border-t border-white/10 p-3">
-        <div className="flex items-center justify-between text-xs text-white/50">
+      <div className="border-t border-border p-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
             {filteredTemplates.length} templates
             {selectedCategory &&

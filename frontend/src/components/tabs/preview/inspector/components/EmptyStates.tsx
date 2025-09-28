@@ -31,7 +31,7 @@ export const NoAnalysisEmptyState: React.FC<NoAnalysisEmptyStateProps> = ({
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="w-16 h-16 bg-card/30 rounded-lg flex items-center justify-center"
         >
-          <Database className="h-8 w-8 text-white/60" />
+          <Database className="h-8 w-8 text-muted-foreground" />
         </motion.div>
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
@@ -43,8 +43,8 @@ export const NoAnalysisEmptyState: React.FC<NoAnalysisEmptyStateProps> = ({
       </div>
 
       <div className="space-y-2 max-w-sm">
-        <h3 className="text-lg font-semibold text-white">Ready to Analyze</h3>
-        <p className="text-sm text-white/70">
+        <h3 className="text-lg font-semibold text-foreground">Ready to Analyze</h3>
+        <p className="text-sm text-muted-foreground">
           {fileName
             ? `Start analyzing "${fileName}" to discover data quality insights`
             : "Select a file to start your data quality analysis"}
@@ -56,14 +56,14 @@ export const NoAnalysisEmptyState: React.FC<NoAnalysisEmptyStateProps> = ({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onStartAnalysis}
-          className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-foreground rounded-lg font-medium transition-colors"
         >
           <Play className="h-4 w-4" />
           Start Analysis
         </motion.button>
       )}
 
-      <div className="text-xs text-white/50 max-w-md">
+      <div className="text-xs text-muted-foreground max-w-md">
         Analysis typically takes 10-30 seconds depending on your data size
       </div>
     </motion.div>
@@ -101,16 +101,16 @@ export const NoColumnsEmptyState: React.FC<NoColumnsEmptyStateProps> = ({
       <div className="relative"></div>
 
       <div className="space-y-2 max-w-sm">
-        <h3 className="text-sm font-medium text-white/90">No Columns Found</h3>
+        <h3 className="text-sm font-medium text-foreground">No Columns Found</h3>
         {hasFilters ? (
-          <p className="text-xs text-white/60">
+          <p className="text-xs text-muted-foreground">
             {searchTerm
               ? `No columns matching "${searchTerm}"`
               : `No ${filterType} columns found`}
             {totalColumns && ` in ${totalColumns} total columns`}
           </p>
         ) : (
-          <p className="text-xs text-white/60">
+          <p className="text-xs text-muted-foreground">
             This dataset doesn't have any analyzable columns
           </p>
         )}
@@ -128,7 +128,7 @@ export const NoColumnsEmptyState: React.FC<NoColumnsEmptyStateProps> = ({
         </motion.button>
       )}
 
-      <div className="text-xs text-white/50">
+      <div className="text-xs text-muted-foreground">
         Try adjusting your search or filter criteria
       </div>
     </motion.div>
@@ -142,47 +142,47 @@ export const InspectorLoadingSkeleton: React.FC = () => {
   return (
     <div className="space-y-4 animate-pulse">
       {/* Header skeleton */}
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
-          <div className="h-5 bg-white/10 rounded w-32" />
+          <div className="h-5 bg-accent/10 rounded w-32" />
           <div className="flex items-center gap-2">
-            <div className="h-4 bg-white/10 rounded w-16" />
-            <div className="w-2 h-2 bg-white/10 rounded-full" />
+            <div className="h-4 bg-accent/10 rounded w-16" />
+            <div className="w-2 h-2 bg-accent/10 rounded-full" />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="text-center space-y-2">
-              <div className="h-8 bg-white/10 rounded w-20 mx-auto" />
-              <div className="h-3 bg-white/10 rounded w-12 mx-auto" />
+              <div className="h-8 bg-accent/10 rounded w-20 mx-auto" />
+              <div className="h-3 bg-accent/10 rounded w-12 mx-auto" />
             </div>
           ))}
         </div>
       </div>
 
       {/* Search skeleton */}
-      <div className="p-4 border-b border-white/10 space-y-3">
+      <div className="p-4 border-b border-border space-y-3">
         <div className="flex items-center justify-between">
-          <div className="h-4 bg-white/10 rounded w-24" />
-          <div className="h-8 bg-white/10 rounded w-20" />
+          <div className="h-4 bg-accent/10 rounded w-24" />
+          <div className="h-8 bg-accent/10 rounded w-20" />
         </div>
-        <div className="h-10 bg-white/10 rounded" />
+        <div className="h-10 bg-accent/10 rounded" />
       </div>
 
       {/* Column list skeleton */}
       <div className="space-y-2">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="p-3 flex items-center gap-3">
-            <div className="w-4 h-4 bg-white/10 rounded" />
+            <div className="w-4 h-4 bg-accent/10 rounded" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-white/10 rounded w-40" />
-              <div className="h-3 bg-white/10 rounded w-24" />
+              <div className="h-4 bg-accent/10 rounded w-40" />
+              <div className="h-3 bg-accent/10 rounded w-24" />
             </div>
             <div className="space-y-1 text-right">
-              <div className="h-3 bg-white/10 rounded w-20" />
-              <div className="h-3 bg-white/10 rounded w-16" />
+              <div className="h-3 bg-accent/10 rounded w-20" />
+              <div className="h-3 bg-accent/10 rounded w-16" />
             </div>
-            <div className="w-4 h-4 bg-white/10 rounded" />
+            <div className="w-4 h-4 bg-accent/10 rounded" />
           </div>
         ))}
       </div>
@@ -223,8 +223,8 @@ export const ErrorEmptyState: React.FC<ErrorEmptyStateProps> = ({
       </motion.div>
 
       <div className="space-y-2 max-w-md">
-        <h3 className="text-lg font-semibold text-white">Analysis Failed</h3>
-        <p className="text-sm text-white/70">{error}</p>
+        <h3 className="text-lg font-semibold text-foreground">Analysis Failed</h3>
+        <p className="text-sm text-foreground/70">{error}</p>
       </div>
 
       <div className="flex gap-3">
@@ -233,7 +233,7 @@ export const ErrorEmptyState: React.FC<ErrorEmptyStateProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onRetry}
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-primary hover:bg-primary/90 text-foreground rounded-lg text-sm font-medium transition-colors"
           >
             Try Again
           </motion.button>
@@ -243,14 +243,14 @@ export const ErrorEmptyState: React.FC<ErrorEmptyStateProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onReset}
-            className="px-4 py-2 bg-card/30 hover:bg-card/50 text-white rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-card/30 hover:bg-card/50 text-foreground rounded-lg text-sm font-medium transition-colors"
           >
             Reset
           </motion.button>
         )}
       </div>
 
-      <div className="text-xs text-white/50 max-w-md">
+      <div className="text-xs text-muted-foreground max-w-md">
         If the problem persists, try with a different file or contact support
       </div>
     </motion.div>

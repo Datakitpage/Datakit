@@ -32,12 +32,12 @@ const ChartCanvas: React.FC = () => {
 
   if (!currentChart || !currentChart.data || currentChart.data.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-darkNav/20 rounded-lg border border-white/5">
+      <div className="h-full flex items-center justify-center bg-popover/20 rounded-lg border border-border">
         <div className="text-center p-8">
-          <h3 className="text-lg font-medium text-white/80 mb-2">
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No Chart Data
           </h3>
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-muted-foreground">
             Configure your chart or run a query to visualize data.
           </p>
         </div>
@@ -56,12 +56,12 @@ const ChartCanvas: React.FC = () => {
 
   // Render the appropriate chart based on type
   return (
-    <div className="h-full w-full bg-darkNav/20 rounded-lg border border-white/5 p-4">
+    <div className="h-full w-full bg-popover/20 rounded-lg border border-border p-4">
       <h3 className="text-lg font-medium mb-2 chart-title">
         {currentChart.title}
       </h3>
       {currentChart.description && (
-        <p className="text-sm text-white/70 mb-4 chart-description">
+        <p className="text-sm text-muted-foreground mb-4 chart-description">
           {currentChart.description}
         </p>
       )}
@@ -440,7 +440,7 @@ const ChartCanvas: React.FC = () => {
 
       default:
         return (
-          <div className="h-full flex items-center justify-center text-white/70">
+          <div className="h-full flex items-center justify-center text-muted-foreground">
             <p>Chart type not supported</p>
           </div>
         );

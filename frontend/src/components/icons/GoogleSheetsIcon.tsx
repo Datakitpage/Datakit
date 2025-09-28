@@ -10,7 +10,7 @@ const GoogleSheetsIcon: React.FC<GoogleSheetsIconProps> = ({ className = "h-5 w-
       <path
         d="M19.5 22H4.5C3.39543 22 2.5 21.1046 2.5 20V4C2.5 2.89543 3.39543 2 4.5 2H14.5L21.5 9V20C21.5 21.1046 20.6046 22 19.5 22Z"
         fill="#0F9D58"
-        stroke="white"
+stroke="currentColor"
         strokeWidth="0.75"
       />
       <path

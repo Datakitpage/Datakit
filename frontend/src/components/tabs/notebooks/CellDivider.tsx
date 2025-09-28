@@ -27,17 +27,17 @@ const CellDivider: React.FC<CellDividerProps> = ({ insertIndex, isLastCell = fal
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Divider Line */}
-      <div className={`absolute inset-x-0 h-px bg-white/10 transition-opacity ${
+      <div className={`absolute inset-x-0 h-px bg-border transition-opacity ${
         isHovered || isLastCell ? 'opacity-100' : 'opacity-30'
       }`} />
       
       {/* Toggle Buttons */}
-      <div className={`flex items-center bg-black border border-white/10 rounded-md shadow-lg transition-all duration-200 ${
+      <div className={`flex items-center bg-popover border border-border rounded-md shadow-lg transition-all duration-200 ${
         isHovered || isLastCell ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
       }`}>
         <button
           onClick={() => handleCreateCell('code')}
-          className="flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:text-white hover:bg-white/10 transition-colors rounded-l-md border-r border-white/10"
+          className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors rounded-l-md border-r border-border"
           title="Add Code Cell"
         >
           <Code2 size={12} />
@@ -45,7 +45,7 @@ const CellDivider: React.FC<CellDividerProps> = ({ insertIndex, isLastCell = fal
         </button>
         <button
           onClick={() => handleCreateCell('markdown')}
-          className="flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:text-white hover:bg-white/10 transition-colors rounded-r-md"
+          className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors rounded-r-md"
           title="Add Text Cell"
         >
           <Type size={12} />

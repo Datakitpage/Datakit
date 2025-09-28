@@ -36,7 +36,7 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
       className="fixed bottom-4 right-4 z-50 max-w-xs will-change-transform"
       style={{ transform: 'translate3d(0, 0, 0)' }}
     >
-      <div className="bg-black border border-white/10 rounded-lg shadow-2xl p-4">
+      <div className="bg-popover border border-border rounded-lg shadow-2xl p-4">
         <AnimatePresence mode="wait">
           {showThanks ? (
             <motion.div
@@ -48,9 +48,9 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
               className="text-center py-2"
             >
               <div className="flex items-center justify-center mb-2">
-                <span className="text-white font-medium text-sm">Thank you!</span>
+                <span className="text-popover-foreground font-medium text-sm">Thank you!</span>
               </div>
-              <p className="text-white/70 text-xs">
+              <p className="text-muted-foreground text-xs">
                 You help us make DataKit better for everyone.
               </p>
             </motion.div>
@@ -63,12 +63,12 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
-                <h3 className="font-medium text-sm text-white">
+                <h3 className="font-medium text-sm text-popover-foreground">
                   Help us improve DataKit
                 </h3>
                 <button
                   onClick={onClose}
-                  className="text-white/50 hover:text-white/80 transition-colors ml-2"
+                  className="text-muted-foreground hover:text-popover-foreground transition-colors ml-2"
                 >
                   <X className="w-3 h-3 cursor-pointer" />
                 </button>
@@ -76,14 +76,14 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
 
               {/* Content */}
               <div className="mb-4">
-                <p className="text-white/70 text-xs leading-relaxed mb-3">
+                <p className="text-muted-foreground text-xs leading-relaxed mb-3">
                   We collect basic anonymous metrics to improve app stability. With your consent, we can enable enhanced analytics for better features. Your data files never leave the browser.
                 </p>
                 
                 {/* Dropdown */}
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center justify-between w-full text-xs text-white/60 hover:text-white/80 transition-colors mb-2"
+                  className="flex items-center justify-between w-full text-xs text-muted-foreground hover:text-popover-foreground transition-colors mb-2"
                 >
                   <span>What do we collect?</span>
                   {isDropdownOpen ? (
@@ -102,11 +102,11 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="bg-white/5 rounded p-3 mb-3">
+                      <div className="bg-accent/10 rounded p-3 mb-3">
                         <div className="space-y-2">
                           <div>
-                            <p className="text-white/80 text-xs font-medium mb-1">Basic (No Consent Needed):</p>
-                            <ul className="text-white/60 text-xs space-y-0.5 pl-2">
+                            <p className="text-foreground text-xs font-medium mb-1">Basic (No Consent Needed):</p>
+                            <ul className="text-muted-foreground text-xs space-y-0.5 pl-2">
                               <li>• Page views & navigation</li>
                               <li>• Performance metrics</li>
                               <li>• Error reports (to fix bugs)</li>
@@ -115,8 +115,8 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
                           </div>
                           
                           <div>
-                            <p className="text-white/80 text-xs font-medium mb-1">Advanced (With Consent):</p>
-                            <ul className="text-white/60 text-xs space-y-0.5 pl-2">
+                            <p className="text-foreground text-xs font-medium mb-1">Advanced (With Consent):</p>
+                            <ul className="text-muted-foreground text-xs space-y-0.5 pl-2">
                               <li>• Detailed feature usage</li>
                               <li>• Session recordings</li>
                               <li>• File types & sizes (not content)</li>
@@ -125,8 +125,8 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
                           </div>
                           
                           <div>
-                            <p className="text-white/80 text-xs font-medium mb-1">Never collected:</p>
-                            <ul className="text-white/60 text-xs space-y-0.5 pl-2">
+                            <p className="text-foreground text-xs font-medium mb-1">Never collected:</p>
+                            <ul className="text-muted-foreground text-xs space-y-0.5 pl-2">
                               <li>• Your data files or content</li>
                               <li>• SQL queries you write</li>
                               <li>• Personal information</li>
@@ -136,7 +136,7 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
                         
                         <a
                           href="/privacy"
-                          className="text-xs text-white/50 hover:text-white/70 transition-colors underline mt-2 block"
+                          className="text-xs text-muted-foreground hover:text-foreground transition-colors underline mt-2 block"
                         >
                           View full privacy policy
                         </a>
@@ -150,13 +150,13 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onAccept, onDecline, onClos
               <div className="flex gap-2">
                 <button
                   onClick={onDecline}
-                  className="flex-1 px-3 py-1.5 text-xs text-white/70 hover:text-white border border-white/20 hover:border-white/40 rounded transition-colors"
+                  className="flex-1 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground border border-border hover:border-border/60 rounded transition-colors"
                 >
                   Decline
                 </button>
                 <button
                   onClick={handleAccept}
-                  className="flex-1 px-3 py-1.5 text-xs bg-white text-black hover:bg-white/90 rounded transition-colors font-medium"
+                  className="flex-1 px-3 py-1.5 text-xs bg-primary text-primary-foreground hover:bg-primary/90 rounded transition-colors font-medium"
                 >
                   Accept
                 </button>

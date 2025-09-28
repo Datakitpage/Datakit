@@ -473,7 +473,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
     if (lowerType.includes("bool")) {
       return <Check size={12} className="text-blue-400" />;
     }
-    return <Type size={12} className="text-white/70" />;
+    return <Type size={12} className="text-muted-foreground" />;
   };
 
   // Prepare data
@@ -490,7 +490,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/10">
+      <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium flex items-center">
             <Database size={16} className="mr-2 text-primary" />
@@ -503,24 +503,24 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
       <div className="flex-1 overflow-auto">
         {/* Show empty state if no data at all */}
         {!hasAnyData && !localLoading ? (
-          <div className="px-4 py-8 text-center text-white/50 text-xs">
+          <div className="px-4 py-8 text-center text-muted-foreground text-xs">
             No data available. Import files to get started.
           </div>
         ) : (
           <>
             {/* Local Database Section - Always show if there's any local data or still loading */}
             {(hasLocalData || localLoading) && (
-              <div className="border-b border-white/5">
+              <div className="border-b border-border">
                 {/* Database Header */}
-                <div className="flex items-center justify-between px-2 py-2 hover:bg-white/5 cursor-pointer"
+                <div className="flex items-center justify-between px-2 py-2 hover:bg-accent/5 cursor-pointer"
                      onClick={() => toggleDatabase('local')}>
                   <div className="flex items-center space-x-2">
-                    <span className="text-white/70">
+                    <span className="text-muted-foreground">
                       {expandedDatabases.has('local') ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                     </span>
                     <HardDrive size={14} className="text-primary" />
-                    <span className="text-sm font-medium text-white">Local</span>
-                    <span className="text-xs text-white/60">
+                    <span className="text-sm font-medium text-foreground">Local</span>
+                    <span className="text-xs text-muted-foreground">
                       ({localTablesData.length + localViewsData.length})
                     </span>
                   </div>
@@ -531,7 +531,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                         handleLocalRefresh();
                       }}
                       disabled={localRefreshing}
-                      className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors"
+                      className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <RefreshCw size={12} className={localRefreshing ? "animate-spin" : ""} />
                     </button>
@@ -542,12 +542,12 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                 {expandedDatabases.has('local') && (
                   <div className="pl-6">
                     {localLoading ? (
-                      <div className="flex items-center justify-center py-4 text-white/50">
+                      <div className="flex items-center justify-center py-4 text-muted-foreground">
                         <Loader2 size={16} className="animate-spin mr-2" />
                         <span className="text-sm">Loading local schemas...</span>
                       </div>
                     ) : localTables.length === 0 ? (
-                      <div className="px-2 py-4 text-center text-white/50 text-sm">
+                      <div className="px-2 py-4 text-center text-muted-foreground text-sm">
                         No local tables. Import data to get started.
                       </div>
                     ) : (
@@ -555,7 +555,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                         {/* Tables Section */}
                         {localTablesData.length > 0 && (
                           <div className="mb-2">
-                            <div className="flex items-center px-2 py-1 text-xs font-medium text-white/50">
+                            <div className="flex items-center px-2 py-1 text-xs font-medium text-muted-foreground">
                               <Layers size={12} className="mr-1" />
                               Tables ({localTablesData.length})
                             </div>
@@ -578,7 +578,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                         {/* Views Section */}
                         {localViewsData.length > 0 && (
                           <div className="mb-2">
-                            <div className="flex items-center px-2 py-1 text-xs font-medium text-white/50">
+                            <div className="flex items-center px-2 py-1 text-xs font-medium text-muted-foreground">
                               <Eye size={12} className="mr-1" />
                               Views ({localViewsData.length})
                             </div>
@@ -614,24 +614,24 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
               const isExpanded = expandedDatabases.has(db.name);
 
               return (
-                <div key={db.name} className="border-b border-white/5">
+                <div key={db.name} className="border-b border-border">
                   {/* Database Header */}
-                  <div className="flex items-center justify-between px-2 py-2 hover:bg-white/5 cursor-pointer"
+                  <div className="flex items-center justify-between px-2 py-2 hover:bg-accent/5 cursor-pointer"
                        onClick={() => toggleDatabase(db.name)}>
                     <div className="flex items-center space-x-2">
-                      <span className="text-white/70">
+                      <span className="text-muted-foreground">
                         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       </span>
                       <HardDrive size={14} className="text-blue-400" />
                       <Tooltip placement="top" content={`Attached: ${db.name}.duckdb`}>
-                        <span className="text-sm font-medium text-white truncate max-w-[120px] block">
+                        <span className="text-sm font-medium text-foreground truncate max-w-[120px] block">
                           {db.name}
                         </span>
                       </Tooltip>
                       <span className="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
                         Attached
                       </span>
-                      <span className="text-xs text-white/60">
+                      <span className="text-xs text-muted-foreground">
                         ({dbTables.length})
                       </span>
                     </div>
@@ -643,7 +643,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                             handleAttachedDbRefresh(db.name);
                           }}
                           disabled={attachedDbRefreshing.has(db.name)}
-                          className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors"
+                          className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <RefreshCw size={12} className={attachedDbRefreshing.has(db.name) ? "animate-spin" : ""} />
                         </button>
@@ -655,18 +655,18 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                   {isExpanded && (
                     <div className="pl-6">
                       {attachedDbRefreshing.has(db.name) ? (
-                        <div className="flex items-center justify-center py-4 text-white/50">
+                        <div className="flex items-center justify-center py-4 text-muted-foreground">
                           <Loader2 size={16} className="animate-spin mr-2" />
                           <span className="text-sm">Loading {db.name} tables...</span>
                         </div>
                       ) : dbTables.length === 0 ? (
-                        <div className="px-2 py-4 text-center text-white/50 text-sm">
+                        <div className="px-2 py-4 text-center text-muted-foreground text-sm">
                           No tables found in {db.name}
                         </div>
                       ) : (
                         <div className="py-1">
                           <div className="mb-2">
-                            <div className="flex items-center px-2 py-1 text-xs font-medium text-white/50">
+                            <div className="flex items-center px-2 py-1 text-xs font-medium text-muted-foreground">
                               <Layers size={12} className="mr-1" />
                               Tables ({dbTables.length})
                             </div>
@@ -703,17 +703,17 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
               const isExpanded = expandedDatabases.has(db.name);
 
               return (
-                <div key={db.name} className="border-b border-white/5">
+                <div key={db.name} className="border-b border-border">
                   {/* Database Header */}
-                  <div className="flex items-center justify-between px-2 py-2 hover:bg-white/5 cursor-pointer"
+                  <div className="flex items-center justify-between px-2 py-2 hover:bg-accent/5 cursor-pointer"
                        onClick={() => toggleDatabase(db.name)}>
                     <div className="flex items-center space-x-2">
-                      <span className="text-white/70">
+                      <span className="text-muted-foreground">
                         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       </span>
                       <Cloud size={16} className="text-orange-300" />
                       <Tooltip placement="top" content={db.name}>
-                        <span className="text-sm font-medium text-white truncate max-w-[120px] block">
+                        <span className="text-sm font-medium text-foreground truncate max-w-[120px] block">
                           {db.name}
                         </span>
                       </Tooltip>
@@ -722,7 +722,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                           Shared
                         </span>
                       )}
-                      <span className="text-xs text-white/60">
+                      <span className="text-xs text-muted-foreground">
                         ({tables.length + views.length})
                       </span>
                     </div>
@@ -733,7 +733,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                           handleMotherDuckRefresh(db.name);
                         }}
                         disabled={motherDuckRefreshing.has(db.name)}
-                        className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors"
+                        className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <RefreshCw size={12} className={motherDuckRefreshing.has(db.name) ? "animate-spin" : ""} />
                       </button>
@@ -744,12 +744,12 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                   {isExpanded && (
                     <div className="pl-6">
                       {motherDuckRefreshing.has(db.name) ? (
-                        <div className="flex items-center justify-center py-4 text-white/50">
+                        <div className="flex items-center justify-center py-4 text-muted-foreground">
                           <Loader2 size={16} className="animate-spin mr-2" />
                           <span className="text-xs">Loading {db.name} schemas...</span>
                         </div>
                       ) : schemas.length === 0 ? (
-                        <div className="px-2 py-4 text-center text-white/50 text-xs">
+                        <div className="px-2 py-4 text-center text-muted-foreground text-xs">
                           No tables found in {db.name}
                         </div>
                       ) : (
@@ -757,7 +757,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                           {/* Tables Section */}
                           {tables.length > 0 && (
                             <div className="mb-2">
-                              <div className="flex items-center px-2 py-1 text-xs font-medium text-white/50">
+                              <div className="flex items-center px-2 py-1 text-xs font-medium text-muted-foreground">
                                 <Layers size={12} className="mr-1" />
                                 Tables ({tables.length})
                               </div>
@@ -792,7 +792,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                           {/* Views Section */}
                           {views.length > 0 && (
                             <div className="mb-2">
-                              <div className="flex items-center px-2 py-1 text-xs font-medium text-white/50">
+                              <div className="flex items-center px-2 py-1 text-xs font-medium text-muted-foreground">
                                 <Eye size={12} className="mr-1" />
                                 Views ({views.length})
                               </div>
@@ -836,11 +836,11 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
               <>
                 {/* Available PostgreSQL Connections */}
                 {allPostgresConnections.filter(conn => !postgresActiveConnections.has(conn.id)).map((connection) => (
-                  <div key={`pg-available-${connection.id}`} className="border-b border-white/5">
-                    <div className="flex items-center justify-between px-2 py-2 hover:bg-white/5">
+                  <div key={`pg-available-${connection.id}`} className="border-b border-border">
+                    <div className="flex items-center justify-between px-2 py-2 hover:bg-accent/5">
                       <div className="flex items-center space-x-2">
                         <Server size={14} className="text-blue-400" />
-                        <span className="text-sm font-medium text-white/80">
+                        <span className="text-sm font-medium text-foreground">
                           {connection.name}
                         </span>
                         <span className="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
@@ -852,7 +852,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                           <button
                             onClick={() => handlePostgreSQLConnect(connection.id)}
                             disabled={postgresConnecting.has(connection.id)}
-                            className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors"
+                            className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
                           >
                             {postgresConnecting.has(connection.id) ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -876,22 +876,22 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                     .filter(([_, table]) => table.connectionId === connectionId);
 
                   return (
-                    <div key={`pg-active-${connectionId}`} className="border-b border-white/5">
+                    <div key={`pg-active-${connectionId}`} className="border-b border-border">
                       {/* Connection Header */}
-                      <div className="flex items-center justify-between px-2 py-2 hover:bg-white/5 cursor-pointer"
+                      <div className="flex items-center justify-between px-2 py-2 hover:bg-accent/5 cursor-pointer"
                            onClick={() => toggleDatabase(`pg-${connectionId}`)}>
                         <div className="flex items-center space-x-2">
-                          <span className="text-white/70">
+                          <span className="text-muted-foreground">
                             {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                           </span>
                           <Server size={14} className="text-blue-400" />
-                          <span className="text-sm font-medium text-white">
+                          <span className="text-sm font-medium text-foreground">
                             {connection.name}
                           </span>
                           <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">
                             Connected
                           </span>
-                          <span className="text-xs text-white/60">
+                          <span className="text-xs text-muted-foreground">
                             ({virtualTables.length})
                           </span>
                         </div>
@@ -903,7 +903,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                 handlePostgreSQLRefresh(connectionId);
                               }}
                               disabled={postgresRefreshing.has(connectionId)}
-                              className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors"
+                              className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <RefreshCw size={12} className={postgresRefreshing.has(connectionId) ? "animate-spin" : ""} />
                             </button>
@@ -914,7 +914,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                 e.stopPropagation();
                                 handlePostgreSQLDisconnect(connectionId);
                               }}
-                              className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-red-400 transition-colors"
+                              className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-red-400 transition-colors"
                             >
                               <Database size={12} />
                             </button>
@@ -926,12 +926,12 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                       {isExpanded && (
                         <div className="pl-6">
                           {postgresRefreshing.has(connectionId) ? (
-                            <div className="flex items-center justify-center py-4 text-white/50">
+                            <div className="flex items-center justify-center py-4 text-muted-foreground">
                               <Loader2 size={16} className="animate-spin mr-2" />
                               <span className="text-xs">Loading PostgreSQL schemas...</span>
                             </div>
                           ) : virtualTables.length === 0 ? (
-                            <div className="px-2 py-4 text-center text-white/50 text-xs">
+                            <div className="px-2 py-4 text-center text-muted-foreground text-xs">
                               No tables found. Click refresh to load schemas.
                             </div>
                           ) : (
@@ -953,7 +953,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
 
                                 return Array.from(schemaGroups.entries()).map(([schemaName, { tables, views }]) => (
                                   <div key={`${connectionId}-${schemaName}`} className="mb-3">
-                                    <div className="flex items-center px-2 py-1 text-xs font-medium text-white/50">
+                                    <div className="flex items-center px-2 py-1 text-xs font-medium text-muted-foreground">
                                       <Database size={12} className="mr-1" />
                                       {schemaName} ({tables.length + views.length})
                                     </div>
@@ -961,7 +961,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                     {/* Tables Section */}
                                     {tables.length > 0 && (
                                       <div className="mb-2">
-                                        <div className="flex items-center px-4 py-1 text-xs font-medium text-white/40">
+                                        <div className="flex items-center px-4 py-1 text-xs font-medium text-muted-foreground">
                                           <Layers size={10} className="mr-1" />
                                           Tables ({tables.length})
                                         </div>
@@ -978,10 +978,10 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                       return (
                                         <div key={tableKey} className="schema-item group">
                                           <div 
-                                            className="flex items-center px-2 py-1.5 hover:bg-white/5 rounded text-sm cursor-pointer"
+                                            className="flex items-center px-2 py-1.5 hover:bg-accent/5 rounded text-sm cursor-pointer"
                                             onClick={() => toggleTable(fullTableId)}
                                           >
-                                            <span className="mr-1.5 text-white/70 flex-shrink-0">
+                                            <span className="mr-1.5 text-muted-foreground flex-shrink-0">
                                               {expandedTables.has(fullTableId) ? (
                                                 <ChevronDown size={14} />
                                               ) : (
@@ -994,7 +994,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                             </span>
                                             
                                             <div className="flex-1 min-w-0 ml-1.5">
-                                              <span className="text-white/90 truncate block">
+                                              <span className="text-foreground truncate block">
                                                 {table.tableName}
                                               </span>
                                             </div>
@@ -1002,7 +1002,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                               <Tooltip placement="left" content="Insert SELECT query">
                                                 <button
-                                                  className="text-white/70 hover:text-primary p-1"
+                                                  className="text-muted-foreground hover:text-primary p-1"
                                                   onClick={(e) => {
                                                     e.stopPropagation();
                                                     generateSelectQuery(tableSchema);
@@ -1016,29 +1016,29 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
 
                                           {/* Table Columns */}
                                           {expandedTables.has(fullTableId) && (
-                                            <div className="ml-6 pl-2 border-l border-white/10 mt-1 mb-2">
+                                            <div className="ml-6 pl-2 border-l border-border mt-1 mb-2">
                                               {table.columns.length > 0 ? (
                                                 <div className="space-y-0.5">
                                                   {table.columns.map((column) => (
                                                     <div
                                                       key={`${fullTableId}-${column.name}`}
-                                                      className="flex items-center px-2 py-1 hover:bg-white/5 rounded text-xs group/column"
+                                                      className="flex items-center px-2 py-1 hover:bg-accent/5 rounded text-xs group/column"
                                                       onClick={() => generateColumnQuery(tableSchema, column.name)}
                                                     >
                                                       <span className="flex-shrink-0">
                                                         {getColumnTypeIcon(column.type)}
                                                       </span>
                                                       
-                                                      <span className="ml-1.5 text-white/80 truncate flex-1 min-w-0">
+                                                      <span className="ml-1.5 text-foreground truncate flex-1 min-w-0">
                                                         {column.name}
                                                       </span>
                                                       
-                                                      <span className="text-white/40 text-xs flex-shrink-0 ml-2 max-w-[60px] truncate">
+                                                      <span className="text-muted-foreground text-xs flex-shrink-0 ml-2 max-w-[60px] truncate">
                                                         {column.type}
                                                       </span>
                                                       
                                                       <button
-                                                        className="opacity-0 group-hover/column:opacity-100 hover:text-primary transition-all text-white/70 p-0.5 flex-shrink-0 ml-1"
+                                                        className="opacity-0 group-hover/column:opacity-100 hover:text-primary transition-all text-muted-foreground p-0.5 flex-shrink-0 ml-1"
                                                         onClick={(e) => {
                                                           e.stopPropagation();
                                                           generateColumnQuery(tableSchema, column.name);
@@ -1050,7 +1050,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                                   ))}
                                                 </div>
                                               ) : (
-                                                <div className="px-2 py-2 text-white/40 text-xs">
+                                                <div className="px-2 py-2 text-muted-foreground text-xs">
                                                   No columns available
                                                 </div>
                                               )}
@@ -1065,7 +1065,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                     {/* Views Section */}
                                     {views.length > 0 && (
                                       <div className="mb-2">
-                                        <div className="flex items-center px-4 py-1 text-xs font-medium text-white/40">
+                                        <div className="flex items-center px-4 py-1 text-xs font-medium text-muted-foreground">
                                           <Eye size={10} className="mr-1" />
                                           Views ({views.length})
                                         </div>
@@ -1082,10 +1082,10 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                           return (
                                             <div key={tableKey} className="schema-item group">
                                               <div 
-                                                className="flex items-center px-2 py-1.5 hover:bg-white/5 rounded text-sm cursor-pointer"
+                                                className="flex items-center px-2 py-1.5 hover:bg-accent/5 rounded text-sm cursor-pointer"
                                                 onClick={() => toggleTable(fullTableId)}
                                               >
-                                                <span className="mr-1.5 text-white/70 flex-shrink-0">
+                                                <span className="mr-1.5 text-muted-foreground flex-shrink-0">
                                                   {expandedTables.has(fullTableId) ? (
                                                     <ChevronDown size={14} />
                                                   ) : (
@@ -1098,7 +1098,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                                 </span>
                                                 
                                                 <div className="flex-1 min-w-0 ml-1.5">
-                                                  <span className="text-white/90 truncate block">
+                                                  <span className="text-foreground truncate block">
                                                     {table.tableName}
                                                   </span>
                                                 </div>
@@ -1106,7 +1106,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                                   <Tooltip placement="left" content="Insert SELECT query">
                                                     <button
-                                                      className="text-white/70 hover:text-primary p-1"
+                                                      className="text-muted-foreground hover:text-primary p-1"
                                                       onClick={(e) => {
                                                         e.stopPropagation();
                                                         generateSelectQuery(tableSchema);
@@ -1120,29 +1120,29 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
 
                                               {/* View Columns */}
                                               {expandedTables.has(fullTableId) && (
-                                                <div className="ml-6 pl-2 border-l border-white/10 mt-1 mb-2">
+                                                <div className="ml-6 pl-2 border-l border-border mt-1 mb-2">
                                                   {table.columns.length > 0 ? (
                                                     <div className="space-y-0.5">
                                                       {table.columns.map((column) => (
                                                         <div
                                                           key={`${fullTableId}-${column.name}`}
-                                                          className="flex items-center px-2 py-1 hover:bg-white/5 rounded text-xs group/column"
+                                                          className="flex items-center px-2 py-1 hover:bg-accent/5 rounded text-xs group/column"
                                                           onClick={() => generateColumnQuery(tableSchema, column.name)}
                                                         >
                                                           <span className="flex-shrink-0">
                                                             {getColumnTypeIcon(column.type)}
                                                           </span>
                                                           
-                                                          <span className="ml-1.5 text-white/80 truncate flex-1 min-w-0">
+                                                          <span className="ml-1.5 text-foreground truncate flex-1 min-w-0">
                                                             {column.name}
                                                           </span>
                                                           
-                                                          <span className="text-white/40 text-xs flex-shrink-0 ml-2 max-w-[60px] truncate">
+                                                          <span className="text-muted-foreground text-xs flex-shrink-0 ml-2 max-w-[60px] truncate">
                                                             {column.type}
                                                           </span>
                                                           
                                                           <button
-                                                            className="opacity-0 group-hover/column:opacity-100 hover:text-primary transition-all text-white/70 p-0.5 flex-shrink-0 ml-1"
+                                                            className="opacity-0 group-hover/column:opacity-100 hover:text-primary transition-all text-muted-foreground p-0.5 flex-shrink-0 ml-1"
                                                             onClick={(e) => {
                                                               e.stopPropagation();
                                                               generateColumnQuery(tableSchema, column.name);
@@ -1154,7 +1154,7 @@ const SchemaBrowser: React.FC<SchemaBrowserProps> = ({ onInsertQuery }) => {
                                                       ))}
                                                     </div>
                                                   ) : (
-                                                    <div className="px-2 py-2 text-white/40 text-xs">
+                                                    <div className="px-2 py-2 text-muted-foreground text-xs">
                                                       No columns available
                                                     </div>
                                                   )}
@@ -1212,10 +1212,10 @@ const TableItem: React.FC<TableItemProps> = ({
     <div className="schema-item group">
       {/* Table/View row */}
       <div
-        className="flex items-center px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer text-sm"
+        className="flex items-center px-2 py-1.5 hover:bg-accent/5 rounded cursor-pointer text-sm"
         onClick={onToggle}
       >
-        <span className="mr-1.5 text-white/70 flex-shrink-0">
+        <span className="mr-1.5 text-muted-foreground flex-shrink-0">
           {schema.columns.length > 0 || isLoadingColumns ? (
             isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
           ) : (
@@ -1228,14 +1228,14 @@ const TableItem: React.FC<TableItemProps> = ({
         </span>
         
         <Tooltip content={schema.name} placement="top">
-          <span className="flex-1 text-white/90 truncate ml-1.5 min-w-0">
+          <span className="flex-1 text-foreground truncate ml-1.5 min-w-0">
             {schema.name}
           </span>
         </Tooltip>
         
         <Tooltip placement="top" content="Insert SELECT query">
           <button
-            className="opacity-0 group-hover:opacity-100 hover:text-primary transition-all text-white/70 p-1 flex-shrink-0"
+            className="opacity-0 group-hover:opacity-100 hover:text-primary transition-all text-muted-foreground p-1 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               onGenerateQuery(schema);
@@ -1248,9 +1248,9 @@ const TableItem: React.FC<TableItemProps> = ({
 
       {/* Columns */}
       {isExpanded && (
-        <div className="ml-6 pl-2 border-l border-white/10 mt-1 mb-2">
+        <div className="ml-6 pl-2 border-l border-border mt-1 mb-2">
           {isLoadingColumns ? (
-            <div className="flex items-center py-2 text-white/40 text-xs">
+            <div className="flex items-center py-2 text-muted-foreground text-xs">
               <Loader2 size={12} className="animate-spin mr-1.5" />
               Loading columns...
             </div>
@@ -1259,27 +1259,27 @@ const TableItem: React.FC<TableItemProps> = ({
               {schema.columns.map((column) => (
                 <div
                   key={`${tableId}-${column.name}`}
-                  className="flex items-center px-2 py-1 hover:bg-white/5 rounded text-xs group/column"
+                  className="flex items-center px-2 py-1 hover:bg-accent/5 rounded text-xs group/column"
                 >
                   <span className="flex-shrink-0">
                     {getColumnTypeIcon(column.type)}
                   </span>
                   
                   <Tooltip content={column.name} placement="top">
-                    <span className="ml-1.5 text-white/80 truncate flex-1 min-w-0">
+                    <span className="ml-1.5 text-foreground truncate flex-1 min-w-0">
                       {column.name}
                     </span>
                   </Tooltip>
                   
                   <Tooltip content={column.type} placement="top">
-                    <span className="text-white/40 text-xs flex-shrink-0 ml-2 max-w-[60px] truncate">
+                    <span className="text-muted-foreground text-xs flex-shrink-0 ml-2 max-w-[60px] truncate">
                       {column.type}
                     </span>
                   </Tooltip>
                   
                   <Tooltip placement="left" content="Insert column query">
                     <button
-                      className="opacity-0 group-hover/column:opacity-100 hover:text-primary transition-all text-white/70 p-0.5 flex-shrink-0 ml-1"
+                      className="opacity-0 group-hover/column:opacity-100 hover:text-primary transition-all text-muted-foreground p-0.5 flex-shrink-0 ml-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         onGenerateColumnQuery(schema, column.name);
@@ -1292,7 +1292,7 @@ const TableItem: React.FC<TableItemProps> = ({
               ))}
             </div>
           ) : (
-            <div className="px-2 py-2 text-white/40 text-xs">
+            <div className="px-2 py-2 text-muted-foreground text-xs">
               No columns available
             </div>
           )}

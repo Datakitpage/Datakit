@@ -59,8 +59,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
             className={`
               relative px-4 py-2 text-sm rounded-t-md transition-all duration-200 flex items-center cursor-pointer
               ${activeTab === tab.id 
-                ? "text-white font-medium" 
-                : "text-white/70 hover:text-white/90"
+                ? "text-foreground font-medium" 
+                : "text-muted-foreground hover:text-foreground"
               }
             `}
           >
@@ -83,7 +83,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
       />
       
       {/* Bottom border for inactive areas */}
-      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-white/10" />
+      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-border" />
     </div>
   );
 };

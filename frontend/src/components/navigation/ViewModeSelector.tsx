@@ -74,7 +74,7 @@ const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
           scale: { duration: 0.2 },
           opacity: { duration: 0.15 },
         }}
-        className="flex items-center gap-0.5 bg-black/50 backdrop-blur-sm border border-white/10 rounded-lg p-0.5 shadow-xl"
+        className="flex items-center gap-0.5 bg-card/50 backdrop-blur-sm border border-border rounded-lg p-0.5 shadow-xl"
       >
         {modes.map((mode) => (
           <motion.button
@@ -84,8 +84,8 @@ const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
               'relative group flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md',
               'transition-all duration-200 cursor-pointer',
               currentMode === mode.value
-                ? 'text-white'
-                : 'text-white/50 hover:text-white/70'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             )}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -100,7 +100,7 @@ const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
             <span
               className={cn(
                 'relative z-10',
-                currentMode === mode.value ? 'text-white' : ''
+                currentMode === mode.value ? 'text-foreground' : ''
               )}
             >
               {mode.icon}
@@ -108,7 +108,7 @@ const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
             <span
               className={cn(
                 'relative z-10 font-medium',
-                currentMode === mode.value ? 'text-white' : ''
+                currentMode === mode.value ? 'text-foreground' : ''
               )}
             >
               {mode.label}

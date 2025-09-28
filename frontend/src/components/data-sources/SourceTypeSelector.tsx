@@ -22,7 +22,7 @@ export const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   onTypeSelect
 }) => {
   return (
-    <div className="flex items-center gap-1 p-1 bg-white/5 rounded-lg">
+    <div className="flex items-center gap-1 p-1 bg-accent/5 rounded-lg">
       {sourceTypes.map((sourceType) => {
         const Icon = sourceType.icon;
         const isActive = activeType === sourceType.type;
@@ -33,8 +33,8 @@ export const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
             onClick={() => onTypeSelect(sourceType.type)}
             className={`flex-1 flex items-center justify-center gap-2 px-2 py-1.5 rounded transition-colors cursor-pointer ${
               isActive
-                ? 'bg-white/10 text-white'
-                : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+                ? 'bg-accent/10 text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/5'
             }`}
           >
             <Icon className="h-3.5 w-3.5" />

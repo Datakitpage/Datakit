@@ -214,21 +214,21 @@ export const WorkspaceSelector: React.FC = () => {
       <button
         ref={buttonRef}
         onClick={handleToggleDropdown}
-        className="w-full flex items-center justify-between px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/15 rounded-lg transition-all duration-200 group cursor-pointer"
+        className="w-full flex items-center justify-between px-3 py-2.5 bg-accent/5 hover:bg-accent/10 border border-border rounded-lg transition-all duration-200 group cursor-pointer"
       >
         <div className="flex items-center gap-2">
           <FolderOpen className="h-4 w-4 text-primary/70" />
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-medium text-foreground">
             {activeWorkspace?.name || 'Select Workspace'}
           </span>
           {activeWorkspace?.isDraft && (
-            <span className="text-[10px] text-white/50 bg-white/10 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] text-muted-foreground bg-accent/10 px-1.5 py-0.5 rounded">
               unsaved
             </span>
           )}
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-white/60 transition-transform duration-200 ${
+          className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -244,7 +244,7 @@ export const WorkspaceSelector: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="fixed bg-black border border-white/15 rounded-lg shadow-xl overflow-hidden z-50"
+              className="fixed bg-popover border border-border rounded-lg shadow-xl overflow-hidden z-50"
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -252,10 +252,10 @@ export const WorkspaceSelector: React.FC = () => {
               }}
             >
               {/* Header with explanation and help */}
-              <div className="p-4 border-b border-white/10">
+              <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-white tracking-wide">
+                    <h3 className="text-sm font-medium text-foreground tracking-wide">
                       Workspaces
                     </h3>
                     {!isAuthenticated && nonDraftWorkspaceCount >= 1 && (
@@ -268,9 +268,9 @@ export const WorkspaceSelector: React.FC = () => {
                     <button
                       onMouseEnter={() => setShowTooltip(true)}
                       onMouseLeave={() => setShowTooltip(false)}
-                      className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                      className="p-1 hover:bg-accent/10 rounded-full transition-colors"
                     >
-                      <HelpCircle className="h-4 w-4 text-white/50" />
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
                     </button>
 
                     {/* Tooltip */}
@@ -281,11 +281,11 @@ export const WorkspaceSelector: React.FC = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.2 }}
-                          className="absolute right-0 top-full mt-2 w-64 bg-stone-900 border border-white/20 rounded-lg p-3 text-xs text-white/80 shadow-xl z-50"
+                          className="absolute right-0 top-full mt-2 w-64 bg-popover border border-border rounded-lg p-3 text-xs text-muted-foreground shadow-xl z-50"
                         >
                           <div className="space-y-2">
                             <p>
-                              <strong className="text-white">Workspaces</strong>{' '}
+                              <strong className="text-foreground">Workspaces</strong>{' '}
                               organize your files without storing actual data -
                               only references for privacy.
                             </p>
@@ -295,7 +295,7 @@ export const WorkspaceSelector: React.FC = () => {
                               named workspace.
                             </p>
                             <p>
-                              <strong className="text-white">Benefits:</strong>{' '}
+                              <strong className="text-foreground">Benefits:</strong>{' '}
                               Keep projects organized, switch between datasets.
                             </p>
                             {!isAuthenticated && (
@@ -314,7 +314,7 @@ export const WorkspaceSelector: React.FC = () => {
                     </AnimatePresence>
                   </div>
                 </div>
-                <p className="text-xs text-white/60 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Organize your files into workspaces. Files are referenced, not
                   stored.
                 </p>
@@ -324,7 +324,7 @@ export const WorkspaceSelector: React.FC = () => {
                 {workspaces.map((workspace) => (
                   <div
                     key={workspace.id}
-                    className={`group flex items-center justify-between px-3 py-2 hover:bg-white/5 transition-colors ${
+                    className={`group flex items-center justify-between px-3 py-2 hover:bg-accent/5 transition-colors ${
                       workspace.id === activeWorkspaceId ? 'bg-primary/10' : ''
                     }`}
                   >
@@ -340,18 +340,18 @@ export const WorkspaceSelector: React.FC = () => {
                               handleRenameWorkspace(workspace.id);
                             if (e.key === 'Escape') setEditingId(null);
                           }}
-                          className="flex-1 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white outline-none focus:border-primary"
+                          className="flex-1 bg-accent/10 border border-border rounded px-2 py-1 text-sm text-foreground outline-none focus:border-primary"
                           autoFocus
                         />
                         <button
                           onClick={() => handleRenameWorkspace(workspace.id)}
-                          className="p-1 hover:bg-white/10 rounded"
+                          className="p-1 hover:bg-accent/10 rounded"
                         >
                           <Check className="h-3 w-3 text-green-400" />
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
-                          className="p-1 hover:bg-white/10 rounded"
+                          className="p-1 hover:bg-accent/10 rounded"
                         >
                           <X className="h-3 w-3 text-red-400" />
                         </button>
@@ -363,19 +363,19 @@ export const WorkspaceSelector: React.FC = () => {
                           onClick={() => handleSwitchWorkspace(workspace.id)}
                           className="flex-1 flex items-center gap-2 text-left"
                         >
-                          <FolderOpen className="h-4 w-4 text-white/50" />
+                          <FolderOpen className="h-4 w-4 text-muted-foreground" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-white">
+                              <span className="text-sm text-foreground">
                                 {workspace.name}
                               </span>
                               {workspace.isDraft && (
-                                <span className="text-[10px] text-white/40">
+                                <span className="text-[10px] text-muted-foreground">
                                   draft
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10px] text-white/40">
+                            <div className="text-[10px] text-muted-foreground">
                               {workspace.files.length} files
                             </div>
                           </div>
@@ -392,17 +392,17 @@ export const WorkspaceSelector: React.FC = () => {
                                 setEditingId(workspace.id);
                                 setEditingName(workspace.name);
                               }}
-                              className="p-1 hover:bg-white/10 rounded"
+                              className="p-1 hover:bg-accent/10 rounded"
                             >
-                              <Edit2 className="h-3 w-3 text-white/60" />
+                              <Edit2 className="h-3 w-3 text-muted-foreground" />
                             </button>
                             <button
                               onClick={() =>
                                 handleDeleteWorkspace(workspace.id)
                               }
-                              className="p-1 hover:bg-white/10 rounded"
+                              className="p-1 hover:bg-accent/10 rounded"
                             >
-                              <Trash2 className="h-3 w-3 text-red-400/60" />
+                              <Trash2 className="h-3 w-3 text-destructive/60" />
                             </button>
                           </div>
                         )}
@@ -414,7 +414,7 @@ export const WorkspaceSelector: React.FC = () => {
 
               {/* Save Draft Workspace */}
               {activeWorkspace?.isDraft && activeWorkspace.files.length > 0 && (
-                <div className="border-t border-white/10 p-2">
+                <div className="border-t border-border p-2">
                   {isSavingDraft ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -429,7 +429,7 @@ export const WorkspaceSelector: React.FC = () => {
                           }
                         }}
                         placeholder="Workspace name..."
-                        className="flex-1 bg-white/10 border border-white/20 rounded px-2 py-1.5 text-sm text-white placeholder-white/40 outline-none focus:border-primary"
+                        className="flex-1 bg-accent/10 border border-border rounded px-2 py-1.5 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary"
                         autoFocus
                       />
                       <button
@@ -451,7 +451,7 @@ export const WorkspaceSelector: React.FC = () => {
                   ) : (
                     <button
                       onClick={() => setIsSavingDraft(true)}
-                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-accent/5 rounded-lg transition-colors cursor-pointer"
                     >
                       <Save className="h-4 w-4 text-green-400" />
                       <span className="text-sm text-white">

@@ -104,7 +104,7 @@ const TableCell: React.FC<TableCellProps> = ({ value, formattedValue, width }) =
   // Determine value style based on data type
   const getValueStyle = (value: any): string => {
     if (value === null || value === undefined) {
-      return "text-white/30 italic";
+      return "text-muted-foreground italic";
     }
     if (typeof value === "number") {
       return "text-tertiary font-mono text-right";
@@ -188,7 +188,7 @@ const TableCell: React.FC<TableCellProps> = ({ value, formattedValue, width }) =
         width: width,
         minWidth: width,
       }}
-      className={`p-2 text-xs border-b border-r border-white/10 ${valueStyle} truncate`}
+      className={`p-2 text-xs border-b border-r border-border ${valueStyle} truncate`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
@@ -201,7 +201,7 @@ const TableCell: React.FC<TableCellProps> = ({ value, formattedValue, width }) =
         createPortal(
           <div
             ref={tooltipRef}
-            className="bg-black/90 border border-primary p-2 rounded shadow-lg text-white text-xs"
+            className="bg-popover border border-primary p-2 rounded shadow-lg text-foreground text-xs"
             style={{
               position: 'fixed',
               top: `${tooltipPosition.top}px`,

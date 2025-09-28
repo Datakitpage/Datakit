@@ -72,7 +72,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
           <div className="flex items-center justify-center">
             <button
               onClick={onRemoteClick}
-              className="group flex flex-col items-center justify-center py-6 px-4 rounded-lg bg-white/3 backdrop-blur-sm border border-white/10 hover:bg-black/40 hover:border-white/20 hover:bg-white/5 transition-all duration-300 w-full relative overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-primary/10"
+              className="group flex flex-col items-center justify-center py-6 px-4 rounded-lg bg-accent/3 backdrop-blur-sm border border-border hover:bg-accent/10 hover:border-border/60 transition-all duration-300 w-full relative overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-primary/10"
               style={{
                 boxShadow:
                   '0 2px 4px -1px rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03)',
@@ -85,7 +85,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
                 <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
               </div>
 
-              <h3 className="text-sm font-medium text-white mb-4 relative z-10 tracking-wide">
+              <h3 className="text-sm font-medium text-foreground mb-4 relative z-10 tracking-wide">
                 Connect Cloud Sources
               </h3>
 

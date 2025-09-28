@@ -303,24 +303,24 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
   return (
     <div className="h-full flex flex-col relative">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/10">
+      <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between">
           {/* Left side - Schema toggle */}
           <div className="flex items-center gap-3">
             {onToggleSchema && (
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-2 py-1">
+              <div className="flex items-center gap-2 bg-card/5 border border-border rounded-lg px-2 py-1">
                 <button
                   onClick={onToggleSchema}
-                  className="p-1 hover:bg-white/10 rounded transition-colors"
+                  className="p-1 hover:bg-muted/50 rounded transition-colors"
                   title={schemaBrowserOpen ? 'Hide Schema' : 'Show Schema'}
                 >
                   <ChevronRight
-                    className={`h-4 w-4 text-white/70 transition-transform ${
+                    className={`h-4 w-4 text-muted-foreground transition-transform ${
                       schemaBrowserOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
-                <h3 className="text-sm font-medium text-white">Schemas</h3>
+                <h3 className="text-sm font-medium text-foreground">Schemas</h3>
               </div>
             )}
           </div>
@@ -341,23 +341,23 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                 <button
                   onClick={navigateToPreviousMessage}
                   disabled={currentMessageIndex <= 0}
-                  className="p-1 hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 hover:bg-accent/50 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Previous message"
                 >
-                  <ChevronLeft className="h-4 w-4 text-white/70" />
+                  <ChevronLeft className="h-4 w-4 text-muted-foreground" />
                 </button>
 
-                <span className="text-xs text-white/60 px-2">
+                <span className="text-xs text-muted-foreground px-2">
                   {currentMessageIndex + 1} / {userMessages.length + 1}
                 </span>
 
                 <button
                   onClick={navigateToNextMessage}
                   disabled={currentMessageIndex >= userMessages.length}
-                  className="p-1 hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 hover:bg-accent/50 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Next message"
                 >
-                  <ChevronRight className="h-4 w-4 text-white/70" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </button>
               </div>
             )}
@@ -370,7 +370,7 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                 className={`p-1.5 rounded transition-all ${
                   showSetupPrompt || isProcessing
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-white/10 text-white/70 hover:text-white'
+                    : 'hover:bg-accent/10 text-muted-foreground hover:text-foreground'
                 }`}
                 aria-label="Start new chat"
               >
@@ -393,14 +393,14 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={getPlaceholderText()}
-                className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                className="w-full px-4 py-4 bg-accent/5 border border-border rounded-lg text-foreground placeholder-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                 rows={3}
                 disabled={isProcessing || showSetupPrompt}
               />
 
               <div className="absolute bottom-3 right-3 flex items-center gap-2">
                 {/* Keyboard shortcut hint */}
-                <div className="flex items-center gap-1 text-xs text-white/40 bg-black/30 px-2 py-1 rounded border border-white/10">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground bg-background/30 px-2 py-1 rounded border border-border">
                   <Command className="h-3 w-3" />
                   <span>K</span>
                 </div>
@@ -418,8 +418,8 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                     canExecute &&
                     !isProcessing &&
                     !showSetupPrompt
-                      ? 'bg-primary text-white hover:bg-primary/80'
-                      : 'bg-white/10 text-white/30 cursor-not-allowed'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/80'
+                      : 'bg-accent/10 text-muted-foreground cursor-not-allowed'
                   }`}
                 >
                   <Send className="h-4 w-4" />
@@ -447,7 +447,7 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                 transition={{ duration: 0.2 }}
                 className="space-y-3"
               >
-                <p className="text-xs text-white/50 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   Configure your AI model to start asking questions
                 </p>
 
@@ -488,7 +488,7 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                   </Button>
                 </div>
 
-                <p className="text-xs text-white/40 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   {/* Choose from OpenAI, Anthropic, Groq, or DataKit. */}
                   {/* <br /> */}
                   Models only see your table structure, not your actual data
@@ -508,7 +508,7 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
               transition={{ duration: 0.2 }}
               className="space-y-2"
             >
-              <p className="text-xs text-white/50 mb-3">Suggestions:</p>
+              <p className="text-xs text-muted-foreground mb-3">Suggestions:</p>
               {PROMPT_SUGGESTIONS.map((suggestion, index) => (
                 <button
                   key={index}
@@ -518,18 +518,18 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
                   disabled={showSetupPrompt}
                   className={`w-full text-left p-3 border rounded-lg transition-all cursor-pointer ${
                     showSetupPrompt
-                      ? 'bg-white/3 border-white/5 cursor-not-allowed opacity-50'
-                      : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 group'
+                      ? 'bg-accent/3 border-border cursor-not-allowed opacity-50'
+                      : 'bg-accent/5 hover:bg-accent/10 border-border hover:border-border group'
                   }`}
                 >
-                  <div className="font-medium text-sm text-white/90 mb-1">
+                  <div className="font-medium text-sm text-foreground mb-1">
                     {suggestion.title}
                   </div>
                   <div
                     className={`text-xs ${
                       showSetupPrompt
-                        ? 'text-white/40'
-                        : 'text-white/60 group-hover:text-white/70'
+                        ? 'text-muted-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
                     }`}
                   >
                     {suggestion.prompt}
@@ -543,8 +543,8 @@ const PromptPanel: React.FC<PromptPanelProps> = ({
 
       {/* Status */}
       {isProcessing && (
-        <div className="px-4 py-2 border-t border-white/10">
-          <div className="flex items-center gap-2 text-xs text-white/60">
+        <div className="px-4 py-2 border-t border-border">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             <span>Thinking...</span>
           </div>

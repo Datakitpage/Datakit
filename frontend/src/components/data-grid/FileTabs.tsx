@@ -77,7 +77,7 @@ const getFileIcon = (
       if (remoteProvider) {
         return <Cloud className={cn(iconClass, 'text-blue-400')} />;
       }
-      return <FileText className={cn(iconClass, 'text-white/50')} />;
+      return <FileText className={cn(iconClass, 'text-muted-foreground')} />;
   }
 };
 
@@ -107,12 +107,12 @@ const FileTabItem: React.FC<{
   // Enhanced visual feedback for different states
   const getTabStyles = () => {
     if (tab.isActive) {
-      return 'border-primary bg-primary/10 text-white shadow-lg';
+      return 'border-primary bg-primary/10 text-foreground shadow-lg';
     }
     if (isHovered) {
-      return 'border-white/20 bg-white/8 text-white/95';
+      return 'border-border bg-accent/10 text-foreground';
     }
-    return 'border-transparent text-white/70 hover:text-white/90';
+    return 'border-transparent text-muted-foreground hover:text-foreground';
   };
 
   return (
@@ -134,7 +134,7 @@ const FileTabItem: React.FC<{
       }}
       className={cn(
         'group relative flex items-center h-11 px-3 py-2 border-b-2 transition-all duration-200 cursor-pointer select-none',
-        'hover:bg-white/5 rounded-t-lg mx-0.5',
+        'hover:bg-accent/5 rounded-t-lg mx-0.5',
         isOverflowing ? 'min-w-fit' : 'min-w-0 max-w-64',
         getTabStyles()
       )}
@@ -168,7 +168,7 @@ const FileTabItem: React.FC<{
           <span
             className={cn(
               'truncate text-sm font-medium transition-colors',
-              tab.isActive ? 'text-white' : 'text-white/80'
+              tab.isActive ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
             {tab.fileName}
@@ -194,7 +194,7 @@ const FileTabItem: React.FC<{
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="text-xs text-white/50 truncate"
+              className="text-xs text-muted-foreground truncate"
             >
               {tab.sourceType}
             </motion.span>
@@ -237,7 +237,7 @@ const FileTabItem: React.FC<{
           e.stopPropagation();
           onTabClose(tab.id);
         }}
-        className="ml-2 p-1 rounded-full text-white/60 hover:primary flex-shrink-0 transition-colors"
+        className="ml-2 p-1 rounded-full text-muted-foreground hover:text-destructive flex-shrink-0 transition-colors"
         title="Close file"
       >
         <X className="h-3 w-3" />
@@ -340,17 +340,17 @@ const ContextMenu: React.FC<{
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 5 }}
       transition={{ duration: 0.15 }}
-      className="fixed z-50 bg-gray-900/95 backdrop-blur-sm border border-white/20 rounded-xl shadow-2xl py-2 min-w-44"
+      className="fixed z-50 bg-popover backdrop-blur-sm border border-border rounded-xl shadow-2xl py-2 min-w-44"
       style={{
         left: position.x,
         top: position.y,
       }}
     >
       {/* Context menu header */}
-      <div className="px-3 py-2 border-b border-white/10">
+      <div className="px-3 py-2 border-b border-border">
         <div className="flex items-center gap-2">
           {getFileIcon(tab.sourceType, tab.remoteProvider, true)}
-          <span className="text-xs text-white/90 font-medium truncate">
+          <span className="text-xs text-foreground font-medium truncate">
             {tab.fileName}
           </span>
         </div>
@@ -358,7 +358,7 @@ const ContextMenu: React.FC<{
 
       {menuItems.map((item, index) => {
         if (item.type === 'separator') {
-          return <div key={index} className="my-1 border-t border-white/10" />;
+          return <div key={index} className="my-1 border-t border-border" />;
         }
 
         const Icon = item.icon;
@@ -371,7 +371,7 @@ const ContextMenu: React.FC<{
               onClose();
             }}
             disabled={item.disabled}
-            className="w-full px-3 py-2 text-left text-sm text-white/80 hover:text-white flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:text-foreground flex items-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <Icon className="h-4 w-4 mr-3" />
             {item.label}
@@ -413,7 +413,7 @@ const OverflowMenu: React.FC<{
         whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
         whileTap={{ scale: 0.95 }}
         onClick={onToggle}
-        className="flex items-center h-11 px-2 text-white/70 hover:text-white rounded-lg"
+        className="flex items-center h-11 px-2 text-muted-foreground hover:text-foreground rounded-lg"
         title={`${hiddenTabs.length} more tabs`}
       >
         <MoreHorizontal className="h-4 w-4" />
@@ -426,7 +426,7 @@ const OverflowMenu: React.FC<{
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
-            className="absolute right-0 top-full mt-1 bg-gray-900/95 backdrop-blur-sm border border-white/20 rounded-lg shadow-xl py-2 min-w-48 max-h-64 overflow-y-auto"
+            className="absolute right-0 top-full mt-1 bg-popover backdrop-blur-sm border border-border rounded-lg shadow-xl py-2 min-w-48 max-h-64 overflow-y-auto"
           >
             {hiddenTabs.map((tab) => (
               <motion.button
@@ -436,7 +436,7 @@ const OverflowMenu: React.FC<{
                   onTabClick(tab.id);
                   onToggle();
                 }}
-                className="w-full px-3 py-2 text-left flex items-center gap-2 text-white/80 hover:text-white"
+                className="w-full px-3 py-2 text-left flex items-center gap-2 text-muted-foreground hover:text-foreground"
               >
                 {getFileIcon(tab.sourceType, tab.remoteProvider)}
                 <span className="truncate text-sm">{tab.fileName}</span>
@@ -580,7 +580,7 @@ const FileTabs: React.FC<FileTabsProps> = ({
     <>
       <div
         className={cn(
-          'relative flex items-center from-gray-900/50 to-gray-800/50 backdrop-blur-sm border-b border-white/10',
+          'relative flex items-center bg-background backdrop-blur-sm border-b border-border',
           className
         )}
       >
@@ -590,7 +590,7 @@ const FileTabs: React.FC<FileTabsProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             onClick={() => handleScroll('left')}
-            className="p-2 text-white/60 hover:text-white transition-colors flex-shrink-0"
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
           >
             <ChevronLeft className="h-4 w-4" />
           </motion.button>
@@ -663,10 +663,10 @@ const FileTabs: React.FC<FileTabsProps> = ({
               animate={isProcessing ? { rotate: 360 } : { rotate: 0 }}
               transition={{ duration: 0.8, repeat: isProcessing ? Infinity : 0, ease: "linear" }}
             >
-              <Plus className="h-4 w-4 text-white/70 group-hover:text-white relative z-10 transition-colors duration-200" />
+              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground relative z-10 transition-colors duration-200" />
             </motion.div>
             {!isCompactMode && (
-              <span className="text-white/70 group-hover:text-white relative z-10 font-medium transition-colors duration-200">
+              <span className="text-muted-foreground group-hover:text-foreground relative z-10 font-medium transition-colors duration-200">
                 {isProcessing ? 'Loading...' : 'Import'}
               </span>
             )}
@@ -689,7 +689,7 @@ const FileTabs: React.FC<FileTabsProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             onClick={() => handleScroll('right')}
-            className="p-2 text-white/60 hover:text-white transition-colors flex-shrink-0"
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
           >
             <ChevronRight className="h-4 w-4" />
           </motion.button>

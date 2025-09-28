@@ -88,7 +88,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleOpenAuthModal('login')}
-            className={`p-2 text-white/70 hover:text-white hover:bg-white/5 rounded transition-colors ${className}`}
+            className={`p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors ${className}`}
             title="Sign In"
           >
             <LogIn size={14} />
@@ -131,7 +131,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           disabled={isLoading}
         >
           <div className="flex items-center justify-center">
-            <span className="text-xs font-medium text-white group-hover:text-purple-100 transition-colors cursor-pointer">
+            <span className="text-xs font-medium text-foreground group-hover:text-purple-100 transition-colors cursor-pointer">
               Get Started Free
             </span>
           </div>
@@ -141,7 +141,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           variant="outline"
           size="sm"
           onClick={() => handleOpenAuthModal('login')}
-          className={`w-full border border-white/30 hover:border-white/40 ${className}`}
+          className={`w-full border border-border hover:border-border/60 ${className}`}
           disabled={isLoading}
         >
           {isLoading ? (
@@ -178,11 +178,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className={`p-2 text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors ${className}`}
+            className={`p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors ${className}`}
             title={user?.name || user?.email}
           >
             {/* Avatar Icon Only */}
-            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-white">
+            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-primary-foreground">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -221,32 +221,32 @@ const UserMenu: React.FC<UserMenuProps> = ({
                   damping: 30,
                   duration: 0.15,
                 }}
-                className="fixed left-20 bottom-20 w-48 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl py-1 z-50"
+                className="fixed left-20 bottom-20 w-48 bg-popover backdrop-blur-xl border border-border rounded-lg shadow-2xl py-1 z-50"
               >
-                <div className="px-3 py-2 border-b border-white/10">
-                  <div className="text-sm font-medium text-white">
+                <div className="px-3 py-2 border-b border-border">
+                  <div className="text-sm font-medium text-foreground">
                     {user?.name || 'User'}
                   </div>
-                  <div className="text-xs text-white/60">{user?.email}</div>
+                  <div className="text-xs text-muted-foreground">{user?.email}</div>
                 </div>
 
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={goToSettings}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Settings size={14} />
                   Settings
                 </motion.button>
 
-                <hr className="border-white/10 my-1" />
+                <hr className="border-border my-1" />
 
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <LogOut size={14} />
                   Sign Out
@@ -264,10 +264,10 @@ const UserMenu: React.FC<UserMenuProps> = ({
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className={`w-full flex items-center gap-2 py-2 px-1 rounded text-white/80 hover:text-white hover:bg-white/5 transition-colors cursor-pointer ${className}`}
+          className={`w-full flex items-center gap-2 py-2 px-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer ${className}`}
         >
           {/* Avatar */}
-          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-white">
+          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-primary-foreground">
             {user?.avatarUrl ? (
               <img
                 src={user.avatarUrl}
@@ -283,7 +283,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <div className="text-sm font-medium truncate">
               {user?.name || 'User'}
             </div>
-            <div className="text-xs text-white/60 truncate">{user?.email}</div>
+            <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
           </div>
 
           <ChevronDown
@@ -319,25 +319,25 @@ const UserMenu: React.FC<UserMenuProps> = ({
                   damping: 30,
                   duration: 0.2,
                 }}
-                className="absolute bottom-full left-0 mb-2 w-full bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl py-1 z-50"
+                className="absolute bottom-full left-0 mb-2 w-full bg-popover backdrop-blur-xl border border-border rounded-lg shadow-2xl py-1 z-50"
               >
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={goToSettings}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <Settings size={14} />
                   Settings
                 </motion.button>
 
-                <hr className="border-white/10 my-1" />
+                <hr className="border-border my-1" />
 
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <LogOut size={14} />
                   Sign Out
@@ -355,7 +355,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className={`flex items-center gap-2 p-2 rounded text-white/80 hover:text-white hover:bg-white/5 transition-colors ${className}`}
+        className={`flex items-center gap-2 p-2 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors ${className}`}
       >
         {/* Avatar */}
         <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-medium text-white">
@@ -401,20 +401,20 @@ const UserMenu: React.FC<UserMenuProps> = ({
                 damping: 30,
                 duration: 0.2,
               }}
-              className="absolute right-0 top-full mt-2 w-48 bg-darkNav/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl py-1 z-50"
+              className="absolute right-0 top-full mt-2 w-48 bg-popover backdrop-blur-xl border border-border rounded-lg shadow-2xl py-1 z-50"
             >
-              <div className="px-3 py-2 border-b border-white/10">
-                <div className="text-sm font-medium text-white">
+              <div className="px-3 py-2 border-b border-border">
+                <div className="text-sm font-medium text-foreground">
                   {user?.name || 'User'}
                 </div>
-                <div className="text-xs text-white/60">{user?.email}</div>
+                <div className="text-xs text-muted-foreground">{user?.email}</div>
               </div>
 
               <motion.button
                 whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                 whileTap={{ scale: 0.98 }}
                 onClick={goToSettings}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Settings size={14} />
                 Settings
@@ -427,7 +427,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
                   setShowDropdown(false);
                   // Open billing portal or subscription management
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <CreditCard size={14} />
                 Billing
@@ -439,7 +439,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
                 whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <LogOut size={14} />
                 Sign Out

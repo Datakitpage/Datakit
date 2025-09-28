@@ -69,7 +69,7 @@ const ViewSwitcher: React.FC<ViewSwitcherProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-1 p-2 bg-card/10 rounded-lg border border-white/10">
+    <div className="flex items-center gap-1 p-2 bg-card/10 rounded-lg border border-border">
       {viewOptions.map((option) => (
         <button
           key={option.id}
@@ -79,7 +79,7 @@ const ViewSwitcher: React.FC<ViewSwitcherProps> = ({
             "relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
             currentView === option.id
               ? "text-primary shadow-sm" 
-              : "text-white/70 hover:text-white hover:bg-white/10",
+              : "text-muted-foreground hover:text-foreground hover:bg-accent/10",
             option.disabled && "opacity-50 cursor-not-allowed"
           )}
         >
@@ -104,10 +104,10 @@ const ViewSwitcher: React.FC<ViewSwitcherProps> = ({
             <div className={cn(
               "relative flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-xs font-medium",
               currentView === option.id
-                ? "text-white"
+                ? "text-foreground"
                 : option.id === 'problems' && option.badge > 0
-                ? "bg-red-500 text-white"
-                : "bg-white/20 text-white/80"
+                ? "bg-red-500 text-foreground"
+                : "bg-accent/20 text-muted-foreground"
             )}>
               {formatBadge(option.badge)}
             </div>

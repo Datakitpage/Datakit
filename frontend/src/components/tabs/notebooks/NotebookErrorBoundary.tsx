@@ -39,10 +39,10 @@ class NotebookErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
             </div>
-            <h3 className="text-lg font-heading font-medium text-white mb-2">
+            <h3 className="text-lg font-heading font-medium text-foreground mb-2">
               Something went wrong
             </h3>
-            <p className="text-white/70 mb-4">
+            <p className="text-muted-foreground mb-4">
               The notebook encountered an unexpected error. Please try again.
             </p>
             {this.state.error && (

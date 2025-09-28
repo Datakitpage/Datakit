@@ -11,7 +11,7 @@ const QueryResultsEmptyState: React.FC<QueryResultsEmptyStateProps> = ({ type, m
   switch (type) {
     case 'loading':
       return (
-        <div className="flex flex-col items-center justify-center h-full py-10 text-white text-opacity-70">
+        <div className="flex flex-col items-center justify-center h-full py-10 text-muted-foreground">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mb-4"></div>
           <p className="text-sm">Executing query...</p>
         </div>
@@ -19,7 +19,7 @@ const QueryResultsEmptyState: React.FC<QueryResultsEmptyStateProps> = ({ type, m
       
     case 'error':
       return (
-        <div className="bg-destructive/10 border border-destructive/30 rounded p-4 text-white m-3">
+        <div className="bg-destructive/10 border border-destructive/30 rounded p-4 text-foreground m-3">
           <h4 className="font-medium text-destructive mb-2 flex items-center">
             <AlertCircle size={16} className="mr-2" />
             Error
@@ -32,14 +32,14 @@ const QueryResultsEmptyState: React.FC<QueryResultsEmptyStateProps> = ({ type, m
       
     case 'empty':
       return (
-        <div className="flex flex-col items-center justify-center h-full py-10 text-white text-opacity-70">
+        <div className="flex flex-col items-center justify-center h-full py-10 text-muted-foreground">
           <p className="text-sm">Execute a query to see results.</p>
         </div>
       );
       
     case 'no-results':
       return (
-        <div className="flex flex-col items-center justify-center h-full py-10 text-white text-opacity-70">
+        <div className="flex flex-col items-center justify-center h-full py-10 text-muted-foreground">
           <Check size={24} className="text-primary mb-4" />
           <p className="text-sm">Query executed successfully. No results returned.</p>
         </div>

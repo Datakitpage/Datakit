@@ -180,7 +180,7 @@ const MultiTableSelector: React.FC<MultiTableSelectorProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm bg-background/60"
           onClick={onClose}
         >
           <motion.div
@@ -188,13 +188,13 @@ const MultiTableSelector: React.FC<MultiTableSelectorProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ delay: 0.1, duration: 0.2 }}
-            className="w-full max-w-3xl max-h-[70vh] bg-black border border-white/20 rounded-lg shadow-xl shadow-black/30 overflow-hidden flex flex-col"
+            className="w-full max-w-3xl max-h-[70vh] bg-background border border-border rounded-lg shadow-xl shadow-background/30 overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                   Select Tables for AI Context
                 </h2>
                 <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded-full">
@@ -205,27 +205,27 @@ const MultiTableSelector: React.FC<MultiTableSelectorProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="h-8 w-8 p-0 rounded-full text-white/70 hover:text-white hover:bg-white/10"
+                className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
             {/* Search */}
-            <div className="p-4 border-b border-white/10">
+            <div className="p-4 border-b border-border">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tables..."
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-primary/50"
+                className="w-full px-4 py-2 bg-background/30 border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
               />
             </div>
 
             {/* Table List */}
             <div className="flex-1 overflow-auto p-4">
               {filteredTables.length === 0 ? (
-                <div className="text-center py-8 text-white/50">
+                <div className="text-center py-8 text-muted-foreground">
                   {searchQuery
                     ? 'No tables found matching your search'
                     : 'No tables available'}
@@ -244,7 +244,7 @@ const MultiTableSelector: React.FC<MultiTableSelectorProps> = ({
                         className={`p-4 rounded-lg border transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-primary/10 border-primary/50'
-                            : 'bg-white/5 border-white/10 hover:bg-white/10'
+                            : 'bg-accent/5 border-border hover:bg-accent/10'
                         }`}
                         onClick={() => handleToggleTable(table.name)}
                       >
@@ -253,28 +253,28 @@ const MultiTableSelector: React.FC<MultiTableSelectorProps> = ({
                             <div className="mt-1">
                               {isSelected ? (
                                 <div className="h-4 w-4 bg-primary rounded flex items-center justify-center">
-                                  <Check className="h-3 w-3 text-white" />
+                                  <Check className="h-3 w-3 text-foreground" />
                                 </div>
                               ) : (
-                                <div className="h-4 w-4 border-2 border-white/30 rounded" />
+                                <div className="h-4 w-4 border-2 border-border rounded" />
                               )}
                             </div>
 
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <div className="text-white/60">
+                                <div className="text-muted-foreground">
                                   {getTableIcon(table)}
                                 </div>
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                                   {table.name}
                                 </span>
-                                <span className="px-2 py-0.5 bg-white/10 text-white/60 text-xs rounded">
+                                <span className="px-2 py-0.5 bg-accent/10 text-muted-foreground text-xs rounded">
                                   {getSourceLabel(table)}
                                 </span>
                               </div>
 
                               {file && (
-                                <div className="mt-2 flex items-center gap-4 text-sm text-white/50">
+                                <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
                                   {/* TODO: Do we need to have row count on this iteration? */}
                                   {/* {file.rowCount && (
                                     <span>
@@ -302,11 +302,11 @@ const MultiTableSelector: React.FC<MultiTableSelectorProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-white/10 bg-darkNav/30">
+            <div className="p-4 border-t border-border bg-popover/30">
               <div className="flex justify-between items-center">
                 <button
                   onClick={handleClearAll}
-                  className="text-white/60 hover:text-white transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
                   disabled={
                     multiTableContexts.filter((ctx) => ctx.isSelected)
                       .length === 0

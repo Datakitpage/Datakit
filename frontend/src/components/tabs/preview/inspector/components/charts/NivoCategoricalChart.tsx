@@ -40,7 +40,7 @@ const NivoCategoricalChart: React.FC<NivoCategoricalChartProps> = ({
   // Handle empty data case
   if (!limitedData || limitedData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-white/60 text-sm">
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         No categorical data available
       </div>
     );
@@ -95,14 +95,14 @@ const NivoCategoricalChart: React.FC<NivoCategoricalChartProps> = ({
   };
 
   const CustomTooltip = ({ id, value, data }: any) => (
-    <div className="bg-black/95 border border-white/20 rounded-lg p-3 shadow-xl">
-      <div className="text-sm font-medium text-white mb-1 max-w-48 truncate">
+    <div className="bg-black/95 border border-border rounded-lg p-3 shadow-xl">
+      <div className="text-sm font-medium text-foreground mb-1 max-w-48 truncate">
         {data.value}
       </div>
-      <div className="text-sm text-white/80">
+      <div className="text-sm text-muted-foreground">
         Count: <span className="font-mono text-secondary">{value.toLocaleString()}</span>
       </div>
-      <div className="text-sm text-white/80">
+      <div className="text-sm text-muted-foreground">
         {data.percentage.toFixed(1)}% of total
       </div>
     </div>
@@ -272,13 +272,13 @@ const NivoCategoricalChart: React.FC<NivoCategoricalChartProps> = ({
         <div className="absolute top-2 right-2 z-10 flex gap-1">
           <button
             onClick={handlePNGExport}
-            className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white/70 hover:text-white transition-colors"
+            className="px-2 py-1 bg-accent/10 hover:bg-accent/20 rounded text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             PNG
           </button>
           <button
             onClick={handleSVGExport}
-            className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white/70 hover:text-white transition-colors"
+            className="px-2 py-1 bg-accent/10 hover:bg-accent/20 rounded text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             SVG
           </button>

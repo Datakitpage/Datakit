@@ -146,9 +146,9 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="text-sm font-medium text-white">Response</h3>
+          <h3 className="text-sm font-medium text-foreground">Response</h3>
           {/* {hasActiveVisualization && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -163,15 +163,15 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
           )} */}
         </div>
         {showCostEstimates && hasUsage && (
-          <div className="flex items-center gap-3 text-xs text-white/60">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <span>Tokens:</span>
-              <span className="text-white/80 font-mono">
+              <span className="text-foreground font-mono">
                 {costBreakdown.total.tokens.toLocaleString()}
               </span>
               {costBreakdown.response.tokens > 0 &&
                 costBreakdown.visualization.tokens > 0 && (
-                  <span className="text-white/40">
+                  <span className="text-muted-foreground">
                     ({costBreakdown.response.tokens.toLocaleString()} response +{' '}
                     {costBreakdown.visualization.tokens.toLocaleString()} viz)
                   </span>
@@ -180,7 +180,7 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
             {costBreakdown.total.cost > 0 && (
               <div className="flex items-center gap-1">
                 <Coins className="h-3 w-3" />
-                <span className="text-white/80 font-mono">
+                <span className="text-foreground font-mono">
                   ${(costBreakdown.total.cost * 0.01).toFixed(4)}
                 </span>
               </div>
@@ -197,8 +197,8 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
         {!displayResponse && !isProcessing ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
-              <div className="mb-3 text-white/20"></div>
-              <p className="text-white/50 text-md">
+              <div className="mb-3 text-muted-foreground"></div>
+              <p className="text-muted-foreground text-md">
                 Ask a question to see responses here
               </p>
             </div>
@@ -213,9 +213,9 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
                 exit={{ opacity: 0 }}
                 className="space-y-3"
               >
-                <div className="h-4 bg-white/5 rounded animate-pulse" />
-                <div className="h-4 bg-white/5 rounded animate-pulse w-3/4" />
-                <div className="h-4 bg-white/5 rounded animate-pulse w-1/2" />
+                <div className="h-4 bg-accent/5 rounded animate-pulse" />
+                <div className="h-4 bg-accent/5 rounded animate-pulse w-3/4" />
+                <div className="h-4 bg-accent/5 rounded animate-pulse w-1/2" />
               </motion.div>
             ) : (
               <motion.div
@@ -232,7 +232,7 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
                         key={index}
                         className="prose prose-invert w-full max-w-full min-w-0"
                       >
-                        <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap break-words w-full max-w-full">
+                        <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap break-words w-full max-w-full">
                           {part.content}
                         </p>
                       </div>
@@ -260,7 +260,7 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
 
                 {/* Show thinking indicator if still processing */}
                 {isProcessing && (
-                  <div className="flex items-center gap-2 text-xs text-white/50 mt-4">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-4">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                     <span>Thinking...</span>
                   </div>

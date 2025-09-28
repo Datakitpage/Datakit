@@ -221,7 +221,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                 activeProvider,
                 'border'
               )} hover:bg-opacity-80`
-            : 'bg-white/5 border-white/10 hover:bg-white/10',
+            : 'bg-accent/5 border-border hover:bg-accent/10',
           isOpen && 'ring-2 ring-primary/50'
         )}
       >
@@ -232,25 +232,25 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                 'h-5 w-5 rounded flex items-center justify-center',
                 hasApiKey(activeProvider)
                   ? getProviderColorClass(activeProvider, 'text')
-                  : 'text-white/40'
+                  : 'text-muted-foreground'
               )}
             >
               {PROVIDER_ICONS[activeProvider]}
             </div>
-            <span className="text-sm font-medium text-white truncate max-w-32">
+            <span className="text-sm font-medium text-foreground truncate max-w-32">
               {currentModel.name}
             </span>
           </>
         ) : (
           <>
-            <Cpu className="h-5 w-5 text-white/40" />
-            <span className="text-sm text-white/60">Select Model</span>
+            <Cpu className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Select Model</span>
           </>
         )}
 
         <ChevronDown
           className={cn(
-            'h-4 w-4 text-white/60 transition-transform',
+            'h-4 w-4 text-muted-foreground transition-transform',
             isOpen && 'rotate-180'
           )}
         />
@@ -264,10 +264,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 mt-2 w-80 bg-black border border-white/10 rounded-lg shadow-xl shadow-black/30 z-50 max-h-100 overflow-y-auto"
+            className="absolute top-full left-0 mt-2 w-80 bg-background border border-border rounded-lg shadow-xl shadow-background/30 z-50 max-h-100 overflow-y-auto"
           >
             <div className="p-3">
-              <div className="text-xs font-medium text-white/60 uppercase tracking-wider mb-3">
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
                 Select AI Model
               </div>
 
@@ -275,7 +275,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                 {Array.from(availableModels.entries()).map(
                   ([provider, models]) => (
                     <div key={provider}>
-                      <div className="text-xs font-medium text-white/50 mb-2 flex items-center">
+                      <div className="text-xs font-medium text-muted-foreground mb-2 flex items-center">
                         {PROVIDER_ICONS[provider]}
                         <span className="ml-2 capitalize">
                           {provider === 'datakit' ? 'DataKit' : provider}
@@ -320,16 +320,16 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                                     'border'
                                   )}`
                                 : isAuthenticated && hasApiKey(provider)
-                                ? 'border-transparent hover:bg-white/5 hover:border-white/10'
+                                ? 'border-transparent hover:bg-accent/5 hover:border-border'
                                 : 'border-transparent opacity-50 cursor-not-allowed'
                             )}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
-                                <div className="text-sm font-medium text-white">
+                                <div className="text-sm font-medium text-foreground">
                                   {model.name}
                                 </div>
-                                <div className="text-xs text-white/60">
+                                <div className="text-xs text-muted-foreground">
                                   {model?.contextWindow &&
                                     `${model?.contextWindow?.toLocaleString?.()} tokens`}
                                   {model?.costPer1kTokens && (
@@ -344,7 +344,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-xs text-white/40 mt-1">
+                                <div className="text-xs text-muted-foreground/60 mt-1">
                                   {provider === 'datakit'
                                     ? model.description
                                     : model.capabilities.join(', ')}
@@ -362,10 +362,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                       {/* Special sections for DataKit */}
                       {provider === 'datakit' && !isAuthenticated && (
                         <div className="mt-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                          <div className="text-sm text-white/70 mb-2">
+                          <div className="text-sm text-muted-foreground mb-2">
                             Sign up to use DataKit credits
                           </div>
-                          <div className="text-xs text-white/50 mb-3">
+                          <div className="text-xs text-muted-foreground/80 mb-3">
                             No API keys needed. Credits included with your
                             account.
                           </div>
@@ -381,10 +381,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                       {provider === 'datakit' &&
                         isAuthenticated &&
                         user?.credits && (
-                          <div className="mt-2 p-2 bg-background/10 border border-white/10 rounded">
-                            <div className="text-xs text-white/60">
+                          <div className="mt-2 p-2 bg-background/10 border border-border rounded">
+                            <div className="text-xs text-muted-foreground">
                               Credits remaining:{' '}
-                              <span className="text-white font-medium">
+                              <span className="text-foreground font-medium">
                                 {user.credits.remaining}
                               </span>
                             </div>
@@ -396,7 +396,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
 
                 {/* Local Models Section - Coming Soon */}
                 {/* <div>
-                  <div className="text-xs font-medium text-white/50 mb-2 flex items-center">
+                  <div className="text-xs font-medium text-muted-foreground mb-2 flex items-center">
                     <Cpu className="h-4 w-4" />
                     <span className="ml-2">Local Models</span>
                     <span className="ml-2 text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
@@ -404,11 +404,11 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ compact = false }) => {
                     </span>
                   </div>
                   
-                  <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
-                    <div className="text-sm text-white/70 mb-2">
+                  <div className="p-3 bg-accent/5 border border-border rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-2">
                       Privacy-first AI models
                     </div>
-                    <div className="text-xs text-white/50">
+                    <div className="text-xs text-muted-foreground/80">
                       Run AI models directly in your browser with complete privacy. No data leaves your device.
                     </div>
                   </div>

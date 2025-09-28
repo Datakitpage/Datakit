@@ -617,7 +617,6 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
         theme="vs-dark"
         options={{
           minimap: { enabled: false },
-          scrollBeyondLastLine: false,
           wordWrap: "on",
           wrappingIndent: "indent",
           automaticLayout: true,

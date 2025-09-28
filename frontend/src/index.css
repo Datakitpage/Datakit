@@ -8,6 +8,7 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
 
 /* Set theme variables for shadcn/ui and custom styling */
 @theme {
@@ -19,7 +20,7 @@
   /* Define colors with HSL values for shadcn/ui compatibility */
   --radius: 0.625rem;
 
-  /* Your core theme colors */
+  /* Dark Theme Colors (Default) */
   --background: hsl(240 10% 3.9%);
   --foreground: hsl(0 0% 100%);
   --dark-nav: hsl(218 27% 10%);
@@ -55,6 +56,39 @@
 
 /* Set base styles for the entire application */
 @layer base {
+  /* Light Theme Variables */
+  .light {
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(240 10% 3.9%);
+    --dark-nav: hsl(210 40% 98%);
+
+    --primary: hsl(175 100% 36%);
+    --primary-foreground: hsl(0 0% 100%);
+
+    --secondary: hsl(271 75% 53%);
+    --secondary-foreground: hsl(0 0% 100%);
+
+    --tertiary: hsl(167 53% 49%);
+
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(240 10% 3.9%);
+
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(240 10% 3.9%);
+
+    --muted: hsl(240 4.8% 95.9%);
+    --muted-foreground: hsl(240 3.8% 46.1%);
+
+    --accent: hsl(240 4.8% 95.9%);
+    --accent-foreground: hsl(240 5.9% 10%);
+
+    --destructive: hsl(0 84% 60%);
+    --destructive-foreground: hsl(0 0% 100%);
+
+    --border: hsl(240 5.9% 90%);
+    --input: hsl(240 5.9% 90%);
+    --ring: hsl(175 100% 36%);
+  }
 
   ::-webkit-scrollbar {
     width: 8px;

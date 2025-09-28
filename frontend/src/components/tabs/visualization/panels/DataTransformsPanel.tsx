@@ -91,7 +91,7 @@ const DataTransforms: React.FC = () => {
       {/* Existing transforms list */}
       {currentTransforms.length > 0 && (
         <div className="mb-2">
-          <h4 className="text-sm font-medium mb-2 text-white/70">
+          <h4 className="text-sm font-medium mb-2 text-muted-foreground">
             Applied Transforms:
           </h4>
           <div className="space-y-2">
@@ -146,7 +146,7 @@ const DataTransforms: React.FC = () => {
           onChange={(e) =>
             setTransformType(e.target.value as DataTransform["type"])
           }
-          className="w-full p-2 bg-background border border-white/10 rounded text-sm font-medium text-white"
+          className="w-full p-2 bg-background border border-border rounded text-sm font-medium text-foreground"
         >
           <option value="none">Select a transformation...</option>
           <option value="filter">Filter Data</option>
@@ -193,7 +193,7 @@ const FilterTransformForm: React.FC<TransformFormProps> = ({
   };
 
   return (
-    <div className="p-3 bg-background/50 rounded border border-white/10">
+    <div className="p-3 bg-background/50 rounded border border-border">
       <h4 className="text-xs font-medium mb-2">Filter Data</h4>
 
       <div className="space-y-2">
@@ -202,7 +202,7 @@ const FilterTransformForm: React.FC<TransformFormProps> = ({
           <select
             value={field}
             onChange={(e) => setField(e.target.value)}
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           >
             {fields.map((f) => (
               <option key={f} value={f}>
@@ -219,7 +219,7 @@ const FilterTransformForm: React.FC<TransformFormProps> = ({
             onChange={(e) =>
               setOperator(e.target.value as DataTransform["filterOperator"])
             }
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           >
             <option value="=">=</option>
             <option value=">">{">"}</option>
@@ -238,7 +238,7 @@ const FilterTransformForm: React.FC<TransformFormProps> = ({
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           />
         </div>
 
@@ -278,7 +278,7 @@ const SortTransformForm: React.FC<TransformFormProps> = ({
   };
 
   return (
-    <div className="p-3 bg-background/50 rounded border border-white/10">
+    <div className="p-3 bg-background/50 rounded border border-border">
       <h4 className="text-xs font-medium mb-2">Sort Data</h4>
 
       <div className="space-y-2">
@@ -287,7 +287,7 @@ const SortTransformForm: React.FC<TransformFormProps> = ({
           <select
             value={field}
             onChange={(e) => setField(e.target.value)}
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           >
             {fields.map((f) => (
               <option key={f} value={f}>
@@ -299,12 +299,12 @@ const SortTransformForm: React.FC<TransformFormProps> = ({
 
         <div>
           <label className="block text-xs mb-1">Direction:</label>
-          <div className="flex border border-white/10 rounded overflow-hidden">
+          <div className="flex border border-border rounded overflow-hidden">
             <button
               className={`flex-1 p-1.5 text-xs ${
                 direction === "asc"
-                  ? "bg-primary text-white"
-                  : "bg-darkNav text-white/70 hover:text-white"
+                  ? "bg-primary text-foreground"
+                  : "bg-popover text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => setDirection("asc")}
             >
@@ -313,8 +313,8 @@ const SortTransformForm: React.FC<TransformFormProps> = ({
             <button
               className={`flex-1 p-1.5 text-xs ${
                 direction === "desc"
-                  ? "bg-primary text-white"
-                  : "bg-darkNav text-white/70 hover:text-white"
+                  ? "bg-primary text-foreground"
+                  : "bg-popover text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => setDirection("desc")}
             >
@@ -361,7 +361,7 @@ const AggregateTransformForm: React.FC<TransformFormProps> = ({
   };
 
   return (
-    <div className="p-3 bg-background/50 rounded border border-white/10">
+    <div className="p-3 bg-background/50 rounded border border-border">
       <h4 className="text-xs font-medium mb-2">Aggregate Data</h4>
 
       <div className="space-y-2">
@@ -370,7 +370,7 @@ const AggregateTransformForm: React.FC<TransformFormProps> = ({
           <select
             value={field}
             onChange={(e) => setField(e.target.value)}
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           >
             {fields.map((f) => (
               <option key={f} value={f}>
@@ -387,7 +387,7 @@ const AggregateTransformForm: React.FC<TransformFormProps> = ({
             onChange={(e) =>
               setOperation(e.target.value as DataTransform["operation"])
             }
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           >
             <option value="sum">Sum</option>
             <option value="avg">Average</option>
@@ -402,7 +402,7 @@ const AggregateTransformForm: React.FC<TransformFormProps> = ({
           <select
             value={groupBy}
             onChange={(e) => setGroupBy(e.target.value)}
-            className="w-full p-1.5 bg-darkNav border border-white/10 rounded text-white text-xs"
+            className="w-full p-1.5 bg-popover border border-border rounded text-foreground text-xs"
           >
             {fields.map((f) => (
               <option key={f} value={f}>

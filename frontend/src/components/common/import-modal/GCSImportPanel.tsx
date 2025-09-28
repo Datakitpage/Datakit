@@ -131,12 +131,12 @@ const DatasetCard: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 hover:border-white/20 transition-all duration-200"
+      className="bg-accent/5 border border-border rounded-lg p-4 hover:bg-accent/10 hover:border-border transition-all duration-200"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center mb-1">
-            <h4 className="text-sm font-medium text-white truncate mr-2">
+            <h4 className="text-sm font-medium text-foreground truncate mr-2">
               {dataset.name}
             </h4>
             {dataset.featured && (
@@ -145,13 +145,13 @@ const DatasetCard: React.FC<{
               </span>
             )}
           </div>
-          <p className="text-xs text-white/70 line-clamp-2 mb-2">
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
             {dataset.description}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center text-xs text-white/60 space-x-4 mb-3">
+      <div className="flex items-center text-xs text-muted-foreground space-x-4 mb-3">
         <span className="flex items-center">
           <Cloud className="h-3 w-3 mr-1" />
           {dataset.size}
@@ -204,7 +204,7 @@ const DatasetCard: React.FC<{
           {dataset.tags.slice(0, 3).map((tag: string) => (
             <span
               key={tag}
-              className="bg-white/10 text-white/60 text-[10px] px-1.5 py-0.5 rounded"
+              className="bg-accent/10 text-muted-foreground text-[10px] px-1.5 py-0.5 rounded"
             >
               {tag}
             </span>
@@ -231,54 +231,54 @@ const DatasetPreviewModal: React.FC<{
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/60"
           onClick={onClose}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-darkNav border border-white/20 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            className="bg-popover border border-border rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-medium text-white mb-1">
+                  <h3 className="text-xl font-medium text-foreground mb-1">
                     {dataset.name}
                   </h3>
-                  <p className="text-white/70 text-sm">{dataset.description}</p>
+                  <p className="text-muted-foreground text-sm">{dataset.description}</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onClose}
-                  className="text-white/60 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   ×
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-white/5 p-3 rounded">
-                  <div className="text-xs text-white/60 mb-1">Category</div>
-                  <div className="text-sm text-white capitalize">
+                <div className="bg-accent/5 p-3 rounded">
+                  <div className="text-xs text-muted-foreground mb-1">Category</div>
+                  <div className="text-sm text-foreground capitalize">
                     {dataset.category}
                   </div>
                 </div>
-                <div className="bg-white/5 p-3 rounded">
-                  <div className="text-xs text-white/60 mb-1">Size</div>
-                  <div className="text-sm text-white">{dataset.size}</div>
+                <div className="bg-accent/5 p-3 rounded">
+                  <div className="text-xs text-muted-foreground mb-1">Size</div>
+                  <div className="text-sm text-foreground">{dataset.size}</div>
                 </div>
-                <div className="bg-white/5 p-3 rounded">
-                  <div className="text-xs text-white/60 mb-1">Formats</div>
-                  <div className="text-sm text-white">
+                <div className="bg-accent/5 p-3 rounded">
+                  <div className="text-xs text-muted-foreground mb-1">Formats</div>
+                  <div className="text-sm text-foreground">
                     {dataset.format.join(", ")}
                   </div>
                 </div>
-                <div className="bg-white/5 p-3 rounded">
-                  <div className="text-xs text-white/60 mb-1">Last Updated</div>
-                  <div className="text-sm text-white">
+                <div className="bg-accent/5 p-3 rounded">
+                  <div className="text-xs text-muted-foreground mb-1">Last Updated</div>
+                  <div className="text-sm text-foreground">
                     {new Date(dataset.lastUpdated).toLocaleDateString()}
                   </div>
                 </div>
@@ -286,12 +286,12 @@ const DatasetPreviewModal: React.FC<{
 
               {dataset.tags.length > 0 && (
                 <div className="mb-4">
-                  <div className="text-xs text-white/60 mb-2">Tags</div>
+                  <div className="text-xs text-muted-foreground mb-2">Tags</div>
                   <div className="flex flex-wrap gap-1">
                     {dataset.tags.map((tag: string) => (
                       <span
                         key={tag}
-                        className="bg-white/10 text-white/80 text-xs px-2 py-1 rounded"
+                        className="bg-accent/10 text-foreground/80 text-xs px-2 py-1 rounded"
                       >
                         {tag}
                       </span>
@@ -302,7 +302,7 @@ const DatasetPreviewModal: React.FC<{
 
               <div className="mb-6">
                 <div className="text-xs text-white/60 mb-2">GCS URL</div>
-                <div className="bg-black/30 p-2 rounded text-xs text-white/80 font-mono break-all">
+                <div className="bg-background p-2 rounded text-xs text-foreground/80 font-mono break-all">
                   {dataset.gcsUrl}
                 </div>
               </div>
@@ -407,16 +407,16 @@ const GCSImportPanel: React.FC<GCSImportPanelProps> = ({ onImport }) => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center mb-3">
           <div className="h-10 w-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mr-3">
             <Cloud className="h-6 w-6 text-blue-500" />
           </div>
           <div>
-            <h3 className="text-lg font-medium text-white">
+            <h3 className="text-lg font-medium text-foreground">
               Google Cloud Storage
             </h3>
-            <p className="text-sm text-white/70">
+            <p className="text-sm text-muted-foreground">
               Access public datasets and earth observation data
             </p>
           </div>
@@ -424,13 +424,13 @@ const GCSImportPanel: React.FC<GCSImportPanelProps> = ({ onImport }) => {
 
         {/* Search */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search datasets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-black/30 border border-white/20 rounded-lg text-white/90 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 placeholder:text-white/40"
+            className="w-full pl-10 pr-4 py-2 bg-popover border border-border rounded-lg text-foreground/90 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 placeholder:text-muted-foreground"
           />
         </div>
 
@@ -444,7 +444,7 @@ const GCSImportPanel: React.FC<GCSImportPanelProps> = ({ onImport }) => {
                 "flex items-center px-3 py-1.5 rounded text-xs whitespace-nowrap transition-all",
                 selectedCategory === category.id
                   ? "bg-blue-500/20 text-blue-500 border border-blue-500/30"
-                  : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
+                  : "bg-accent/5 text-muted-foreground hover:bg-accent/10 border border-border"
               )}
             >
               {category.icon}

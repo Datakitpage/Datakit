@@ -212,11 +212,11 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
         <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-4">
           <AlertTriangle className="h-8 w-8 text-emerald-400" />
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No Problems Found!</h3>
-        <p className="text-sm text-white/60 mb-4">
+        <h3 className="text-lg font-medium text-foreground mb-2">No Problems Found!</h3>
+        <p className="text-sm text-muted-foreground mb-4">
           Your data appears to be clean with no critical issues detected.
         </p>
-        <div className="text-xs text-white/50">
+        <div className="text-xs text-foreground/50">
           Health Score: {metrics.healthScore}%
         </div>
       </motion.div>
@@ -231,9 +231,9 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">Data Quality Issues</h3>
+        <h3 className="text-lg font-semibold text-foreground">Data Quality Issues</h3>
         <div className="flex items-center gap-2">
-          <div className="text-xs text-white/60">
+          <div className="text-xs text-muted-foreground">
             {filteredItems.length} of {problemItems.length} issues
           </div>
         </div>
@@ -254,7 +254,7 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
             <AlertCircle className="h-4 w-4 text-red-400" />
             <span className="text-sm font-medium text-red-400">Critical</span>
           </div>
-          <div className="text-lg font-bold text-white">{criticalCount}</div>
+          <div className="text-lg font-bold text-foreground">{criticalCount}</div>
         </button>
 
         <button
@@ -270,7 +270,7 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
             <AlertTriangle className="h-4 w-4 text-yellow-400" />
             <span className="text-sm font-medium text-yellow-400">Warning</span>
           </div>
-          <div className="text-lg font-bold text-white">{warningCount}</div>
+          <div className="text-lg font-bold text-foreground">{warningCount}</div>
         </button>
 
         <button
@@ -286,17 +286,17 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
             <Info className="h-4 w-4 text-blue-400" />
             <span className="text-sm font-medium text-blue-400">Info</span>
           </div>
-          <div className="text-lg font-bold text-white">{infoCount}</div>
+          <div className="text-lg font-bold text-foreground">{infoCount}</div>
         </button>
       </div>
 
       {/* Filter Reset */}
       {filter !== 'all' && (
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm text-white/60">Filtered by:</span>
+          <span className="text-sm text-muted-foreground">Filtered by:</span>
           <button
             onClick={() => setFilter('all')}
-            className="flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm text-white/80 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 rounded text-sm text-muted-foreground transition-colors"
           >
             {filter}
             <X className="h-3 w-3" />
@@ -324,16 +324,16 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
                     animate={{ rotate: expandedItems.has(item.id) ? 90 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronRight className="h-4 w-4 text-white/60" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </motion.div>
                   {getSeverityIcon(item.severity)}
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-white text-sm truncate">
+                  <div className="font-medium text-foreground text-sm truncate">
                     {item.title}
                   </div>
-                  <div className="text-xs text-white/60">
+                  <div className="text-xs text-muted-foreground">
                     {item.description}
                   </div>
                 </div>
@@ -342,7 +342,7 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
               <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleViewAction(item)}
-                  className="p-1 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"
+                  className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-foreground transition-colors"
                   title="View details"
                 >
                   <Eye className="h-4 w-4" />
@@ -357,7 +357,7 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
                       : exportedItems.has(item.id)
                       ? "text-emerald-400"
                       : isAuthenticated
-                      ? "hover:bg-white/10 text-white/60 hover:text-white"
+                      ? "hover:bg-accent/10 text-muted-foreground hover:text-foreground"
                       : "hover:bg-yellow-500/10 text-yellow-400/70 hover:text-yellow-400"
                   )}
                   title={
@@ -371,13 +371,13 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
                   }
                 >
                   {exportingItems.has(item.id) ? (
-                    <div className="h-4 w-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                    <div className="h-4 w-4 border-2 border-border border-t-foreground rounded-full animate-spin" />
                   ) : exportedItems.has(item.id) ? (
                     <Check className="h-4 w-4 text-emerald-400" />
                   ) : isAuthenticated ? (
-                    <Download className="text-white/60 h-4 w-4" />
+                    <Download className="text-muted-foreground h-4 w-4" />
                   ) : (
-                    <Download className="text-white/60 h-4 w-4" />
+                    <Download className="text-muted-foreground h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -392,16 +392,16 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-3 pb-3 border-t border-white/10">
+                  <div className="px-3 pb-3 border-t border-border">
                     <div className="pt-3">
                       {item.examples && item.examples.length > 0 && (
                         <div className="mb-3">
-                          <div className="text-xs text-white/60 mb-2">Examples:</div>
+                          <div className="text-xs text-muted-foreground mb-2">Examples:</div>
                           <div className="space-y-1">
                             {item.examples.map((example, i) => (
                               <div
                                 key={i}
-                                className="text-xs font-mono bg-black/20 px-2 py-1 rounded text-white/80"
+                                className="text-xs font-mono bg-black/20 px-2 py-1 rounded text-muted-foreground"
                               >
                                 {example}
                               </div>
@@ -410,7 +410,7 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-4 text-xs text-white/60">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div>Count: {item.count.toLocaleString()}</div>
                         {item.percentage && (
                           <div>Percentage: {item.percentage.toFixed(1)}%</div>
@@ -434,7 +434,7 @@ const ProblemsView: React.FC<ProblemsViewProps> = ({
           animate={{ opacity: 1 }}
           className="text-center py-8"
         >
-          <div className="text-sm text-white/60">
+          <div className="text-sm text-muted-foreground">
             No {filter} issues found
           </div>
         </motion.div>

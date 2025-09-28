@@ -86,7 +86,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
       case 'nulls': return <AlertTriangle className="h-5 w-5 text-red-400" />;
       case 'outliers': return <Hash className="h-5 w-5 text-purple-400" />;
       case 'type_issues': return <AlertTriangle className="h-5 w-5 text-yellow-400" />;
-      default: return <CheckCircle className="h-5 w-5 text-white/60" />;
+      default: return <CheckCircle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -109,7 +109,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
 
   const getColumnTypeColor = (columnName: string) => {
     if (columnName === columnName) return 'text-primary';
-    return 'text-white/80';
+    return 'text-muted-foreground';
   };
 
   if (!isOpen) return null;
@@ -128,16 +128,16 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="bg-black/95 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col"
+          className="bg-black/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center gap-3">
               {getTypeIcon()}
               <div>
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
-                <div className="text-sm text-white/60">
+                <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+                <div className="text-sm text-muted-foreground">
                   {filteredData.length} rows {columnName && `• Column: ${columnName}`}
                 </div>
               </div>
@@ -148,7 +148,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
                 <button
                   onClick={onRefresh}
                   disabled={isLoading}
-                  className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors disabled:opacity-50"
+                  className="p-2 hover:bg-accent/10 rounded-lg text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
                 </button>
@@ -158,7 +158,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
               
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors"
+                className="p-2 hover:bg-accent/10 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -166,38 +166,38 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
           </div>
 
           {/* Controls */}
-          <div className="p-4 border-b border-white/10">
+          <div className="p-4 border-b border-border">
             <div className="flex items-center gap-4 mb-4">
               {/* Search */}
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search rows..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="w-full pl-10 pr-4 py-2 bg-accent/10 border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               {/* Column Filter */}
               <div className="relative">
                 <details className="group">
-                  <summary className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white/80 cursor-pointer">
+                  <summary className="flex items-center gap-2 px-3 py-2 bg-accent/10 hover:bg-accent/20 rounded-lg text-sm text-muted-foreground cursor-pointer">
                     <Filter className="h-4 w-4" />
                     Columns ({visibleColumns.size})
                   </summary>
-                  <div className="absolute right-0 top-full mt-1 w-64 bg-black/95 border border-white/20 rounded-lg shadow-xl z-10 max-h-64 overflow-y-auto">
+                  <div className="absolute right-0 top-full mt-1 w-64 bg-black/95 border border-border rounded-lg shadow-xl z-10 max-h-64 overflow-y-auto">
                     <div className="p-3">
                       {allColumns.map(col => (
-                        <label key={col} className="flex items-center gap-2 p-1 hover:bg-white/10 rounded cursor-pointer">
+                        <label key={col} className="flex items-center gap-2 p-1 hover:bg-accent/10 rounded cursor-pointer">
                           <input
                             type="checkbox"
                             checked={visibleColumns.has(col)}
                             onChange={() => toggleColumn(col)}
-                            className="rounded border-white/20 bg-white/10 text-primary focus:ring-primary"
+                            className="rounded border-border bg-accent/10 text-primary focus:ring-primary"
                           />
-                          <span className="text-sm text-white/80 truncate">{col}</span>
+                          <span className="text-sm text-muted-foreground truncate">{col}</span>
                         </label>
                       ))}
                     </div>
@@ -208,7 +208,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between text-sm text-white/60">
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div>
                   Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length}
                 </div>
@@ -216,7 +216,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 bg-accent/10 hover:bg-accent/20 rounded text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
@@ -226,7 +226,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
                   <button
                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 bg-accent/10 hover:bg-accent/20 rounded text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -239,7 +239,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
           <div className="flex-1 overflow-auto">
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="flex items-center gap-2 text-white/60">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   Loading rows...
                 </div>
@@ -247,7 +247,7 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
             ) : paginatedData.length === 0 ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                  <div className="text-white/60 mb-2">No rows found</div>
+                  <div className="text-muted-foreground mb-2">No rows found</div>
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
@@ -260,9 +260,9 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
               </div>
             ) : (
               <table className="w-full">
-                <thead className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-white/10">
+                <thead className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-border">
                   <tr>
-                    <th className="text-left p-3 text-xs font-medium text-white/70 w-12">#</th>
+                    <th className="text-left p-3 text-xs font-medium text-muted-foreground w-12">#</th>
                     {visibleColumnList.map(col => (
                       <th
                         key={col}
@@ -283,20 +283,20 @@ const RowDetailsModal: React.FC<RowDetailsModalProps> = ({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.01 }}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      className="border-b border-border hover:bg-accent/5 transition-colors"
                     >
-                      <td className="p-3 text-xs text-white/60">
+                      <td className="p-3 text-xs text-muted-foreground">
                         {startIndex + i + 1}
                       </td>
                       {visibleColumnList.map(col => (
                         <td
                           key={col}
-                          className="p-3 text-white/80 cursor-pointer group relative"
+                          className="p-3 text-muted-foreground cursor-pointer group relative"
                           onClick={() => copyValue(row[col])}
                           title="Click to copy"
                         >
                           {formatValue(row[col])}
-                          <Copy className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-white/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Copy className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </td>
                       ))}
                     </motion.tr>

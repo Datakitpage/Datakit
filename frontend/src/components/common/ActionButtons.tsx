@@ -56,7 +56,7 @@ const ActionButtons: React.FC<UnifiedActionButtonsProps> = ({
   if (minimal) {
     // Minimal version - only essential actions when files are loaded
     return (
-      <div className="flex items-center gap-1 bg-dark backdrop-blur-sm rounded-lg">
+      <div className="flex items-center gap-1 bg-dark dark:bg-dark light:bg-white/80 backdrop-blur-sm rounded-lg">
         {/* Studio Button */}
         <Tooltip placement="bottom" content="DataKit Studio">
           <Button

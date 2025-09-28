@@ -23,7 +23,7 @@ const ChartStylePanel: React.FC = () => {
               className={`p-2 border rounded flex items-center cursor-pointer ${
                 currentChart.palette === name
                   ? "border-primary bg-primary/10"
-                  : "border-white/10 hover:border-white/30"
+                  : "border-border hover:border-primary/50"
               }`}
               onClick={() => updateCurrentChart({ palette: name })}
             >
@@ -46,7 +46,7 @@ const ChartStylePanel: React.FC = () => {
       </div>
 
       {/* Chart element visibility options */}
-      <div className="bg-darkNav/30 p-3 rounded">
+      <div className="bg-popover/30 p-3 rounded">
         <h4 className="text-sm font-medium mb-2">Display Options</h4>
 
         <div className="space-y-2.5">
@@ -135,7 +135,7 @@ const ChartStylePanel: React.FC = () => {
       </div>
 
       {/* Axis styling options */}
-      <div className="bg-darkNav/30 p-3 rounded">
+      <div className="bg-popover/30 p-3 rounded">
         <h4 className="text-sm font-medium mb-2">Axis Styling</h4>
 
         {/* X-Axis label */}
@@ -151,7 +151,7 @@ const ChartStylePanel: React.FC = () => {
                 xAxis: { ...currentChart.xAxis, label: e.target.value },
               })
             }
-            className="w-full p-2 bg-background border border-white/10 rounded text-white text-sm"
+            className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
             placeholder="X-Axis Label"
           />
         </div>
@@ -169,7 +169,7 @@ const ChartStylePanel: React.FC = () => {
                 yAxis: { ...currentChart.yAxis, label: e.target.value },
               })
             }
-            className="w-full p-2 bg-background border border-white/10 rounded text-white text-sm"
+            className="w-full p-2 bg-background border border-border rounded text-foreground text-sm"
             placeholder="Y-Axis Label"
           />
         </div>

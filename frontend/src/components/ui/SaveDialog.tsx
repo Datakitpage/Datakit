@@ -49,12 +49,12 @@ export const SaveDialog: React.FC<SaveDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-darkNav p-4 rounded-lg shadow-lg w-96">
-        <h3 className="text-lg font-medium mb-4">{title}</h3>
+    <div className="fixed inset-0 backdrop-blur-sm bg-background/60 flex items-center justify-center z-50">
+      <div className="bg-popover p-4 rounded-lg shadow-lg w-96">
+        <h3 className="text-lg font-medium mb-4 text-foreground">{title}</h3>
         <input
           type="text"
-          className="w-full p-2 bg-background border border-white/10 rounded mb-4 text-white placeholder:text-white/50 focus:outline-none focus:border-primary/50"
+          className="w-full p-2 bg-background border border-border rounded mb-4 text-foreground placeholder:placeholder-muted-foreground focus:outline-none focus:border-primary/50"
           placeholder={placeholder}
           value={name}
           onChange={(e) => setName(e.target.value)}

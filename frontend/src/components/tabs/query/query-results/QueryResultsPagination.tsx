@@ -30,13 +30,13 @@ const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-3 bg-darkNav mt-1 rounded-b">
+    <div className="flex items-center justify-between p-3 bg-popover mt-1 rounded-b">
       <div className="flex items-center space-x-2">
-        <span className="text-xs text-white/70">Rows per page:</span>
+        <span className="text-xs text-muted-foreground">Rows per page:</span>
         <select
           value={rowsPerPage}
           onChange={handleRowsPerPageChange}
-          className="bg-background text-white text-xs p-1 rounded border border-white/10"
+          className="bg-background text-foreground text-xs p-1 rounded border border-border"
         >
           <option value={100}>100</option>
           <option value={500}>500</option>
@@ -70,7 +70,7 @@ const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
           <ChevronLeft size={14} />
         </Button>
 
-        <span className="text-xs text-white/70 px-2">
+        <span className="text-xs text-muted-foreground px-2">
           Page {currentPage.toLocaleString()} of {totalPages.toLocaleString()}
         </span>
 
@@ -99,7 +99,7 @@ const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
       {/* Jump to page input for large result sets */}
       {totalPages > 10 && (
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-white/70">Go to:</span>
+          <span className="text-xs text-muted-foreground">Go to:</span>
           <input
             type="number"
             min={1}
@@ -111,7 +111,7 @@ const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
                 onPageChange && onPageChange(page);
               }
             }}
-            className="bg-background text-white text-xs p-1 rounded border border-white/10 w-16 text-center"
+            className="bg-background text-foreground text-xs p-1 rounded border border-border w-16 text-center"
           />
         </div>
       )}

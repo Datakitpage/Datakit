@@ -91,10 +91,10 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
       >
         {/* Main heading with demo button */}
         <div className="flex items-center justify-center gap-3 mb-3 flex-wrap">
-          <h1 className="text-2xl font-heading font-semibold text-white">
+          <h1 className="text-2xl font-heading font-semibold text-foreground">
             Get started with DataKit
           </h1>
-          <span className="text-white/40 text-sm">or</span>
+          <span className="text-muted-foreground text-sm">or</span>
           <motion.button
             onClick={() => setShowDemoModal(true)}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -109,7 +109,7 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
               boxShadow: "0 0 25px rgba(139, 92, 246, 0.4)"
             }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white hover:text-white transition-all duration-300 group border border-white/20 hover:border-white/40"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-foreground hover:text-foreground transition-all duration-300 group border border-border hover:border-border/60"
           >
             <motion.div
               whileHover={{ scale: 1.1 }}
@@ -122,7 +122,7 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
         </div>
 
         {/* Description */}
-        <p className="text-white/70 mb-6 leading-relaxed">
+        <p className="text-muted-foreground mb-6 leading-relaxed">
           Import your files to start analyzing.
           <br />
           <motion.span
@@ -166,17 +166,17 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
-                className="group relative w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 flex items-center justify-center transition-all duration-200 cursor-pointer"
+                className="group relative w-9 h-9 rounded-full bg-background/5 hover:bg-background/15 border border-border hover:border-border/60 flex items-center justify-center transition-all duration-200 cursor-pointer"
                 type="button"
               >
-                <Upload className="h-4 w-4 text-white/70" />
+                <Upload className="h-4 w-4 text-muted-foreground" />
                 
                 {/* Tooltip */}
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 border border-border">
                   <div className="font-medium">Open File</div>
-                  <div className="text-white/70">Local files</div>
+                  <div className="text-muted-foreground">Local files</div>
                   {/* Tooltip arrow */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-popover"></div>
                 </div>
               </motion.button>
               
@@ -200,13 +200,13 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
             />
 
             {/* Divider */}
-            <span className="text-white/50 text-sm">or</span>
+            <span className="text-muted-foreground text-sm">or</span>
 
             {/* Remote options label */}
-            <span className="text-white/70 text-sm">import from:</span>
+            <span className="text-muted-foreground text-sm">import from:</span>
 
             {/* Grouped remote options */}
-            <div className="inline-flex items-center bg-white/5 border border-white/10 rounded-full p-1.5 gap-1">
+            <div className="inline-flex items-center bg-card/5 border border-border rounded-full p-1.5 gap-1">
               {remoteOptions.map((option, index) => {
                 return (
                   <motion.button
@@ -219,17 +219,17 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 + index * 0.1, duration: 0.3 }}
-                    className="group relative w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 flex items-center justify-center transition-all duration-200 hover:scale-110 cursor-pointer"
+                    className="group relative w-9 h-9 rounded-full bg-card/5 hover:bg-card/15 border border-border hover:border-border/60 flex items-center justify-center transition-all duration-200 hover:scale-110 cursor-pointer"
                     type="button"
                   >
                     <div className="pointer-events-none">{option.icon}</div>
 
                     {/* Tooltip */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 border border-border">
                       <div className="font-medium">{option.name}</div>
-                      <div className="text-white/70">{option.description}</div>
+                      <div className="text-muted-foreground">{option.description}</div>
                       {/* Tooltip arrow */}
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-popover"></div>
                     </div>
                   </motion.button>
                 );
@@ -243,9 +243,9 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="border-t border-white/10 pt-6"
+          className="border-t border-border pt-6"
         >
-          <p className="text-white/50 text-sm mb-4">Self-host DataKit:</p>
+          <p className="text-muted-foreground text-sm mb-4">Self-host DataKit:</p>
 
           <div className="flex items-center justify-center gap-3">
             {installOptions.map((option, index) => {
@@ -260,13 +260,13 @@ const EmptyDataState: React.FC<Props> = ({ onImportOptionClick }) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + index * 0.1, duration: 0.4 }}
-                  className="group relative w-10 h-10 rounded-full bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/30 flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  className="group relative w-10 h-10 rounded-full bg-card/5 hover:bg-primary/10 border border-border hover:border-primary/30 flex items-center justify-center transition-all duration-200 hover:scale-105"
                 >
                   {/* Fallback to emoji on small screens or if icon fails */}
                   <span className="text-lg sm:hidden">{option.emoji}</span>
                   <IconComponent className="h-4 w-4 text-primary hidden sm:block" />
                   {/* Tooltip */}
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap border border-border">
                     {option.name}
                   </div>
                 </motion.a>

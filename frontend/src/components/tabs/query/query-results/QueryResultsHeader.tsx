@@ -61,8 +61,8 @@ const QueryResultsHeader: React.FC<QueryResultsHeaderProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center p-3 border-b border-white/10">
-      <div className="text-xs text-white text-opacity-70">
+    <div className="flex justify-between items-center p-3 border-b border-border">
+      <div className="text-xs text-muted-foreground">
         <span className="font-medium">{totalRows.toLocaleString()}</span> rows returned
         {totalRows > rowsPerPage && (
           <span className="ml-2">

@@ -40,8 +40,8 @@ const SaveChartModal: React.FC = () => {
   };
   
   return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-      <div className="bg-darkNav p-6 rounded-lg shadow-lg w-96 max-w-full">
+    <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
+      <div className="bg-popover p-6 rounded-lg shadow-lg w-96 max-w-full">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Save Chart</h3>
           <Button
@@ -61,7 +61,7 @@ const SaveChartModal: React.FC = () => {
               type="text"
               value={chartName}
               onChange={(e) => setChartName(e.target.value)}
-              className="w-full p-2 bg-background border border-white/10 rounded text-white"
+              className="w-full p-2 bg-background border border-border rounded text-foreground"
               placeholder="Enter chart name"
               autoFocus
             />
@@ -72,7 +72,7 @@ const SaveChartModal: React.FC = () => {
             <textarea
               value={chartDescription}
               onChange={(e) => setChartDescription(e.target.value)}
-              className="w-full p-2 bg-background border border-white/10 rounded text-white h-20 resize-none"
+              className="w-full p-2 bg-background border border-border rounded text-foreground h-20 resize-none"
               placeholder="Enter chart description"
             />
           </div>

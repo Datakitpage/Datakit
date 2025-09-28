@@ -53,7 +53,7 @@ const SuccessSnackbar: React.FC<SuccessSnackbarProps> = ({
           }}
           className="max-w-sm"
         >
-          <div className="bg-black border border-green-500/20 rounded-lg shadow-2xl p-4 backdrop-blur-sm">
+          <div className="bg-popover border border-green-500/20 rounded-lg shadow-2xl p-4 backdrop-blur-sm">
             <div className="flex items-start gap-3">
               {/* Icon */}
               <div className="flex-shrink-0 w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20">
@@ -64,10 +64,10 @@ const SuccessSnackbar: React.FC<SuccessSnackbarProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-medium text-sm text-white mb-1">
+                    <h4 className="font-medium text-sm text-foreground mb-1">
                       {title}
                     </h4>
-                    <p className="text-white/70 text-xs leading-relaxed">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
                       {message}
                     </p>
                   </div>
@@ -75,7 +75,7 @@ const SuccessSnackbar: React.FC<SuccessSnackbarProps> = ({
                   {/* Close button */}
                   <button
                     onClick={onClose}
-                    className="text-white/50 hover:text-white/80 transition-colors ml-2 flex-shrink-0"
+                    className="text-muted-foreground hover:text-foreground transition-colors ml-2 flex-shrink-0"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -85,7 +85,7 @@ const SuccessSnackbar: React.FC<SuccessSnackbarProps> = ({
 
             {/* Progress bar */}
             {duration > 0 && (
-              <div className="mt-3 h-0.5 bg-white/10 rounded-full overflow-hidden">
+              <div className="mt-3 h-0.5 bg-border rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: "100%" }}
                   animate={{ width: "0%" }}

@@ -107,7 +107,7 @@ const ChartGenerator: React.FC = () => {
           <select
             value={dimension}
             onChange={(e) => setDimension(e.target.value)}
-            className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
+            className="w-full p-2 bg-background/50 border border-border rounded text-foreground text-xs"
           >
             <option value="">Select field...</option>
             {fields.map((field) => (
@@ -116,7 +116,7 @@ const ChartGenerator: React.FC = () => {
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-white/60">
+          <p className="mt-1 text-xs text-muted-foreground">
             Categories to group your data by
           </p>
         </div>
@@ -130,7 +130,7 @@ const ChartGenerator: React.FC = () => {
             <select
               value={measure}
               onChange={(e) => setMeasure(e.target.value)}
-              className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
+              className="w-full p-2 bg-background/50 border border-border rounded text-foreground text-xs"
             >
               <option value="">Select field...</option>
               {fields
@@ -141,7 +141,7 @@ const ChartGenerator: React.FC = () => {
                   </option>
                 ))}
             </select>
-            <p className="mt-1 text-xs text-white/60">
+            <p className="mt-1 text-xs text-muted-foreground">
               {isDateType(measureType)
                 ? "Date fields for time analysis"
                 : "Numeric values to measure"}
@@ -156,7 +156,7 @@ const ChartGenerator: React.FC = () => {
             <select
               value={aggregation}
               onChange={(e) => setAggregation(e.target.value as any)}
-              className="w-full p-2 bg-background/50 border border-white/10 rounded text-white text-xs"
+              className="w-full p-2 bg-background/50 border border-border rounded text-foreground text-xs"
               disabled={validAggregations.length <= 1}
             >
               {validAggregations.map((agg) => (
@@ -165,7 +165,7 @@ const ChartGenerator: React.FC = () => {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-white/60">
+            <p className="mt-1 text-xs text-muted-foreground">
               {getAggregationHelpText(measureType)}
             </p>
           </div>
@@ -173,14 +173,14 @@ const ChartGenerator: React.FC = () => {
 
         {/* Description of what will happen */}
         {measure && dimension && (
-          <div className="mt-2 p-2 bg-primary/5 rounded-md text-xs text-white/80 border border-white/5">
+          <div className="mt-2 p-2 bg-accent/5 rounded-md text-xs text-muted-foreground border border-border">
             {getAggregationDescription(
               aggregation,
               measure,
               dimension,
               measureType
             )}
-            <p className="mt-1 text-white/50">
+            <p className="mt-1 text-muted-foreground">
               Using all {tableName} data for visualization
             </p>
           </div>

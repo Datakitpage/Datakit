@@ -165,17 +165,17 @@ const SimpleColumnActionPanel: React.FC<SimpleColumnActionPanelProps> = ({
         initial={{ opacity: 0, scale: 0.95, y: -10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-        className="fixed z-50 bg-black border border-white/10 rounded-lg shadow-xl w-80"
+        className="fixed z-50 bg-popover border border-border rounded-lg shadow-xl w-80"
         style={panelStyle}
       >
         {/* Header */}
-        <div className="px-4 py-3 border-b border-white/10">
+        <div className="px-4 py-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-white text-sm">
+            <h3 className="font-medium text-foreground text-sm">
               AI Actions for <span className="text-primary">{columnName}</span>
             </h3>
           </div>
-          <p className="text-xs text-white/50 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {columnType}
             {!isAuthenticated && (
               <span className="ml-2 text-yellow-400">• Sign in required</span>
@@ -192,15 +192,15 @@ const SimpleColumnActionPanel: React.FC<SimpleColumnActionPanelProps> = ({
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`What would you like to do with ${columnName}?`}
-              className="w-full h-20 px-3 py-2 text-sm bg-black/30 border border-white/10 rounded-md resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 outline-none text-white placeholder-white/40"
+              className="w-full h-20 px-3 py-2 text-sm bg-background border border-border rounded-md resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 outline-none text-foreground placeholder-muted-foreground"
             />
             <button
               onClick={handleSubmit}
               disabled={!prompt.trim() || isExecuting}
-              className="absolute bottom-2 right-2 p-1.5 bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="absolute bottom-2 right-2 p-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isExecuting ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -209,7 +209,7 @@ const SimpleColumnActionPanel: React.FC<SimpleColumnActionPanelProps> = ({
             </button>
           </div>
           
-          <p className="text-xs text-white/40 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Press ⌘+Enter to execute
           </p>
         </div>
@@ -217,13 +217,13 @@ const SimpleColumnActionPanel: React.FC<SimpleColumnActionPanelProps> = ({
         {/* Suggestions */}
         {suggestions.length > 0 && (
           <div className="px-4 pb-4">
-            <p className="text-xs font-medium text-white/60 mb-2">Suggestions:</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Suggestions:</p>
             <div className="space-y-1">
               {suggestions.map((suggestion, index) => (
                 <button
                   key={`suggestion-${index}-${suggestion.substring(0, 20)}`}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full text-left px-3 py-2 text-sm rounded-md bg-white/5 hover:bg-white/10 transition-colors text-white/80 hover:text-white"
+                  className="w-full text-left px-3 py-2 text-sm rounded-md bg-accent/5 hover:bg-accent/10 transition-colors text-muted-foreground hover:text-foreground"
                 >
                   {suggestion}
                 </button>

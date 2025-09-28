@@ -22,10 +22,10 @@ const VisualizationSideTab: React.FC<VisualizationSideTabProps> = ({
     >
       <button
         onClick={onToggle}
-        className="bg-black border-l border-t border-b border-primary/80 rounded-l-lg p-3 hover:bg-primary/30 transition-colors group"
+        className="bg-background border-l border-t border-b border-primary/80 rounded-l-lg p-3 hover:bg-primary/30 transition-colors group"
         title="Show Visualization"
       >
-        <BarChart3 className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
+        <BarChart3 className="h-5 w-5 text-primary group-hover:text-foreground transition-colors" />
       </button>
     </motion.div>
   );

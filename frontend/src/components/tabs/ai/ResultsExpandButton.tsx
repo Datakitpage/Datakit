@@ -15,10 +15,10 @@ const ResultsExpandButton: React.FC<ResultsExpandButtonProps> = ({
   return (
     <button
       onClick={onExpand}
-      className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-black border-l border-t border-r border-primary/90 rounded-t-lg px-4 py-1 hover:border-l-primary hover:border-t-primary hover:border-r-primary transition-colors flex items-center gap-2"
+      className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-background border-l border-t border-r border-primary/90 rounded-t-lg px-4 py-1 hover:border-l-primary hover:border-t-primary hover:border-r-primary transition-colors flex items-center gap-2"
     >
-      <ChevronUp className="h-4 w-4 text-white/70" />
-      <span className="text-sm text-white/70">Show Results</span>
+      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+      <span className="text-sm text-muted-foreground">Show Results</span>
     </button>
   );
 };

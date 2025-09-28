@@ -39,15 +39,15 @@ const PricingCard: React.FC<PricingCardProps> = ({
       <div className="text-center mb-4">
         <div className="flex items-center justify-center mb-2">
           {icon && <div className="mr-2 text-primary">{icon}</div>}
-          <h3 className="text-lg font-bold text-white">{title}</h3>
+          <h3 className="text-lg font-bold text-foreground">{title}</h3>
         </div>
         <div className="mb-2">
-          <span className="text-2xl font-bold text-white">
+          <span className="text-2xl font-bold text-foreground">
             {typeof price === 'string' ? price : `$${price}`}
           </span>
-          {period && <span className="text-white/60 ml-1">/{period}</span>}
+          {period && <span className="text-muted-foreground ml-1">/{period}</span>}
         </div>
-        <p className="text-xs text-white/70">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
 
       {/* Compact Features */}
@@ -56,11 +56,11 @@ const PricingCard: React.FC<PricingCardProps> = ({
           {features.slice(0, 4).map((feature, index) => (
             <li key={index} className="flex items-start">
               <Check className="h-3 w-3 text-primary mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-xs text-white/80">{feature}</span>
+              <span className="text-xs text-foreground">{feature}</span>
             </li>
           ))}
           {features.length > 4 && (
-            <li className="text-xs text-white/60 ml-5">
+            <li className="text-xs text-muted-foreground ml-5">
               +{features.length - 4} more features
             </li>
           )}
@@ -76,27 +76,27 @@ const PricingCard: React.FC<PricingCardProps> = ({
     <div className="relative">
       {/* Floating badges - positioned outside the card */}
       {isEarlyAdopter && !isComingSoon && (
-        <div className="absolute -top-4 -left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-medium px-3 py-1 rounded-full z-30 shadow-lg">
+        <div className="absolute -top-4 -left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-foreground text-xs font-medium px-3 py-1 rounded-full z-30 shadow-lg">
           Early Adopter: 20% OFF
         </div>
       )}
 
       {isComingSoon && title !== 'Pro' && (
-        <div className="absolute -top-4 -right-2 bg-gradient-to-r from-sky-800 to-green-800 text-white text-xs font-medium px-3 py-1 rounded-full z-30 shadow-lg">
+        <div className="absolute -top-4 -right-2 bg-gradient-to-r from-sky-800 to-green-800 text-foreground text-xs font-medium px-3 py-1 rounded-full z-30 shadow-lg">
           Coming Soon
         </div>
       )}
 
       {/* Pro Plan Anthropic Badge */}
       {title === 'Pro' && isComingSoon && (
-        <div className="absolute -top-4 -right-2 bg-gradient-to-r from-sky-600 via-sky-700 to-cyan-700 text-white text-xs font-medium px-3 py-1 rounded-full z-30 shadow-lg flex items-center gap-1">
+        <div className="absolute -top-4 -right-2 bg-gradient-to-r from-sky-600 via-sky-700 to-cyan-700 text-foreground text-xs font-medium px-3 py-1 rounded-full z-30 shadow-lg flex items-center gap-1">
           <img src={AnthropicLogo} className="h-3 w-3" alt="Anthropic" />
           <span>More credits soon!</span>
         </div>
       )}
 
       {isCurrentPlan && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-primary/80 text-white text-xs font-medium px-4 py-1 rounded-full z-30 shadow-lg">
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-primary/80 text-foreground text-xs font-medium px-4 py-1 rounded-full z-30 shadow-lg">
           Current Plan
         </div>
       )}
@@ -242,10 +242,10 @@ console.log('creditsRemaining', creditsRemaining);
     <div className="h-full flex flex-col max-w-7xl mx-auto">
       {/* Compact Header */}
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-1">
+        <h2 className="text-xl font-bold text-foreground mb-1">
           Subscription Plans
         </h2>
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-muted-foreground">
           Choose the plan that fits your needs
         </p>
       </div>
@@ -254,25 +254,25 @@ console.log('creditsRemaining', creditsRemaining);
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0">
         {/* Left Column - Current Usage (Compact) */}
         <div className="lg:col-span-1 lg:mr-4">
-          <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-4 h-full">
-            <h3 className="text-sm font-semibold text-white mb-4">
+          <div className="bg-gradient-to-br from-accent/5 to-accent/[0.02] border border-border rounded-xl p-4 h-full">
+            <h3 className="text-sm font-semibold text-foreground mb-4">
               Current Usage
             </h3>
             <div className="space-y-4">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
+              <div className="bg-accent/5 border border-border rounded-lg p-3 text-center">
                 <div className="text-xl font-bold text-primary">
                   {creditsRemaining === -1 ? '∞' : Number(creditsRemaining).toFixed(2) || 0}
                 </div>
-                <div className="text-xs text-white/60">Credits Remaining</div>
+                <div className="text-xs text-muted-foreground">Credits Remaining</div>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold text-white">
+              <div className="bg-accent/5 border border-border rounded-lg p-3 text-center">
+                <div className="text-xl font-bold text-foreground">
                   {user?.subscription?.planType?.toUpperCase() || 'FREE'}
                 </div>
-                <div className="text-xs text-white/60">Current Plan</div>
+                <div className="text-xs text-muted-foreground">Current Plan</div>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
-                <div className="text-sm font-bold text-white">
+              <div className="bg-accent/5 border border-border rounded-lg p-3 text-center">
+                <div className="text-sm font-bold text-foreground">
                   {user?.subscription?.creditsResetAt
                     ? new Date(
                         user.subscription.creditsResetAt
@@ -282,7 +282,7 @@ console.log('creditsRemaining', creditsRemaining);
                       })
                     : 'N/A'}
                 </div>
-                <div className="text-xs text-white/60">Next Reset</div>
+                <div className="text-xs text-muted-foreground">Next Reset</div>
               </div>
             </div>
           </div>
@@ -331,9 +331,9 @@ console.log('creditsRemaining', creditsRemaining);
       {/* Email Modal for Anonymous Users */}
       {showEmailModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold text-white mb-4">Join Waitlist</h3>
-            <p className="text-white/70 text-sm mb-4">
+          <div className="bg-popover border border-border rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-bold text-foreground mb-4">Join Waitlist</h3>
+            <p className="text-muted-foreground text-sm mb-4">
               Enter your email to get notified when Pro features are released.
             </p>
             <input
@@ -341,19 +341,19 @@ console.log('creditsRemaining', creditsRemaining);
               value={waitlistEmail}
               onChange={(e) => setWaitlistEmail(e.target.value)}
               placeholder="your.email@example.com"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm mb-4 focus:outline-none focus:border-primary"
+              className="w-full bg-accent/5 border border-border rounded-lg px-3 py-2 text-foreground text-sm mb-4 focus:outline-none focus:border-primary"
             />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowEmailModal(false)}
-                className="flex-1 bg-white/5 border border-white/10 text-white text-sm py-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="flex-1 bg-accent/5 border border-border text-foreground text-sm py-2 rounded-lg hover:bg-accent/10 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEmailSubmit}
                 disabled={!waitlistEmail || isWaitlistLoading}
-                className="flex-1 bg-primary text-white text-sm py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="flex-1 bg-primary text-foreground text-sm py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {isWaitlistLoading ? 'Joining...' : 'Join Waitlist'}
               </button>

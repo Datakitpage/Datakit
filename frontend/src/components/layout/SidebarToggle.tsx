@@ -19,7 +19,7 @@ const SidebarToggle: React.FC<SidebarToggleProps> = ({
   return (
     <button
       onClick={toggleSidebar}
-      className={`p-2 rounded hover:bg-background/20 transition-colors text-white text-opacity-70 hover:text-opacity-100 ${className}`}
+      className={`p-2 rounded hover:bg-accent/20 transition-colors text-muted-foreground hover:text-foreground ${className}`}
       aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
     >

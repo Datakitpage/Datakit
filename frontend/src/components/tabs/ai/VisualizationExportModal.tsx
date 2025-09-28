@@ -196,10 +196,10 @@ const VisualizationExportModal: React.FC<VisualizationExportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-black p-6 rounded-lg shadow-lg w-96 border border-white/10">
+    <div className="fixed inset-0 backdrop-blur-sm bg-background/60 flex items-center justify-center z-50">
+      <div className="bg-background p-6 rounded-lg shadow-lg w-96 border border-border">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-white">Export Visualization</h3>
+          <h3 className="text-lg font-medium text-foreground">Export Visualization</h3>
           <Button
             variant="ghost"
             size="sm"
@@ -213,7 +213,7 @@ const VisualizationExportModal: React.FC<VisualizationExportModalProps> = ({
         <div className="space-y-4">
           {/* Format selection */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-white/80">Export Format</label>
+            <label className="block text-sm font-medium mb-2 text-muted-foreground">Export Format</label>
             <div className="grid grid-cols-4 gap-2">
               <FormatOption 
                 id="png" 
@@ -249,7 +249,7 @@ const VisualizationExportModal: React.FC<VisualizationExportModalProps> = ({
           {/* Quality slider (for PNG and JPEG) */}
           {(format === 'png' || format === 'jpeg') && (
             <div>
-              <label className="block text-sm font-medium mb-2 text-white/80">
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">
                 Quality: {Math.round(quality * 100)}%
               </label>
               <input
@@ -267,7 +267,7 @@ const VisualizationExportModal: React.FC<VisualizationExportModalProps> = ({
           {/* Options */}
           {format !== 'csv' && (
             <div>
-              <label className="block text-sm font-medium mb-2 text-white/80">Options</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Options</label>
               <div className="space-y-2">
                 <div className="flex items-center">
                   <input
@@ -277,7 +277,7 @@ const VisualizationExportModal: React.FC<VisualizationExportModalProps> = ({
                     onChange={(e) => setIncludeTitle(e.target.checked)}
                     className="mr-2 cursor-pointer accent-primary" 
                   />
-                  <label htmlFor="include-title" className="text-sm text-white/70">Include title</label>
+                  <label htmlFor="include-title" className="text-sm text-muted-foreground">Include title</label>
                 </div>
                 <div className="flex items-center">
                   <input
@@ -287,7 +287,7 @@ const VisualizationExportModal: React.FC<VisualizationExportModalProps> = ({
                     onChange={(e) => setIncludeBackground(e.target.checked)}
                     className="mr-2 cursor-pointer accent-primary"
                   />
-                  <label htmlFor="include-background" className="text-sm text-white/70">Include background</label>
+                  <label htmlFor="include-background" className="text-sm text-muted-foreground">Include background</label>
                 </div>
               </div>
             </div>
@@ -344,7 +344,7 @@ const FormatOption: React.FC<FormatOptionProps> = ({ id, label, icon, selected, 
       className={`flex flex-col items-center justify-center p-2 cursor-pointer rounded transition-colors ${
         selected 
           ? 'bg-primary/20 text-primary border border-primary/50' 
-          : 'bg-background border border-white/10 text-white/70 hover:text-white hover:border-white/20'
+          : 'bg-background border border-border text-muted-foreground hover:text-foreground hover:border-border'
       }`}
       onClick={onClick}
       id={id}

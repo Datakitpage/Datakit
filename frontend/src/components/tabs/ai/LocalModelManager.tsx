@@ -174,7 +174,7 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
     return (
       <div className="p-6 text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-        <p className="text-white/70">Loading local models...</p>
+        <p className="text-muted-foreground">Loading local models...</p>
       </div>
     );
   }
@@ -182,8 +182,8 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
   return (
     <div className="p-6 max-h-[80vh] overflow-y-auto">
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-white mb-2">Local AI Models</h3>
-        <p className="text-sm text-white/70">
+        <h3 className="text-lg font-medium text-foreground mb-2">Local AI Models</h3>
+        <p className="text-sm text-muted-foreground">
           Run AI models locally in your browser with complete privacy
         </p>
       </div>
@@ -201,11 +201,11 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
           ) : (
             <AlertCircle className="h-4 w-4 text-red-400" />
           )}
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-medium text-foreground">
             WebGPU {webGPUSupported ? 'Supported' : 'Not Supported'}
           </span>
         </div>
-        <p className="text-xs text-white/70">
+        <p className="text-xs text-muted-foreground">
           {webGPUSupported 
             ? "Your browser supports WebGPU acceleration for faster local AI inference."
             : "WebGPU is required for local models. Please use Chrome 113+, Edge 113+, or Firefox 110+."
@@ -215,19 +215,19 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
 
       {/* Storage Info */}
       {storageInfo && (
-        <div className="mb-6 p-4 bg-white/5 border border-white/10 rounded-lg">
+        <div className="mb-6 p-4 bg-accent/5 border border-border rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <HardDrive className="h-4 w-4 text-white/60" />
-            <span className="text-sm font-medium text-white">Storage Usage</span>
+            <HardDrive className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">Storage Usage</span>
           </div>
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
-              <span className="text-white/60">Downloaded Models:</span>
-              <span className="text-white ml-2">{storageInfo.totalModels}</span>
+              <span className="text-muted-foreground">Downloaded Models:</span>
+              <span className="text-foreground ml-2">{storageInfo.totalModels}</span>
             </div>
             <div>
-              <span className="text-white/60">Storage Used:</span>
-              <span className="text-white ml-2">{formatBytes(storageInfo.totalSizeBytes)}</span>
+              <span className="text-muted-foreground">Storage Used:</span>
+              <span className="text-foreground ml-2">{formatBytes(storageInfo.totalSizeBytes)}</span>
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
 
       {/* Available Models */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
+        <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
           <Download className="h-4 w-4" />
           Available Models
         </h4>
@@ -247,19 +247,19 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
             const isCurrent = getCurrentModel === model.id;
             
             return (
-              <div key={model.id} className="p-4 bg-white/5 border border-white/10 rounded-lg">
+              <div key={model.id} className="p-4 bg-accent/5 border border-border rounded-lg">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h5 className="text-sm font-medium text-white">{model.name}</h5>
+                      <h5 className="text-sm font-medium text-foreground">{model.name}</h5>
                       {isCurrent && (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
                           Active
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-white/60 mb-2">{model.description}</p>
-                    <div className="flex items-center gap-4 text-xs text-white/50">
+                    <p className="text-xs text-muted-foreground mb-2">{model.description}</p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>Size: {formatModelSize(model.size)}</span>
                       <span>Capabilities: {model.capabilities.join(', ')}</span>
                     </div>
@@ -267,12 +267,12 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
                   
                   <div className="flex items-center gap-2">
                     {progress && progress.stage !== 'ready' ? (
-                      <div className="text-xs text-white/70">
+                      <div className="text-xs text-muted-foreground">
                         <div className="flex items-center gap-2 mb-1">
                           <Loader2 className="h-3 w-3 animate-spin" />
                           <span>{progress.message}</span>
                         </div>
-                        <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
+                        <div className="w-20 h-1 bg-accent/20 rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-primary transition-all duration-300"
                             style={{ width: `${progress.progress}%` }}
@@ -299,7 +299,7 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
                         Download
                       </Button>
                     ) : (
-                      <span className="text-xs text-red-400">WebGPU Required</span>
+                      <span className="text-xs text-destructive">WebGPU Required</span>
                     )}
                   </div>
                 </div>
@@ -312,7 +312,7 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
       {/* Downloaded Models */}
       {downloadedModels.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
             <Cpu className="h-4 w-4" />
             Downloaded Models
           </h4>
@@ -322,18 +322,18 @@ const LocalModelManager: React.FC<LocalModelManagerProps> = ({ onClose }) => {
               const isCurrent = getCurrentModel === model.id;
               
               return (
-                <div key={model.id} className="p-4 bg-white/5 border border-white/10 rounded-lg">
+                <div key={model.id} className="p-4 bg-accent/5 border border-border rounded-lg">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h5 className="text-sm font-medium text-white">{model.name}</h5>
+                        <h5 className="text-sm font-medium text-foreground">{model.name}</h5>
                         {isCurrent && (
                           <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
                             Active
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-white/50">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span>Size: {formatModelSize(model.size)}</span>
                         {model.lastUsed && (
                           <span className="flex items-center gap-1">

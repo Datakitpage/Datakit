@@ -100,12 +100,12 @@ const Settings: React.FC = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-white mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-4">
                 Profile Information
               </h3>
               <form onSubmit={handleProfileUpdate} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white/90 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Full Name
                   </label>
                   <input
@@ -117,21 +117,21 @@ const Settings: React.FC = () => {
                         name: e.target.value,
                       }))
                     }
-                    className="w-full px-3 py-2 bg-background/20 border border-white/20 rounded-md text-white placeholder-white/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="w-full px-3 py-2 bg-background/20 border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white/90 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={profileData.email}
                     disabled
-                    className="w-full px-3 py-2 bg-background/10 border border-white/10 rounded-md text-white/60 cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-background/10 border border-border rounded-md text-muted-foreground cursor-not-allowed"
                   />
-                  <p className="text-xs text-white/50 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Email cannot be changed. Contact support if needed.
                   </p>
                 </div>
@@ -157,16 +157,16 @@ const Settings: React.FC = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-white mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-4">
                 Notification Preferences
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-foreground">
                       Email Notifications
                     </div>
-                    <div className="text-xs text-white/60">
+                    <div className="text-xs text-muted-foreground">
                       Receive updates about new features and announcements
                     </div>
                   </div>
@@ -188,10 +188,10 @@ const Settings: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-foreground">
                       Usage Alerts
                     </div>
-                    <div className="text-xs text-white/60">
+                    <div className="text-xs text-muted-foreground">
                       Get notified when you're close to your credit limit
                     </div>
                   </div>
@@ -250,7 +250,7 @@ const Settings: React.FC = () => {
           {/* Main Content Area */}
           <div className="flex-1 h-full overflow-hidden flex items-center justify-center">
             <div className="w-full max-w-6xl p-8">
-              <div className="bg-darkNav rounded-lg p-8">
+              <div className="bg-popover rounded-lg p-8">
                 {renderTabContent()}
               </div>
             </div>

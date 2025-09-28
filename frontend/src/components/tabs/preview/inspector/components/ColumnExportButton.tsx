@@ -137,9 +137,9 @@ const ColumnExportButton: React.FC<ColumnExportButtonProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
-          "flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white/80 hover:text-white transition-all duration-200",
+          "flex items-center gap-2 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all duration-200",
           disabled && "opacity-50 cursor-not-allowed",
-          isOpen && "bg-white/20"
+          isOpen && "bg-accent/20"
         )}
       >
         <Download className="h-4 w-4" />
@@ -185,13 +185,13 @@ const ColumnExportButton: React.FC<ColumnExportButtonProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full right-0 mt-2 w-64 bg-black/95 backdrop-blur-xl border border-white/20 rounded-lg shadow-xl z-50"
+            className="absolute top-full right-0 mt-2 w-64 bg-popover backdrop-blur-xl border border-border rounded-lg shadow-xl z-50"
           >
             <div className="p-3">
-              <div className="text-sm font-medium text-white mb-2">
+              <div className="text-sm font-medium text-foreground mb-2">
                 Export "{columnName}"
               </div>
-              <div className="text-xs text-white/60 mb-3">
+              <div className="text-xs text-muted-foreground mb-3">
                 Type: {columnType}
               </div>
               
@@ -204,29 +204,29 @@ const ColumnExportButton: React.FC<ColumnExportButtonProps> = ({
                     className={cn(
                       "w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors",
                       isExporting === format.id
-                        ? "bg-white/10 cursor-not-allowed"
-                        : "hover:bg-white/10"
+                        ? "bg-accent/10 cursor-not-allowed"
+                        : "hover:bg-accent/10"
                     )}
                   >
                     <div className="flex items-center gap-2 flex-1">
                       {isExporting === format.id ? (
-                        <div className="h-4 w-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                        <div className="h-4 w-4 border-2 border-border border-t-foreground rounded-full animate-spin" />
                       ) : (
                         format.icon
                       )}
                       <div>
-                        <div className="text-sm font-medium text-white flex items-center gap-2">
+                        <div className="text-sm font-medium text-foreground flex items-center gap-2">
                           {format.name}
                           {format.requiresAuth && !isAuthenticated && (
                             <Lock className="h-3 w-3 text-yellow-400" />
                           )}
                         </div>
-                        <div className="text-xs text-white/60">
+                        <div className="text-xs text-muted-foreground">
                           {format.description}
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-white/50">
+                    <div className="text-xs text-muted-foreground">
                       {format.extension}
                     </div>
                   </button>
@@ -235,7 +235,7 @@ const ColumnExportButton: React.FC<ColumnExportButtonProps> = ({
 
               {/* Auth Notice */}
               {!isAuthenticated && availableFormats.some(f => f.requiresAuth) && (
-                <div className="mt-3 pt-3 border-t border-white/10">
+                <div className="mt-3 pt-3 border-t border-border">
                   <div className="flex items-center gap-2 text-xs text-yellow-400">
                     <Lock className="h-3 w-3" />
                     <span>Downloading requires sign-in</span>

@@ -36,7 +36,7 @@ const GoogleSheetsPreviewCard: React.FC<GoogleSheetsPreviewCardProps> = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center">
-            <h4 className="text-sm font-medium text-white/90 truncate mr-2">
+            <h4 className="text-sm font-medium text-foreground/90 truncate mr-2">
               {displayName}
             </h4>
             {sheetInfo.format && (
@@ -46,16 +46,16 @@ const GoogleSheetsPreviewCard: React.FC<GoogleSheetsPreviewCardProps> = ({
             )}
           </div>
           
-          <div className="flex mt-1 text-xs text-white/70">
-            <Table className="h-3.5 w-3.5 mr-1.5 text-white/50" />
+          <div className="flex mt-1 text-xs text-muted-foreground">
+            <Table className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
             <span>
               Published sheet - ready to import
             </span>
           </div>
           
           {/* Sheet URL preview */}
-          <div className="mt-2 bg-black/30 rounded border border-white/5 p-1.5 flex items-center text-xs truncate">
-            <span className="text-white/40 truncate flex-1">
+          <div className="mt-2 bg-background rounded border border-border p-1.5 flex items-center text-xs truncate">
+            <span className="text-muted-foreground truncate flex-1">
               {sheetInfo.originalUrl.substring(0, 40)}...
             </span>
             <a 
@@ -73,15 +73,15 @@ const GoogleSheetsPreviewCard: React.FC<GoogleSheetsPreviewCardProps> = ({
       </div>
       
       {/* Sheet grid preview (decorative) */}
-      <div className="mt-3 bg-black/20 rounded border border-white/5 h-12 overflow-hidden p-1">
+      <div className="mt-3 bg-background/20 rounded border border-border h-12 overflow-hidden p-1">
         <div className="grid grid-cols-4 gap-0.5 h-full">
           {[...Array(8)].map((_, i) => (
             <div 
               key={i} 
-              className="bg-white/5 rounded-sm flex items-center justify-center"
+              className="bg-accent/5 rounded-sm flex items-center justify-center"
               style={{ opacity: 0.3 + (i % 3 * 0.15) }}
             >
-              <div className="w-full h-1 bg-white/20 rounded-full" style={{ width: `${30 + (i % 4) * 15}%` }}></div>
+              <div className="w-full h-1 bg-muted-foreground/20 rounded-full" style={{ width: `${30 + (i % 4) * 15}%` }}></div>
             </div>
           ))}
         </div>

@@ -73,7 +73,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   // Render collapsed content
   const renderCollapsedContent = () => (
     <>
-      <div className="p-4 border-b border-white/10">
+      <div className="p-4 border-b border-border">
         {/* Header space for collapsed mode */}
       </div>
 
@@ -89,7 +89,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
                 className={`w-full flex items-center justify-center p-3 rounded transition-custom ${
                   activeTab === tab.id
                     ? "bg-primary/20 text-primary"
-                    : "text-white text-opacity-60 hover:bg-white/5 hover:text-white"
+                    : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
                 }`}
                 title={tab.name}
               >
@@ -101,10 +101,10 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       </div>
 
       {/* Home and Sign Out Buttons */}
-      <div className="px-2 py-3 space-y-2 border-t border-white/10">
+      <div className="px-2 py-3 space-y-2 border-t border-border">
         <button
           onClick={() => navigate("/")}
-          className="w-full flex items-center justify-center p-2 text-white/60 hover:text-white hover:bg-white/5 rounded transition-custom"
+          className="w-full flex items-center justify-center p-2 text-muted-foreground hover:text-foreground hover:bg-accent/5 rounded transition-custom"
           title="Back to DataKit"
         >
           <Home size={16} />
@@ -125,20 +125,20 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   const renderExpandedContent = () => (
     <>
       {/* Header with title - matching main sidebar style */}
-      <div className="px-5 py-4 border-b border-white border-opacity-10">
+      <div className="px-5 py-4 border-b border-border">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
-            className="text-white text-opacity-70 hover:text-opacity-100 transition-custom p-1 cursor-pointer hover:bg-white/5 rounded"
+            className="text-muted-foreground hover:text-foreground transition-custom p-1 cursor-pointer hover:bg-accent/5 rounded"
             aria-label="Back to DataKit"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-white font-heading font-medium text-lg">
+            <h1 className="text-foreground font-heading font-medium text-lg">
               Settings
             </h1>
-            <p className="text-xs text-white/50">Manage your account</p>
+            <p className="text-xs text-muted-foreground">Manage your account</p>
           </div>
         </div>
       </div>
@@ -155,14 +155,14 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
                 onClick={() => onTabChange(tab.id)}
                 className={`w-full text-left flex items-center p-3 rounded text-sm transition-custom ${
                   activeTab === tab.id
-                    ? "border border-primary text-white"
-                    : "text-white text-opacity-80 hover:bg-background hover:bg-opacity-30"
+                    ? "border border-primary text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:bg-opacity-30"
                 }`}
               >
                 <Icon
                   size={16}
                   className={`mr-3 flex-shrink-0 ${
-                    activeTab === tab.id ? "text-white" : "text-primary"
+                    activeTab === tab.id ? "text-foreground" : "text-primary"
                   }`}
                 />
                 <span className="font-medium">{tab.name}</span>
@@ -173,22 +173,22 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       </div>
 
       {/* Sign Out Button */}
-      <div className="px-5 py-3 border-t border-white border-opacity-10">
+      <div className="px-5 py-3 border-t border-border">
         <Button
         variant="outline"
           onClick={handleLogout}
-          className="w-full flex items-center p-3 rounded text-sm text-white text-opacity-80 hover:bg-background hover:bg-opacity-30 transition-custom"
+          className="w-full flex items-center p-3 rounded text-sm text-muted-foreground hover:bg-accent hover:bg-opacity-30 transition-custom"
         >
           <LogOut
             size={16}
-            className="mr-1 flex-shrink-0 text-white/50"
+            className="mr-1 flex-shrink-0 text-muted-foreground"
           />
           <span className="font-medium">Sign Out</span>
         </Button>
       </div>
 
-      <div className="px-4 py-3 text-center border-t border-white border-opacity-5">
-        <p className="text-xs text-white text-opacity-50">
+      <div className="px-4 py-3 text-center border-t border-border">
+        <p className="text-xs text-muted-foreground">
           Powered by DuckDB {" | "}
           <a
             href="https://amin.contact"
@@ -215,7 +215,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   return (
     <div className="relative">
       <motion.div
-        className="bg-darkNav flex flex-col h-full border-r border-white border-opacity-10 overflow-hidden"
+        className="bg-popover flex flex-col h-full border-r border-border overflow-hidden"
         initial={isCollapsed ? "collapsed" : "expanded"}
         animate={isCollapsed ? "collapsed" : "expanded"}
         variants={sidebarVariants}
@@ -227,7 +227,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       {/* Collapse/Expand Toggle Button on Border */}
       <button
         onClick={toggleSidebar}
-        className="absolute top-4 -right-3 w-6 h-6 bg-black border border-white/100 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border/10 transition-colors z-100 shadow-lg"
+        className="absolute top-4 -right-3 w-6 h-6 bg-popover border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-border transition-colors z-100 shadow-lg"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}

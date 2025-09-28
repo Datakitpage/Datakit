@@ -89,30 +89,30 @@ const DataSourceDropdown: React.FC<{
   return (
     <div className="relative">
       <button
-        className="flex items-center gap-2 px-3 py-1.5 bg-darkNav border border-white/10 rounded text-sm hover:bg-white/5 cursor-pointer"
+        className="flex items-center gap-2 px-3 py-1.5 bg-popover border border-border rounded text-sm hover:bg-accent/5 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         {selectedSource?.type === "postgresql" ? (
-          <Link2 className="w-4 h-4 text-white/70" />
+          <Link2 className="w-4 h-4 text-muted-foreground" />
         ) : (
-          <FileText className="w-4 h-4 text-white/70" />
+          <FileText className="w-4 h-4 text-muted-foreground" />
         )}
-        <span className="text-white/90 truncate">
+        <span className="text-foreground truncate">
           {selectedSource ? selectedSource.fileName : "Select file"}
         </span>
         <ChevronDown
-          className={`w-3 h-3 text-white/50 transition-transform ${
+          className={`w-3 h-3 text-muted-foreground transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-black border border-white/10 rounded shadow-lg z-50 min-w-48">
+        <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded shadow-lg z-50 min-w-48">
           {dataSources.map((source) => (
             <button
               key={source.fileId}
-              className="w-full px-3 py-2 text-left text-sm text-white/80 hover:text-white flex items-center gap-2 cursor-pointer"
+              className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:text-foreground flex items-center gap-2 cursor-pointer"
               onClick={() => {
                 if (source.type === "postgresql") {
                   // Show notification for PostgreSQL tables
@@ -130,13 +130,13 @@ const DataSourceDropdown: React.FC<{
               }}
             >
               {source.type === "postgresql" ? (
-                <Link2 className="w-3 h-3 text-blue-400" />
+                <Link2 className="w-3 h-3 text-primary" />
               ) : (
-                <FileText className="w-3 h-3 text-white/50" />
+                <FileText className="w-3 h-3 text-muted-foreground" />
               )}
               <div className="flex-1 min-w-0">
                 <div className="truncate">{source.fileName}</div>
-                <div className="text-xs text-white/50">
+                <div className="text-xs text-muted-foreground">
                   {source.type === "postgresql" ? "PostgreSQL Table" : `${source.rowCount} rows`}
                 </div>
               </div>
@@ -147,12 +147,12 @@ const DataSourceDropdown: React.FC<{
       
       {/* PostgreSQL notification */}
       {showPostgresNotification && (
-        <div className="absolute top-full left-0 mt-1 bg-blue-500/90 text-white text-sm px-3 py-2 rounded shadow-lg z-50 max-w-xs">
+        <div className="absolute top-full left-0 mt-1 bg-primary/90 text-primary-foreground text-sm px-3 py-2 rounded shadow-lg z-50 max-w-xs">
           <div className="flex items-center gap-2">
             <Link2 className="w-4 h-4 flex-shrink-0" />
             <div>
               <div className="font-medium">PostgreSQL Visualization</div>
-              <div className="text-blue-100 text-xs">Coming soon! We're working on chart support for PostgreSQL tables.</div>
+              <div className="text-primary-foreground/80 text-xs">Coming soon! We're working on chart support for PostgreSQL tables.</div>
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ const ChartTypeRow: React.FC = () => {
             className={`p-2 rounded border transition-colors cursor-pointer ${
               isActive
                 ? "bg-primary/20 border-primary/30 text-primary"
-                : "border-white/10 text-white/70 hover:bg-white/5 hover:text-white"
+                : "border-border text-muted-foreground hover:bg-accent/5 hover:text-foreground"
             }`}
             onClick={() => updateCurrentChart({ type: type as ChartType })}
             title={label}
@@ -294,11 +294,11 @@ const VisualizationTab: React.FC = () => {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center max-w-md">
-          <BarChart4 className="w-16 h-16 text-white/30 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">
+          <BarChart4 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No Data Available
           </h3>
-          <p className="text-white/70 mb-4">
+          <p className="text-muted-foreground mb-4">
             Import data files to create visualizations.
           </p>
           <Button variant="outline" onClick={() => setActiveTab("preview")}>
@@ -345,18 +345,18 @@ const VisualizationTab: React.FC = () => {
       />
 
       {/* Minimal Header */}
-      <div className="flex items-center justify-between p-3 border-b border-white/10 bg-darkNav">
+      <div className="flex items-center justify-between p-3 border-b border-border bg-popover">
         <div className="flex items-center gap-4">
           {/* Left panel toggle */}
           <button
             onClick={() => setShowLeftPanel(!showLeftPanel)}
-            className="p-1 hover:bg-white/10 rounded cursor-pointer"
+            className="p-1 hover:bg-accent/10 rounded cursor-pointer"
             title={showLeftPanel ? "Hide panel" : "Show panel"}
           >
             {showLeftPanel ? (
-              <ChevronLeft className="w-4 h-4 text-white/70" />
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-white/70" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             )}
           </button>
 
@@ -379,7 +379,7 @@ const VisualizationTab: React.FC = () => {
         <div className="flex items-center gap-2">
           {hasVisualizationData && (
             <>
-              <span className="text-xs text-white/50">
+              <span className="text-xs text-muted-foreground">
                 {filteredData?.length} points
               </span>
               <Button
@@ -399,12 +399,12 @@ const VisualizationTab: React.FC = () => {
       <div className="flex-1 flex min-h-0">
         {/* Collapsible Left Panel */}
         {showLeftPanel && (
-          <div className="w-72 border-r border-white/10 bg-darkNav/50 overflow-hidden flex flex-col">
+          <div className="w-72 border-r border-border bg-popover overflow-hidden flex flex-col">
             {/* Panel header */}
-            <div className="px-4 py-3 border-b border-white/10">
+            <div className="px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
                 <Settings className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-foreground">
                   Chart Configuration
                 </span>
               </div>
@@ -422,14 +422,14 @@ const VisualizationTab: React.FC = () => {
           {!selectedDataSource ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-white/70">Select a data source to begin</p>
+                <p className="text-muted-foreground">Select a data source to begin</p>
               </div>
             </div>
           ) : !hasVisualizationData ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <BarChart4 className="w-12 h-12 text-white/30 mx-auto mb-3" />
-                <p className="text-white/70">Select columns to visualize</p>
+                <BarChart4 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">Select columns to visualize</p>
               </div>
             </div>
           ) : (

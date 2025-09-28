@@ -75,14 +75,14 @@ const NivoHistogram: React.FC<NivoHistogramProps> = ({
   };
 
   const CustomTooltip = ({ id, value, data }: any) => (
-    <div className="bg-black/95 border border-white/20 rounded-lg p-3 shadow-xl">
-      <div className="text-sm font-medium text-white mb-1">
+    <div className="bg-black/95 border border-border rounded-lg p-3 shadow-xl">
+      <div className="text-sm font-medium text-foreground mb-1">
         Range: {data.range}
       </div>
-      <div className="text-sm text-white/80">
+      <div className="text-sm text-muted-foreground">
         Count: <span className="font-mono text-primary">{value.toLocaleString()}</span>
       </div>
-      <div className="text-xs text-white/60 mt-1">
+      <div className="text-xs text-muted-foreground mt-1">
         {data.binStart} → {data.binEnd}
       </div>
     </div>
@@ -240,13 +240,13 @@ const NivoHistogram: React.FC<NivoHistogramProps> = ({
         <div className="absolute top-2 right-2 z-10 flex gap-1">
           <button
             onClick={handlePNGExport}
-            className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white/70 hover:text-white transition-colors"
+            className="px-2 py-1 bg-accent/10 hover:bg-accent/20 rounded text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             PNG
           </button>
           <button
             onClick={handleSVGExport}
-            className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white/70 hover:text-white transition-colors"
+            className="px-2 py-1 bg-accent/10 hover:bg-accent/20 rounded text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             SVG
           </button>

@@ -214,8 +214,8 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
     <div className="h-full flex flex-col">
       {/* Compact Header */}
       <div className="mb-5">
-        <h3 className="text-lg font-medium text-white">AI Configuration</h3>
-        <p className="text-sm text-white/60">Choose how DataKit processes your data with AI</p>
+        <h3 className="text-lg font-medium text-foreground">AI Configuration</h3>
+        <p className="text-sm text-muted-foreground">Choose how DataKit processes your data with AI</p>
       </div>
 
       {/* Split View - Main Content */}
@@ -227,7 +227,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
             className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 flex-1 ${
               isProOrTeam
                 ? "bg-gradient-to-br from-primary/20 to-primary/10 border-primary/50 shadow-lg shadow-primary/20"
-                : "bg-gradient-to-br from-white/10 to-white/5 border-white/20 hover:border-primary/40 hover:shadow-lg cursor-pointer"
+                : "bg-gradient-to-br from-accent/10 to-accent/5 border-border hover:border-primary/40 hover:shadow-lg cursor-pointer"
             }`}
             onClick={!isProOrTeam ? handleUpgrade : undefined}
           >
@@ -239,31 +239,31 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
              
               
               <div className="mb-3">
-                <h4 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                <h4 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
                   DataKit Models
                 </h4>
-                <p className="text-xs text-white/70 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Premium AI models optimized for data analysis. No API keys needed.
                 </p>
                 
                 {/* Anthropic Badge */}
-                <div className="mt-2 inline-flex items-center gap-2 px-2 py-1 bg-white/5 border border-white/10 rounded-full">
+                <div className="mt-2 inline-flex items-center gap-2 px-2 py-1 bg-accent/5 border border-border rounded-full">
                   <img src={AnthropicLogo} className="h-3 w-3" alt="Anthropic" />
-                  <span className="text-xs text-white/70">Powered by Anthropic</span>
+                  <span className="text-xs text-muted-foreground">Powered by Anthropic</span>
                 </div>
               </div>
 
               {/* Compact Features */}
               <div className="space-y-1.5 mb-4">
-                <div className="flex items-center gap-2 text-xs text-white/70">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CheckCircle className="h-3.5 w-3.5 text-primary" />
                   <span>Pre-tuned for SQL & data transformation</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/70">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CheckCircle className="h-3.5 w-3.5 text-primary" />
                   <span>Claude 3.5 Sonnet & Haiku included</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/70">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CheckCircle className="h-3.5 w-3.5 text-primary" />
                   <span>Zero configuration required</span>
                 </div>
@@ -275,19 +275,19 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-white">Active</span>
+                      <span className="text-xs text-foreground">Active</span>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="bg-white/5 rounded p-2 border border-white/10 flex items-center justify-between">
-                    <span className="text-xs text-white/70">Pro Plan</span>
-                    <span className="text-xs text-white font-medium">$19/mo</span>
+                  <div className="bg-accent/5 rounded p-2 border border-border flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Pro Plan</span>
+                    <span className="text-xs text-foreground font-medium">$19/mo</span>
                   </div>
                   <button 
                     onClick={handleUpgrade}
-                    className="w-full text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors cursor-pointer"
+                    className="w-full text-foreground py-2 px-3 rounded-lg font-medium text-sm transition-colors cursor-pointer"
                   >
                     View All Plans →
                   </button>
@@ -297,22 +297,22 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
           </div>
 
           {/* Compact Credits */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+          <div className="bg-accent/5 border border-border rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-3 w-3 text-blue-400" />
-                <span className="text-xs text-white">Credits</span>
+                <span className="text-xs text-foreground">Credits</span>
               </div>
               <div className="text-right">
                 <span className={`text-sm font-bold ${creditStatus.color}`}>
                   {formatCredits(creditsRemaining)}
                 </span>
-                <span className="text-xs text-white/50">/{!isProOrTeam ? "315" : "1,575"}</span>
+                <span className="text-xs text-muted-foreground">/{!isProOrTeam ? "315" : "1,575"}</span>
               </div>
             </div>
             
             {creditsRemaining !== -1 && (
-              <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-accent/10 rounded-full h-1.5 overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-500 ${
                     creditsRemaining > 50 ? 'bg-green-400' : 
@@ -330,8 +330,8 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
         {/* Right Column: Alternative Providers */}
         <div className="flex flex-col">
           <div className="mb-3">
-            <h4 className="text-sm font-medium text-white/80">Alternative Providers</h4>
-            <p className="text-xs text-white/60">Use your own API keys for these providers</p>
+            <h4 className="text-sm font-medium text-muted-foreground">Alternative Providers</h4>
+            <p className="text-xs text-muted-foreground">Use your own API keys for these providers</p>
           </div>
 
           <div className="flex-1 space-y-2.5 overflow-y-auto pr-2">
@@ -376,18 +376,18 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                   key={provider}
                   className={`rounded-xl border p-3 transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? "bg-gradient-to-br from-white/10 to-white/5 border-primary/50 shadow-lg shadow-primary/20"
-                      : "bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 hover:border-white/20 hover:shadow-lg"
+                      ? "bg-gradient-to-br from-accent/10 to-accent/5 border-primary/50 shadow-lg shadow-primary/20"
+                      : "bg-gradient-to-br from-accent/5 to-accent/[0.02] border-border hover:border-border hover:shadow-lg"
                   }`}
                   onClick={handleSelectProvider}
                 >
                   {/* Ultra Compact Header */}
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
-                      <div className="h-5 w-5 rounded flex items-center justify-center flex-shrink-0 bg-white/10">
+                      <div className="h-5 w-5 rounded flex items-center justify-center flex-shrink-0 bg-accent/10">
                         {config.icon}
                       </div>
-                      <h5 className="text-xs font-medium text-white">
+                      <h5 className="text-xs font-medium text-foreground">
                         {config.name}
                       </h5>
                       {hasKey && <CheckCircle className="h-3 w-3 text-green-400" />}
@@ -398,7 +398,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                           e.stopPropagation();
                           window.open(config.websiteUrl!, "_blank");
                         }}
-                        className="p-0.5 text-white/40 hover:text-white/80 rounded transition-colors"
+                        className="p-0.5 text-muted-foreground hover:text-foreground rounded transition-colors"
                         title="Get API key"
                       >
                         <ExternalLink className="h-3 w-3" />
@@ -409,7 +409,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                   {/* Ultra Compact API Key Section */}
                   {hasKey && !isEditing && (
                     <div className="flex items-center gap-1">
-                      <div className="text-xs font-mono text-white/40 bg-white/5 px-1.5 py-0.5 rounded flex-1 truncate">
+                      <div className="text-xs font-mono text-muted-foreground bg-accent/5 px-1.5 py-0.5 rounded flex-1 truncate">
                         {maskApiKey(apiKeys.get(provider) || "")}
                       </div>
                       <button
@@ -417,7 +417,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                           e.stopPropagation();
                           handleUpdateKey();
                         }}
-                        className="text-xs text-white/50 hover:text-white/80 px-1"
+                        className="text-xs text-muted-foreground hover:text-foreground px-1"
                       >
                         Edit
                       </button>
@@ -432,7 +432,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                           handleKeyChange(provider, e.target.value)
                         }
                         placeholder={`${config.keyFormat || 'API key'}`}
-                        className="w-full px-2 py-0.5 text-xs bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-primary/50"
+                        className="w-full px-2 py-0.5 text-xs bg-accent/5 border border-border rounded text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -451,7 +451,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                             e.stopPropagation();
                             handleCancelUpdate();
                           }}
-                          className="px-2 py-0.5 text-xs text-white/60 hover:text-white/80"
+                          className="px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
                         >
                           Cancel
                         </button>
@@ -467,7 +467,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                           handleKeyChange(provider, e.target.value)
                         }
                         placeholder={`${config.keyFormat || 'API key'}`}
-                        className="w-full px-2 py-0.5 text-xs bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-primary/50"
+                        className="w-full px-2 py-0.5 text-xs bg-accent/5 border border-border rounded text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <button
@@ -476,7 +476,7 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
                           handleSaveKey(provider);
                         }}
                         disabled={!keyInputs.get(provider)?.trim()}
-                        className="w-full px-2 py-0.5 text-xs text-white/50 rounded hover:border border-primary/30 disabled:opacity-50 transition-colors"
+                        className="w-full px-2 py-0.5 text-xs text-muted-foreground rounded hover:border border-primary/30 disabled:opacity-50 transition-colors"
                       >
                         Activate
                       </button>
@@ -498,8 +498,8 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
           {/* Why DataKit AI */}
           {!isProOrTeam && (
             <div className="border border-primary/20 rounded-lg p-3 mt-3">
-              <h5 className="text-xs font-medium text-white mb-1.5">Why DataKit Models?</h5>
-              <ul className="space-y-1 text-xs text-white/70">
+              <h5 className="text-xs font-medium text-foreground mb-1.5">Why DataKit Models?</h5>
+              <ul className="space-y-1 text-xs text-muted-foreground">
                 <li className="flex items-start gap-1.5">
                   <span className="text-primary mt-0.5">•</span>
                   <span>No API keys to manage</span>
@@ -525,15 +525,15 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
       </div>
 
       {/* Compact Settings Footer */}
-      <div className="mt-4 pt-4 border-t border-white/10">
-        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl">
+      <div className="mt-4 pt-4 border-t border-border">
+        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-accent/5 to-accent/[0.02] border border-border rounded-xl">
           <div className="flex items-center gap-2">
-            <SettingsIcon className="h-3 w-3 text-white/60" />
+            <SettingsIcon className="h-3 w-3 text-muted-foreground" />
             <div>
-              <label className="text-xs text-white/80 font-medium">
+              <label className="text-xs text-muted-foreground font-medium">
                 Auto-execute SQL
               </label>
-              <p className="text-xs text-white/50">Run AI queries automatically</p>
+              <p className="text-xs text-muted-foreground">Run AI queries automatically</p>
             </div>
           </div>
           <button
@@ -541,11 +541,11 @@ const AISettings: React.FC<AISettingsProps> = ({ onTabChange }) => {
               updateSettings({ autoExecuteSQL: !autoExecuteSQL })
             }
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              autoExecuteSQL ? "bg-primary" : "bg-white/20"
+              autoExecuteSQL ? "bg-primary" : "bg-accent/20"
             }`}
           >
             <span
-              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+              className={`inline-block h-3 w-3 transform rounded-full bg-foreground transition-transform ${
                 autoExecuteSQL ? "translate-x-5" : "translate-x-1"
               }`}
             />

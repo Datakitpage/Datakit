@@ -339,10 +339,10 @@ const NotebooksWorkspace: React.FC = () => {
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
             </div>
-            <h3 className="text-lg font-heading font-medium text-white mb-2">
+            <h3 className="text-lg font-heading font-medium text-foreground mb-2">
               Python Initialization Failed
             </h3>
-            <p className="text-white/70 mb-4">{pyodide.error}</p>
+            <p className="text-muted-foreground mb-4">{pyodide.error}</p>
             <Button onClick={initializePython} variant="primary">
               Retry Initialization
             </Button>
@@ -354,17 +354,17 @@ const NotebooksWorkspace: React.FC = () => {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center p-8 max-w-md">
-          <h3 className="text-lg font-heading font-medium text-white mb-2">
+          <h3 className="text-lg font-heading font-medium text-foreground mb-2">
             {pyodide.isInitializing
               ? 'Initializing Python'
               : 'Python Not Ready'}
           </h3>
-          <p className="text-white/70 mb-4">
+          <p className="text-muted-foreground mb-4">
             {pyodide.isInitializing
               ? ''
               : 'Preparing your Python data analysis environment'}
           </p>
-          <div className="text-sm text-white/60">
+          <div className="text-sm text-muted-foreground">
             <div className="flex items-center justify-center gap-2">
               <Package className="w-4 h-4 text-secondary" />
               <span>Loading pandas, numpy...</span>
@@ -409,7 +409,7 @@ const NotebooksWorkspace: React.FC = () => {
   if (fullScreenMode !== 'none') {
     return (
       <div className="w-full h-full flex flex-col">
-        <div className="flex items-center justify-between p-2 bg-darkNav border-b border-white/10">
+        <div className="flex items-center justify-between p-2 bg-popover border-b border-border">
           <h3 className="text-sm font-medium">
             {fullScreenMode === 'editor'
               ? 'Python Editor (Fullscreen)'
@@ -450,7 +450,7 @@ const NotebooksWorkspace: React.FC = () => {
       {/* Left Panel */}
       <div
         ref={leftPanelRef}
-        className={`flex-shrink-0 overflow-hidden bg-darkNav border-r border-white/10 relative ${
+        className={`flex-shrink-0 overflow-hidden bg-popover border-r border-border relative ${
           isResizingLeft ? '' : 'transition-all duration-200'
         }`}
         style={{
@@ -483,7 +483,7 @@ const NotebooksWorkspace: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-grow flex flex-col min-w-0 overflow-hidden">
         {/* Toolbar */}
-        <div className="flex items-center justify-between p-2 bg-darkNav border-b border-white/10">
+        <div className="flex items-center justify-between p-2 bg-popover border-b border-border">
           <div className="flex items-center space-x-2">
             {/* Left panel toggles */}
 
@@ -539,13 +539,13 @@ const NotebooksWorkspace: React.FC = () => {
               </Button>
             </Tooltip>
 
-            <div className="w-px h-6 bg-white/10" />
+            <div className="w-px h-6 bg-accent/10" />
 
             {/* Notebook Selector */}
             <div className="relative" ref={notebookSelectorRef}>
               <div className="flex items-center gap-2 px-2 py-1">
                 <button
-                  className="text-sm font-medium text-white max-w-42 truncate hover:bg-white/10 rounded px-2 py-1 transition-colors cursor-pointer"
+                  className="text-sm font-medium text-foreground max-w-42 truncate hover:bg-accent/10 rounded px-2 py-1 transition-colors cursor-pointer"
                   onClick={() => setShowNotebookEditor(!showNotebookEditor)}
                   title="Edit notebook details"
                 >
@@ -558,7 +558,7 @@ const NotebooksWorkspace: React.FC = () => {
                   
                   {/* Subtle Save Button */}
                   <button
-                    className="opacity-50 hover:opacity-100 transition-opacity p-1.5 hover:bg-white/10 rounded"
+                    className="opacity-50 hover:opacity-100 transition-opacity p-1.5 hover:bg-accent/10 rounded"
                     onClick={handleSaveScript}
                     disabled={saveStatus === 'saving'}
                     title="Save notebook"
@@ -568,21 +568,21 @@ const NotebooksWorkspace: React.FC = () => {
                 </div>
                 
                 <button
-                  className="flex flex-col items-center hover:bg-white/10 rounded p-1 transition-colors cursor-pointer"
+                  className="flex flex-col items-center hover:bg-accent/10 rounded p-1 transition-colors cursor-pointer"
                   onClick={() => setShowNotebookSelector(!showNotebookSelector)}
                   title="Notebook selector"
                 >
-                  <ChevronUp className="w-4 h-3 text-white/50 -mb-0.5" />
-                  <ChevronDown className="w-4 h-3 text-white/50" />
+                  <ChevronUp className="w-4 h-3 text-muted-foreground -mb-0.5" />
+                  <ChevronDown className="w-4 h-3 text-muted-foreground" />
                 </button>
               </div>
 
               {/* Notebook Dropdown */}
               {showNotebookSelector && (
-                <div className="absolute left-0 top-full mt-1 bg-black border border-white/10 rounded shadow-xl z-50 min-w-64 max-h-80 overflow-y-auto">
+                <div className="absolute left-0 top-full mt-1 bg-background border border-border rounded shadow-xl z-50 min-w-64 max-h-80 overflow-y-auto">
                   {/* New Notebook Option */}
                   <button
-                    className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 flex items-center gap-2 border-b border-white/10"
+                    className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent/10 flex items-center gap-2 border-b border-border"
                     onClick={handleCreateNewNotebook}
                   >
                     <Plus className="w-4 h-4" />
@@ -594,10 +594,10 @@ const NotebooksWorkspace: React.FC = () => {
                     savedScripts.map((script) => (
                       <button
                         key={script.id}
-                        className={`w-full px-3 py-2 text-left text-sm hover:bg-white/10 flex items-center justify-between ${
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-accent/10 flex items-center justify-between ${
                           currentScript?.id === script.id
                             ? 'bg-primary/20 text-primary'
-                            : 'text-white/80'
+                            : 'text-foreground'
                         }`}
                         onClick={() => handleNotebookSwitch(script.id)}
                       >
@@ -612,7 +612,7 @@ const NotebooksWorkspace: React.FC = () => {
                       </button>
                     ))
                   ) : (
-                    <div className="px-3 py-4 text-center text-sm text-white/50">
+                    <div className="px-3 py-4 text-center text-sm text-muted-foreground">
                       No saved notebooks
                     </div>
                   )}
@@ -676,7 +676,7 @@ const NotebooksWorkspace: React.FC = () => {
                   <Play size={14} className="mr-1" />
                   <span>Run All</span>
                 </div>
-                <div className="flex items-center text-[11px] opacity-60 bg-white/10 px-1.5 py-0.5 rounded">
+                <div className="flex items-center text-[11px] opacity-60 bg-accent/10 px-1.5 py-0.5 rounded">
                   <Command size={11} className="mr-0.5" />
                   <span className="leading-none">⇧↵</span>
                 </div>
@@ -716,15 +716,15 @@ const NotebooksWorkspace: React.FC = () => {
 
               {/* Download Dropdown Menu */}
               {showDownloadMenu && (
-                <div className="absolute right-0 top-full mt-1 bg-black border border-white/10 rounded shadow-xl z-50 min-w-48">
+                <div className="absolute right-0 top-full mt-1 bg-background border border-border rounded shadow-xl z-50 min-w-48">
                   <button
-                    className="w-full px-3 py-2 text-left text-xs text-white/80 hover:bg-white/10 flex items-center gap-2 rounded-t"
+                    className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-accent/10 flex items-center gap-2 rounded-t"
                     onClick={handleDownloadPDF}
                   >
                     Download as PDF
                   </button>
                   <button
-                    className="w-full px-3 py-2 text-left text-xs text-white/80 hover:bg-white/10 flex items-center gap-2 rounded-b"
+                    className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-accent/10 flex items-center gap-2 rounded-b"
                     onClick={handleDownloadJupyter}
                   >
                     Download as Jupyter Notebook
@@ -757,10 +757,10 @@ const NotebooksWorkspace: React.FC = () => {
             {cells.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
                 <div className="mb-6">
-                  <h3 className="text-lg font-medium text-white mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     Empty Notebook
                   </h3>
-                  <p className="text-white/60 max-w-md leading-relaxed">
+                  <p className="text-muted-foreground max-w-md leading-relaxed">
                     Start by creating your first cell. You can add code cells to
                     run Python code or text cells for documentation.
                   </p>
@@ -776,7 +776,7 @@ const NotebooksWorkspace: React.FC = () => {
       {/* Right Panel */}
       <div
         ref={rightPanelRef}
-        className={`flex-shrink-0 overflow-hidden bg-darkNav border-l border-white/10 relative ${
+        className={`flex-shrink-0 overflow-hidden bg-popover border-l border-border relative ${
           isResizingRight ? '' : 'transition-all duration-200'
         }`}
         style={{

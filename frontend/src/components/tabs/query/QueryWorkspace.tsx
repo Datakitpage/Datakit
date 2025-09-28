@@ -299,10 +299,10 @@ const QueryWorkspace: React.FC = () => {
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
             </div>
-            <h3 className="text-lg font-heading font-medium text-white mb-2">
+            <h3 className="text-lg font-heading font-medium text-foreground mb-2">
               DuckDB Initialization Failed
             </h3>
-            <p className="text-white/70 mb-4">{initError}</p>
+            <p className="text-muted-foreground mb-4">{initError}</p>
             <Button onClick={retry} variant="primary">
               Retry Initialization
             </Button>
@@ -319,15 +319,15 @@ const QueryWorkspace: React.FC = () => {
               <Database className="w-8 h-8 text-primary animate-pulse" />
             </div>
           </div>
-          <h3 className="text-lg font-heading font-medium text-white mb-2">
+          <h3 className="text-lg font-heading font-medium text-foreground mb-2">
             {isInitializing ? "Initializing DuckDB" : "DuckDB Not Ready"}
           </h3>
-          <p className="text-white/70 mb-4">
+          <p className="text-muted-foreground mb-4">
             {isInitializing
               ? "Setting up your in-browser SQL database..."
               : "Preparing your data analysis environment..."}
           </p>
-          <div className="text-sm text-white/60">
+          <div className="text-sm text-muted-foreground">
             <div className="flex items-center justify-center gap-2">
               <Zap className="w-4 h-4 text-secondary" />
               <span>Powered by WebAssembly</span>
@@ -339,19 +339,19 @@ const QueryWorkspace: React.FC = () => {
   }
 
   const ResultsToolbar = () => (
-    <div className="flex items-center justify-between p-2 bg-darkNav border-b border-white/10">
+    <div className="flex items-center justify-between p-2 bg-popover border-b border-border">
       <div className="flex items-center space-x-3">
         <h3 className="text-sm font-medium">Query Results</h3>
 
         {!!executionTime && (
-          <div className="flex items-center text-xs text-white/60">
+          <div className="flex items-center text-xs text-muted-foreground">
             <Clock size={12} className="mr-1" />
             <span>{executionTime.toFixed(0)}ms</span>
           </div>
         )}
 
         {totalRows > 0 && (
-          <div className="text-xs text-white/60">
+          <div className="text-xs text-muted-foreground">
             {totalRows.toLocaleString()} rows
           </div>
         )}
@@ -392,7 +392,7 @@ const QueryWorkspace: React.FC = () => {
       <div className="w-full h-full flex flex-col">
         {fullScreenMode === "editor" ? (
           <>
-            <div className="flex items-center justify-between p-2 bg-darkNav border-b border-white/10">
+            <div className="flex items-center justify-between p-2 bg-popover border-b border-border">
               <h3 className="text-sm font-medium">SQL Editor (Fullscreen)</h3>
               <Button
                 variant="ghost"
@@ -414,19 +414,19 @@ const QueryWorkspace: React.FC = () => {
           </>
         ) : (
           <>
-            <div className="flex items-center justify-between p-2 bg-darkNav border-b border-white/10">
+            <div className="flex items-center justify-between p-2 bg-popover border-b border-border">
               <div className="flex items-center space-x-3">
                 <h3 className="text-sm font-medium">
                   Query Results (Fullscreen)
                 </h3>
                 {executionTime !== null && (
-                  <div className="flex items-center text-xs text-white/60">
+                  <div className="flex items-center text-xs text-muted-foreground">
                     <Clock size={12} className="mr-1" />
                     <span>{executionTime.toFixed(0)}ms</span>
                   </div>
                 )}
                 {totalRows > 0 && (
-                  <div className="text-xs text-white/60">
+                  <div className="text-xs text-muted-foreground">
                     {totalRows.toLocaleString()} rows
                   </div>
                 )}
@@ -477,7 +477,7 @@ const QueryWorkspace: React.FC = () => {
 
       {/* Schema Browser Panel */}
       <div
-        className={`flex-shrink-0 overflow-hidden bg-darkNav border-r border-white/10 relative ${
+        className={`flex-shrink-0 overflow-hidden bg-popover border-r border-border relative ${
           isResizingSchema ? "" : "transition-all duration-200"
         }`}
         style={{
@@ -519,7 +519,7 @@ const QueryWorkspace: React.FC = () => {
           className="flex flex-col relative"
           style={{ height: `${queryInputHeight}px` }}
         >
-          <div className="flex items-center justify-between p-2 bg-darkNav border-b border-white/10">
+          <div className="flex items-center justify-between p-2 bg-popover border-b border-border">
             <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
@@ -587,7 +587,7 @@ const QueryWorkspace: React.FC = () => {
                   <Play size={14} className="mr-1" />
                   <span>Execute</span>
                 </div>
-                <div className="flex items-center text-[11px] opacity-60 bg-white/10 px-1.5 py-0.5 rounded">
+                <div className="flex items-center text-[11px] opacity-60 bg-accent/10 px-1.5 py-0.5 rounded">
                   <Command size={11} className="mr-0.5" />
                   <span className="leading-none">↵</span>
                 </div>
@@ -615,14 +615,14 @@ const QueryWorkspace: React.FC = () => {
 
           {/* Optimization Tips Panel */}
           {showOptimizationTips && suggestions.length > 0 && (
-            <div className="absolute top-12 right-0 w-80 bg-background border border-white/10 rounded-md shadow-lg z-10 p-3">
+            <div className="absolute top-12 right-0 w-80 bg-background border border-border rounded-md shadow-lg z-10 p-3">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-medium flex items-center">
                   <Zap size={14} className="mr-1 text-warning" />
                   Query Optimization Tips
                 </h3>
                 <button
-                  className="text-white/50 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                   onClick={() => setShowOptimizationTips(false)}
                 >
                   ×
@@ -638,7 +638,7 @@ const QueryWorkspace: React.FC = () => {
                         ? "bg-warning/10 border border-warning/30"
                         : suggestion.severity === "critical"
                         ? "bg-destructive/10 border border-destructive/30"
-                        : "bg-white/5 border border-white/10"
+                        : "bg-accent/5 border border-border"
                     }`}
                   >
                     <div className="mb-1">{suggestion.message}</div>
@@ -659,7 +659,7 @@ const QueryWorkspace: React.FC = () => {
 
               <div className="flex justify-end">
                 <button
-                  className="text-xs px-3 py-1 rounded bg-primary text-white"
+                  className="text-xs px-3 py-1 rounded bg-primary text-primary-foreground"
                   onClick={handleOptimizeQuery}
                 >
                   Optimize Query
@@ -672,10 +672,10 @@ const QueryWorkspace: React.FC = () => {
         {/* Resizer Handle */}
         <div
           ref={dividerRef}
-          className="h-2 bg-darkNav/50 cursor-row-resize hover:bg-primary/30 transition-colors flex items-center justify-center"
+          className="h-2 bg-popover/50 cursor-row-resize hover:bg-primary/30 transition-colors flex items-center justify-center"
           onMouseDown={startEditorResize}
         >
-          <div className="w-8 h-1 bg-white/20 rounded-full" />
+          <div className="w-8 h-1 bg-accent/20 rounded-full" />
         </div>
 
         {/* Results Area */}
@@ -687,7 +687,7 @@ const QueryWorkspace: React.FC = () => {
 
           {/* Large Dataset Warning */}
           {showLargeDataWarning && (
-            <div className="bg-primary/10 border border-primary/30 rounded p-3 m-3 text-white text-sm">
+            <div className="bg-primary/10 border border-primary/30 rounded p-3 m-3 text-foreground text-sm">
               <div className="flex items-start">
                 <AlertTriangle
                   size={18}
@@ -697,20 +697,20 @@ const QueryWorkspace: React.FC = () => {
                   <h4 className="text-sm font-medium mb-1">
                     Large Result Set ({totalRows.toLocaleString()} rows)
                   </h4>
-                  <p className="text-xs text-white/80 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     This query is returning a large dataset which may affect
                     performance. Consider adding filters or LIMIT clause with
                     lower value to reduce the result size.
                   </p>
                   <div className="flex justify-end space-x-2 mt-2">
                     <button
-                      className="text-xs px-3 py-1 rounded bg-primary text-white"
+                      className="text-xs px-3 py-1 rounded bg-primary text-primary-foreground"
                       onClick={applyLimitOptimization}
                     >
                       Add LIMIT Clause
                     </button>
                     <button
-                      className="text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20"
+                      className="text-xs px-3 py-1 rounded bg-accent/10 hover:bg-accent/20"
                       onClick={dismissWarning}
                     >
                       Dismiss
@@ -723,7 +723,7 @@ const QueryWorkspace: React.FC = () => {
 
           {/* Getting Started Help Panel */}
           {!canExecuteQueries && (
-            <div className="bg-secondary/10 border border-secondary/30 rounded p-3 m-3 text-white text-sm">
+            <div className="bg-secondary/10 border border-secondary/30 rounded p-3 m-3 text-foreground text-sm">
               <div className="flex items-start">
                 <Database
                   size={18}
@@ -733,7 +733,7 @@ const QueryWorkspace: React.FC = () => {
                   <h4 className="text-sm font-medium mb-1">
                     Ready to Query Sample Data!
                   </h4>
-                  <p className="text-xs text-white/80 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     {hasUserTables
                       ? "You have uploaded data ready to query. Try the sample query above or write your own SQL."
                       : "A sample employees table is available for testing. Import your own CSV, JSON, or Parquet files to query your data."}
@@ -769,7 +769,7 @@ const QueryWorkspace: React.FC = () => {
         }}
       >
         {showQueryHistory && (
-          <div className="h-full border-l border-white/10 bg-darkNav overflow-hidden">
+          <div className="h-full border-l border-border bg-popover overflow-hidden">
             <QueryHistory onSelectQuery={selectQuery} />
           </div>
         )}
@@ -778,11 +778,11 @@ const QueryWorkspace: React.FC = () => {
       {/* Save Query Dialog */}
       {saveDialogOpen && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-darkNav p-4 rounded-lg shadow-lg w-96">
+          <div className="bg-popover p-4 rounded-lg shadow-lg w-96">
             <h3 className="text-lg font-medium mb-4">Save Query</h3>
             <input
               type="text"
-              className="w-full p-2 bg-background border border-white/10 rounded mb-4"
+              className="w-full p-2 bg-background border border-border rounded mb-4"
               placeholder="Enter query name"
               value={queryName}
               onChange={(e) => setQueryName(e.target.value)}

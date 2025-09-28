@@ -44,35 +44,35 @@ export const NotebookEditor: React.FC<NotebookEditorProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="bg-black border border-white/10 rounded shadow-xl min-w-80 p-4">
-      <h3 className="text-sm font-medium text-white mb-3">{title}</h3>
+    <div className="bg-popover border border-border rounded shadow-xl min-w-80 p-4">
+      <h3 className="text-sm font-medium text-foreground mb-3">{title}</h3>
       
       <div className="space-y-3">
         <div>
-          <label className="block text-xs text-white/60 mb-1">Name</label>
+          <label className="block text-xs text-muted-foreground mb-1">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="Untitled Notebook"
-            className="w-full px-3 py-2 bg-background border border-white/10 rounded text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-primary/50"
+            className="w-full px-3 py-2 bg-background border border-border rounded text-sm text-foreground placeholder:placeholder-muted-foreground focus:outline-none focus:border-primary/50"
             autoFocus
           />
         </div>
         
         <div>
-          <label className="block text-xs text-white/60 mb-1">Description</label>
+          <label className="block text-xs text-muted-foreground mb-1">Description</label>
           <textarea
             value={description}
             onChange={(e) => handleDescriptionChange(e.target.value)}
             placeholder="Optional description..."
             rows={3}
-            className="w-full px-3 py-2 bg-background border border-white/10 rounded text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-primary/50 resize-none"
+            className="w-full px-3 py-2 bg-background border border-border rounded text-sm text-foreground placeholder:placeholder-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
           />
         </div>
         
-        <div className="pt-2 border-t border-white/10">
-          <p className="text-xs text-white/50 text-center">
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
             Changes are saved automatically
           </p>
         </div>
