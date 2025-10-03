@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useAIStore } from "@/store/aiStore";
 import { useQueryResultsImport } from "@/hooks/query/useQueryResultsImport";
+import { useExportProvider } from "@/hooks/query/useExportProvider";
 import QueryResults from "@/components/tabs/query/query-results/QueryResults";
-import SaveAsTableModal from "@/components/tabs/query/query-results/SaveAsTableModal";
+import ExportResultsModal from "@/components/tabs/query/query-results/ExportResultsModal";
 
 interface ResultsPanelProps {
   height: number;
@@ -21,31 +22,24 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ height, activeFile }) => {
   const { queryResults } = useAIStore();
   const { isImporting, importQueryResultsAsTable } = useQueryResultsImport();
   const [showSaveAsTableModal, setShowSaveAsTableModal] = useState(false);
+
+  // Hook for export functionality
+  const { handleExportWithProvider } = useExportProvider(
+    {
+      results: queryResults?.data || [],
+      columns: queryResults?.columns || [],
+      query: queryResults?.executedSQL,
+      sourceFileName: activeFile?.fileName || activeFile?.tableName || 'ai_query_results'
+    },
+    activeFile,
+    () => setShowSaveAsTableModal(false)
+  );
   
   // Handle opening the save as table modal
   const handleImportAsTable = useCallback(() => {
     setShowSaveAsTableModal(true);
   }, []);
   
-  // Handle confirming table import with custom name
-  const handleConfirmImportAsTable = useCallback(async (tableName: string) => {
-    if (!queryResults?.data || !queryResults?.columns) return;
-    
-
-    // Use dynamic source file name based on active file or fallback to ai_query_results
-    const sourceFileName = activeFile?.fileName || activeFile?.tableName || 'ai_query_results';
-    // Pass the executed SQL for VIEW creation of large datasets and the custom table name
-    const success = await importQueryResultsAsTable(
-      queryResults.data, 
-      queryResults.columns, 
-      sourceFileName,
-      queryResults.executedSQL,
-      tableName
-    );
-    if (success) {
-      setShowSaveAsTableModal(false);
-    }
-  }, [queryResults, importQueryResultsAsTable, activeFile]);
   
   if (!queryResults) {
     return (
@@ -95,12 +89,15 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ height, activeFile }) => {
         />
       </div>
       
-      {/* Save As Table Modal */}
-      <SaveAsTableModal
+      {/* Export Modal */}
+      <ExportResultsModal
         isOpen={showSaveAsTableModal}
         onClose={() => setShowSaveAsTableModal(false)}
-        onConfirm={handleConfirmImportAsTable}
-        isImporting={isImporting}
+        onConfirm={handleExportWithProvider}
+        isExporting={isImporting}
+        results={queryResults.data}
+        columns={queryResults.columns}
+        query={queryResults.executedSQL}
         rowCount={queryResults.totalRows}
         columnCount={queryResults.columns?.length || 0}
         sourceFileName={activeFile?.fileName || activeFile?.tableName || 'ai_query_results'}

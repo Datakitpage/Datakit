@@ -30,7 +30,7 @@ import SchemaBrowser from "./SchemaBrowser";
 import MonacoEditor from "./MonacoEditor";
 import QueryHistory from "./QueryHistory";
 import QueryResults from "./query-results/QueryResults";
-import SaveAsTableModal from "./query-results/SaveAsTableModal";
+import ExportResultsModal from "./query-results/ExportResultsModal";
 import { DraftBadge } from "@/components/tabs/query/DraftBadge";
 import { Button } from "@/components/ui/Button";
 
@@ -39,6 +39,7 @@ import { useQueryExecution } from "@/hooks/query/useQueryExecution";
 import { useQueryHistory } from "@/hooks/query/useQueryHistory";
 import { useQueryOptimization } from "@/hooks/query/useQueryOptimization";
 import { useQueryResultsImport } from "@/hooks/query/useQueryResultsImport";
+import { useExportProvider } from "@/hooks/query/useExportProvider";
 import { useWorkspaceUIState } from "./useWorkspaceUIState";
 
 // Constants for panel dimensions
@@ -136,7 +137,19 @@ const QueryWorkspace: React.FC = () => {
     useQueryOptimization();
 
   // Hook for importing query results as table
-  const { isImporting: isImportingAsTable, importQueryResultsAsTable } = useQueryResultsImport();
+  const { isImporting: isImportingAsTable } = useQueryResultsImport();
+
+  // Hook for export functionality
+  const { handleExportWithProvider } = useExportProvider(
+    {
+      results,
+      columns,
+      query,
+      sourceFileName: activeFile?.fileName || activeFile?.tableName
+    },
+    activeFile,
+    () => setShowSaveAsTableModal(false)
+  );
 
   // Schema browser width state
   const [schemaBrowserWidth, setSchemaBrowserWidth] = useState(() => {
@@ -242,16 +255,6 @@ const QueryWorkspace: React.FC = () => {
     setShowSaveAsTableModal(true);
   }, []);
 
-  // Handle confirming table import with custom name
-  const handleConfirmImportAsTable = useCallback(async (tableName: string) => {
-    // Get the source file name from active file context
-    const sourceFileName = activeFile?.fileName || activeFile?.tableName;
-    // Pass the current query for VIEW creation of large datasets and the custom table name
-    const success = await importQueryResultsAsTable(results, columns, sourceFileName, query, tableName);
-    if (success) {
-      setShowSaveAsTableModal(false);
-    }
-  }, [results, columns, activeFile, query, importQueryResultsAsTable]);
 
   // Memoized event handlers to prevent unnecessary re-renders
   const handleExecuteQuery = useCallback(async () => {
@@ -836,12 +839,15 @@ const QueryWorkspace: React.FC = () => {
         </div>
       )}
 
-      {/* Save As Table Modal */}
-      <SaveAsTableModal
+      {/* Export Modal */}
+      <ExportResultsModal
         isOpen={showSaveAsTableModal}
         onClose={() => setShowSaveAsTableModal(false)}
-        onConfirm={handleConfirmImportAsTable}
-        isImporting={isImportingAsTable}
+        onConfirm={handleExportWithProvider}
+        isExporting={isImportingAsTable}
+        results={results}
+        columns={columns}
+        query={query}
         rowCount={totalRows}
         columnCount={columns?.length || 0}
         sourceFileName={activeFile?.fileName || activeFile?.tableName}
