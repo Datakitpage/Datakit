@@ -3,18 +3,23 @@ export function createCorsOriginChecker(allowedOrigins: string[]) {
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void,
   ) => {
-    // Allow requests with no origin (like mobile apps or Postman)
-    if (!origin) {
-      return callback(null, true);
-    }
+    try {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) {
+        return callback(null, true);
+      }
 
-    // Check if origin matches any allowed pattern
-    if (isOriginAllowed(origin, allowedOrigins)) {
-      return callback(null, true);
-    }
+      // Check if origin matches any allowed pattern
+      if (isOriginAllowed(origin, allowedOrigins)) {
+        return callback(null, true);
+      }
 
-    // Reject other origins
-    callback(new Error('Not allowed by CORS'));
+      // Reject other origins
+      callback(new Error('Not allowed by CORS'));
+    } catch (error) {
+      console.error('[CORS] Error checking origin:', error);
+      callback(new Error('Not allowed by CORS'));
+    }
   };
 }
 
@@ -101,8 +106,11 @@ export function parseAllowedOrigins(
     return defaultOrigins;
   }
 
-  return originsString
+  const parsedOrigins = originsString
     .split(',')
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
+
+  // Merge parsed origins with default origins (remove duplicates)
+  return [...new Set([...defaultOrigins, ...parsedOrigins])];
 }

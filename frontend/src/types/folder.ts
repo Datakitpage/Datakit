@@ -38,6 +38,12 @@ export interface FileData {
   fileType?: FileType;
   /** For linked folders - original file path */
   originalPath?: string;
+  /** Number of rows in the table */
+  rowCount?: number;
+  /** Number of columns in the table */
+  columnCount?: number;
+  /** Original source file name for temporary tables */
+  sourceFileName?: string;
 }
 
 export interface FolderNode {
@@ -51,10 +57,10 @@ export interface FolderNode {
   parentId: string | null;
   /** Child nodes (only for folders) */
   children?: FolderNode[];
-  
+
   /** File-specific data */
   fileData?: FileData;
-  
+
   /** Folder-specific properties */
   folderData?: {
     /** Is this the Draft folder? */
@@ -68,7 +74,7 @@ export interface FolderNode {
     /** Is this the Temporary Tables folder? */
     isTemp?: boolean;
   };
-  
+
   /** UI state */
   isExpanded?: boolean;
   isSelected?: boolean;

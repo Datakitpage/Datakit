@@ -396,14 +396,12 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
                 contents: [
                   { value: `**${wordText}** (MotherDuck Database)` },
                   {
-                    value: `Tables: ${
-                      tables.filter((t) => t.type === "table").length
-                    }`,
+                    value: `Tables: ${tables.filter((t) => t.type === "table").length
+                      }`,
                   },
                   {
-                    value: `Views: ${
-                      tables.filter((t) => t.type === "view").length
-                    }`,
+                    value: `Views: ${tables.filter((t) => t.type === "view").length
+                      }`,
                   },
                 ],
               };
@@ -533,7 +531,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
         run: () => {
           const selection = editor.getSelection();
           const hasSelection = selection && !selection.isEmpty();
-          
+
           if (hasSelection && onExecuteSelection) {
             const selectedText = editor.getModel()?.getValueInRange(selection);
             if (selectedText && selectedText.trim()) {
@@ -541,7 +539,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
               return;
             }
           }
-          
+
           if (onExecute) onExecute();
         }
       });
@@ -569,7 +567,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       // Auto-height functionality when height is "auto"
       if (height === "auto") {
         let updateTimeoutId: NodeJS.Timeout;
-        
+
         const updateHeight = () => {
           clearTimeout(updateTimeoutId);
           updateTimeoutId = setTimeout(() => {
@@ -578,7 +576,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
 
             const lineCount = model.getLineCount();
             const lineHeight = editor.getOption(monacoInstance.editor.EditorOption.lineHeight);
-            
+
             // Calculate content height
             const contentHeight = lineCount * lineHeight;
             const padding = 10; // Small padding
@@ -586,8 +584,8 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
               contentHeight + padding,
               minHeight || 80
             );
-            
-            const finalHeight = maxHeight 
+
+            const finalHeight = maxHeight
               ? Math.min(calculatedHeight, maxHeight)
               : calculatedHeight;
 
@@ -597,7 +595,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
               // Update container height
               container.style.height = `${finalHeight}px`;
               container.parentElement.style.height = `${finalHeight}px`;
-              
+
               // Layout editor
               editor.layout();
             }
@@ -606,7 +604,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
 
         // Listen for content changes
         const disposable = editor.onDidChangeModelContent(updateHeight);
-        
+
         // Initial update
         updateHeight();
 
@@ -631,7 +629,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
         theme="vs-dark"
         options={{
           minimap: { enabled: false },
-          scrollBeyondLastLine: false,
+
           wordWrap: "on",
           wrappingIndent: "indent",
           automaticLayout: true,

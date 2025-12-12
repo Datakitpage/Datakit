@@ -21,6 +21,7 @@ import {
 import { PaginatedQueryResult } from "@/lib/duckdb/types";
 import { ColumnType } from "@/types/csv";
 import { PostgreSQLConnection, PostgreSQLTable } from "@/types/postgres";
+import { DatabricksVirtualTable } from "@/types/databricks";
 
 import { SAMPLE_EMPLOYEES_DATA } from "./constants";
 import {
@@ -194,6 +195,11 @@ interface DuckDBState {
   };
   setPostgreSQLAutoImportThreshold: (bytes: number) => void;
   importPostgreSQLTableData: (tableKey: string, forceImport?: boolean) => Promise<void>;
+
+  // Databricks state
+  databricksVirtualTables: Map<string, DatabricksVirtualTable>;
+  addVirtualDatabricksTable: (table: DatabricksVirtualTable) => void;
+  removeVirtualDatabricksTable: (tableKey: string) => void;
 }
 
 export const useDuckDBStore = create<DuckDBState>((set, get) => ({
@@ -219,6 +225,9 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
   motherDuckDatabases: [],
   selectedMotherDuckDatabase: null,
   motherDuckSchemas: new Map(),
+
+  // Databricks initial state
+  databricksVirtualTables: new Map(),
 
   // PostgreSQL initial state - Bridge to postgresStore
   postgresConnections: new Map(),
@@ -247,8 +256,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       });
 
       console.log(
-        `[DuckDBStore] DuckDB initialized successfully in ${
-          isDevelopment ? "development" : "production"
+        `[DuckDBStore] DuckDB initialized successfully in ${isDevelopment ? "development" : "production"
         } mode`
       );
 
@@ -259,9 +267,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     } catch (err) {
       console.error("[DuckDBStore] Failed to initialize DuckDB:", err);
       set({
-        error: `Failed to initialize DuckDB: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        error: `Failed to initialize DuckDB: ${err instanceof Error ? err.message : String(err)
+          } `,
         isInitializing: false,
       });
       return false;
@@ -277,18 +284,18 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     }
 
     try {
-      console.log(`[DuckDBStore] Creating sample table: ${sampleTableName}`);
+      console.log(`[DuckDBStore] Creating sample table: ${sampleTableName} `);
 
       // Create the sample table
       const escapedTableName = `"${sampleTableName}"`;
       const createTableSQL = `
         CREATE TABLE ${escapedTableName} (
-          id INTEGER,
-          name VARCHAR,
-          department VARCHAR,
-          salary INTEGER
+  id INTEGER,
+    name VARCHAR,
+      department VARCHAR,
+        salary INTEGER
         )
-      `;
+`;
 
       await connection.query(createTableSQL);
 
@@ -300,7 +307,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       const insertSQL = `
         INSERT INTO ${escapedTableName} (id, name, department, salary)
         VALUES ${values}
-      `;
+`;
 
       await connection.query(insertSQL);
 
@@ -320,7 +327,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       // Refresh schema cache
       await get().refreshSchemaCache();
     } catch (err) {
-      console.error(`[DuckDBStore] Failed to create sample table:`, err);
+      console.error(`[DuckDBStore] Failed to create sample table: `, err);
       throw err;
     }
   },
@@ -347,7 +354,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           newCache.set(tableName, schema);
         } catch (err) {
           console.warn(
-            `[DuckDBStore] Failed to get schema for ${tableName}:`,
+            `[DuckDBStore] Failed to get schema for ${tableName}: `,
             err
           );
         }
@@ -363,7 +370,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         `[DuckDBStore] Schema cache refreshed for ${newCache.size} tables`
       );
     } catch (err) {
-      console.error(`[DuckDBStore] Failed to refresh schema cache:`, err);
+      console.error(`[DuckDBStore] Failed to refresh schema cache: `, err);
     }
   },
 
@@ -380,9 +387,9 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
     try {
       set({ isLoading: true, processingStatus: "Creating table structure..." });
-      console.log(`[DuckDBStore] Creating table: ${tableName}`);
-      console.log(`[DuckDBStore] Headers:`, headers);
-      console.log(`[DuckDBStore] Column types:`, columnTypes);
+      console.log(`[DuckDBStore] Creating table: ${tableName} `);
+      console.log(`[DuckDBStore] Headers: `, headers);
+      console.log(`[DuckDBStore] Column types: `, columnTypes);
 
       // Convert ColumnType to DuckDB type
       const duckDBTypeFromColumnType = (colType: ColumnType): string => {
@@ -451,9 +458,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     } catch (err) {
       console.error(`[DuckDBStore] Failed to create table:`, err);
       set({
-        error: `Failed to create table: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        error: `Failed to create table: ${err instanceof Error ? err.message : String(err)
+          }`,
         isLoading: false,
       });
       throw err;
@@ -500,8 +506,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       for (let i = 0; i < data.length; i += batchSize) {
         const currentBatch = Math.floor(i / batchSize) + 1;
         console.log(
-          `[DuckDBStore] Processing batch ${currentBatch}/${totalBatches} (rows ${
-            i + 1
+          `[DuckDBStore] Processing batch ${currentBatch}/${totalBatches} (rows ${i + 1
           }-${Math.min(i + batchSize, data.length)})`
         );
 
@@ -618,9 +623,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     } catch (err) {
       console.error(`[DuckDBStore] Failed to insert data into DuckDB:`, err);
       set({
-        error: `Failed to insert data: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        error: `Failed to insert data: ${err instanceof Error ? err.message : String(err)
+          }`,
         isLoading: false,
         processingProgress: 0,
         processingStatus: "",
@@ -703,26 +707,26 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       // POSTGRESQL DETECTION: Check if query references PostgreSQL tables
       const postgresTablePattern = /"([^"]+)"\."([^"]+)"/g;
       const postgresMatches = [...sql.matchAll(postgresTablePattern)];
-      
+
       console.log(`[DuckDBStore] Query analysis:`, {
         sql: sql,
         matches: postgresMatches.length,
         patterns: postgresMatches.map(match => ({ schema: match[1], table: match[2] }))
       });
-      
+
       if (postgresMatches.length > 0) {
         // This looks like a PostgreSQL query, try to route it
         console.log(`[DuckDBStore] Detected PostgreSQL table references:`, postgresMatches);
-        
+
         // Find the connection for these tables
         const { postgresVirtualTables, postgresActiveConnections } = get();
         console.log(`[DuckDBStore] Available PostgreSQL state:`, {
           virtualTables: Array.from(postgresVirtualTables.entries()),
           activeConnections: Array.from(postgresActiveConnections)
         });
-        
+
         let targetConnectionId = null;
-        
+
         for (const [schemaName, tableName] of postgresMatches) {
           // Look for a matching virtual table
           for (const [tableKey, table] of postgresVirtualTables) {
@@ -733,10 +737,10 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           }
           if (targetConnectionId) break;
         }
-        
+
         if (targetConnectionId && postgresActiveConnections.has(targetConnectionId)) {
           console.log(`[DuckDBStore] Routing query to PostgreSQL connection: ${targetConnectionId}`);
-          
+
           try {
             // Route to PostgreSQL service
             const { postgreSQLService } = await import('@/lib/api/postgresService');
@@ -744,14 +748,14 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
               sql: sql, // Use original SQL, not processed
               timeout: 30000,
             });
-            
+
             set({ isLoading: false });
-            
+
             if (result.success && result.data) {
               // Convert PostgreSQL result to DuckDB-like format
               const headers = result.columns?.map(col => col.name) || [];
               const rows = result.data || [];
-              
+
               // Create a mock DuckDB result structure
               const mockResult = {
                 toArray: () => rows,
@@ -760,7 +764,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
                 numCols: headers.length,
                 numRows: rows.length,
               };
-              
+
               console.log(`[DuckDBStore] PostgreSQL query executed successfully: ${rows.length} rows`);
               return mockResult;
             } else {
@@ -769,13 +773,80 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           } catch (pgError) {
             console.error(`[DuckDBStore] PostgreSQL query execution failed:`, pgError);
             set({
-              error: `PostgreSQL query error: ${
-                pgError instanceof Error ? pgError.message : String(pgError)
-              }`,
+              error: `PostgreSQL query error: ${pgError instanceof Error ? pgError.message : String(pgError)
+                }`,
               isLoading: false,
             });
             return null;
           }
+        }
+      }
+
+      // DATABRICKS DETECTION: Check if query references Databricks tables
+      const { databricksVirtualTables } = get();
+
+      let targetDatabricksTable: DatabricksVirtualTable | undefined = undefined;
+
+      if (databricksVirtualTables && databricksVirtualTables.size > 0) {
+        console.log(`[DuckDBStore] checking ${databricksVirtualTables.size} virtual tables for query match...`);
+        for (const [key, table] of databricksVirtualTables.entries()) {
+          // Check if query contains catalog.schema.table (quoted or unquoted)
+          const fullPathQuoted = `"${table.catalog}"."${table.schema}"."${table.tableName}"`;
+          const fullPathUnquoted = `${table.catalog}.${table.schema}.${table.tableName}`;
+
+          // Case insensitive check
+          const sqlLower = sql.toLowerCase();
+          const match = sqlLower.includes(fullPathQuoted.toLowerCase()) || sqlLower.includes(fullPathUnquoted.toLowerCase());
+
+          if (match) {
+            console.log(`[DuckDBStore] Matched Databricks table: ${key}`);
+            targetDatabricksTable = table;
+            break;
+          }
+        }
+      } else {
+        console.warn('[DuckDBStore] No virtual Databricks tables found to match against.');
+      }
+
+      if (targetDatabricksTable) {
+        try {
+          const { databricksService } = await import('@/lib/api/databricksService');
+
+          const response = await databricksService.executeQuery(
+            targetDatabricksTable.connection,
+            sql
+          );
+
+          set({ isLoading: false });
+
+          // Backend returns: { statusCode, message, data: { rows, columns } }
+          // ApiClient likely returns the response body directly
+          const resultData = response.data;
+
+          if (resultData) {
+            const rows = resultData.rows || [];
+            const schema = resultData.columns || [];
+            const headers = schema.map((c: any) => c.name || c.columnName || c);
+
+            const mockResult = {
+              toArray: () => rows,
+              columns: headers,
+              columnNames: headers,
+              numCols: headers.length,
+              numRows: rows.length,
+            };
+            console.log(`[DuckDBStore] Databricks query executed successfully: ${rows.length} rows`);
+            return mockResult as any;
+          } else {
+            throw new Error('Databricks query failed: No data returned');
+          }
+        } catch (dbError: any) {
+          console.error(`[DuckDBStore] Databricks query execution failed:`, dbError);
+          set({
+            error: `Databricks query error: ${dbError.message || String(dbError)}`,
+            isLoading: false,
+          });
+          return null;
         }
       }
 
@@ -817,9 +888,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     } catch (err) {
       console.error(`[DuckDBStore] Query execution error:`, err);
       set({
-        error: `Query execution error: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        error: `Query execution error: ${err instanceof Error ? err.message : String(err)
+          }`,
         isLoading: false,
       });
       return null;
@@ -858,7 +928,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       // Check if this is a PostgreSQL virtual table
       let isPostgreSQLTable = false;
       let postgresTableInfo = null;
-      
+
       // Check if tableName matches PostgreSQL format (schema.table)
       if (tableName.includes('.')) {
         // Look for matching PostgreSQL virtual table
@@ -873,7 +943,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       }
 
       let schema;
-      
+
       if (isPostgreSQLTable && postgresTableInfo) {
         // For PostgreSQL tables, use the stored column information
         schema = postgresTableInfo.columns || [];
@@ -933,7 +1003,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
   dropTable: async (tableName: string) => {
     const { connection } = get();
-    
+
     if (!connection) {
       console.error('[DuckDBStore] Cannot drop table: no connection');
       return false;
@@ -942,9 +1012,9 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     try {
       // Create a sanitized table name for the query
       const escapedTableName = tableName.replace(/[^a-zA-Z0-9_]/g, '_');
-      
+
       const dropQuery = `DROP TABLE IF EXISTS "${escapedTableName}"`;
-      
+
       if (isDevelopment) {
         console.log(`[DuckDBStore] Dropping table: ${dropQuery}`);
       }
@@ -961,7 +1031,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       }
 
       // Update state
-      set({ 
+      set({
         registeredTables,
         lastSchemaCacheUpdate: 0  // Force schema cache refresh
       });
@@ -980,7 +1050,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
   dropView: async (viewName: string) => {
     const { connection } = get();
-    
+
     if (!connection) {
       console.error('[DuckDBStore] Cannot drop view: no connection');
       return false;
@@ -989,9 +1059,9 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     try {
       // Create a sanitized view name for the query
       const escapedViewName = viewName.replace(/[^a-zA-Z0-9_]/g, '_');
-      
+
       const dropQuery = `DROP VIEW IF EXISTS "${escapedViewName}"`;
-      
+
       if (isDevelopment) {
         console.log(`[DuckDBStore] Dropping view: ${dropQuery}`);
       }
@@ -1008,7 +1078,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       }
 
       // Update state
-      set({ 
+      set({
         registeredTables,
         lastSchemaCacheUpdate: 0  // Force schema cache refresh
       });
@@ -1027,7 +1097,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
   dropTableOrView: async (objectName: string) => {
     const { connection } = get();
-    
+
     if (!connection) {
       console.error('[DuckDBStore] Cannot drop table/view: no connection');
       return false;
@@ -1036,10 +1106,10 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     try {
       // Create a sanitized name for the query
       const rawName = objectName.replace(/[^a-zA-Z0-9_]/g, '_');
-      
+
       // First check what type of object this is (table or view)
       const objectType = await get().getObjectType(rawName);
-      
+
       if (objectType === 'table') {
         return await get().dropTable(rawName);
       } else if (objectType === 'view') {
@@ -1049,11 +1119,11 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         if (isDevelopment) {
           console.log(`[DuckDBStore] Object type unknown for ${rawName}, attempting cleanup`);
         }
-        
+
         // Try dropping as table first, then as view
         const tableDropped = await get().dropTable(rawName);
         const viewDropped = await get().dropView(rawName);
-        
+
         return tableDropped || viewDropped;
       }
     } catch (error) {
@@ -1106,7 +1176,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
         const baseName = fileName.replace(/\.[^/.]+$/, "");
         let attachName = baseName.replace(/[^a-zA-Z0-9_]/g, "_");
-        
+
         // Check if database with this name already exists and generate unique name if needed
         const existingTables = Array.from(get().registeredTables.keys());
         const attachedDatabases = new Set(
@@ -1114,7 +1184,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
             .filter(name => name.includes('.'))
             .map(name => name.split('.')[0])
         );
-        
+
         if (attachedDatabases.has(attachName)) {
           // Add timestamp to make it unique
           attachName = `${attachName}_${Date.now()}`;
@@ -1145,7 +1215,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           } catch (e) {
             // Database doesn't exist, which is expected
           }
-          
+
           // Attach the database file
           const attachQuery = `ATTACH '${registeredFileName}' AS ${attachName} (READ_ONLY)`;
           console.log(`[DuckDBStore] Attaching database: ${attachQuery}`);
@@ -1171,14 +1241,14 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           // Register each table from the attached database
           const newTables = new Map(get().registeredTables);
           const originalBaseName = fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]/g, "_");
-          
+
           for (const table of tables) {
             const tableName = table.table_name;
             // Register with the actual attached database name
             const qualifiedName = `${attachName}.${tableName}`;
             newTables.set(qualifiedName, `"${attachName}"."${tableName}"`);
             console.log(`[DuckDBStore] Registered table: ${qualifiedName}`);
-            
+
             // Also register with the original base name for user convenience
             if (attachName !== originalBaseName) {
               const originalQualifiedName = `${originalBaseName}.${tableName}`;
@@ -1325,8 +1395,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
                 } catch (err3) {
                   console.log(`[DuckDBStore] All approaches failed:`, err3);
                   throw new Error(
-                    `Failed to import ${delimiterName}-delimited TXT file: ${
-                      err3 instanceof Error ? err3.message : String(err3)
+                    `Failed to import ${delimiterName}-delimited TXT file: ${err3 instanceof Error ? err3.message : String(err3)
                     }`
                   );
                 }
@@ -1363,9 +1432,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
               isLoading: false,
               processingStatus: `TXT imported: ${(
                 fileSizeMB || fileSize
-              ).toFixed(2)}MB table with ${count} rows, ${
-                columns.length
-              } columns (${delimiterName}-delimited)`,
+              ).toFixed(2)}MB table with ${count} rows, ${columns.length
+                } columns (${delimiterName}-delimited)`,
               processingProgress: 1.0,
             });
 
@@ -1474,9 +1542,9 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         if (fileSizeMB > MAX_EXCEL_SIZE) {
           throw new Error(
             `Excel files over ${MAX_EXCEL_SIZE}MB are not supported due to browser memory limitations. ` +
-              `Current file: ${fileSizeMB.toFixed(
-                2
-              )}MB. Please convert to CSV or Parquet format.`
+            `Current file: ${fileSizeMB.toFixed(
+              2
+            )}MB. Please convert to CSV or Parquet format.`
           );
         }
 
@@ -1695,8 +1763,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         }
 
         console.log(
-          `[DuckDBStore] Executing ${queryType} creation (${
-            useTableApproach ? "table" : "view"
+          `[DuckDBStore] Executing ${queryType} creation (${useTableApproach ? "table" : "view"
           } approach)`
         );
         set({ processingProgress: 0.7 });
@@ -1861,7 +1928,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
         const baseName = fileName.replace(/\.[^/.]+$/, "");
         let attachName = baseName.replace(/[^a-zA-Z0-9_]/g, "_");
-        
+
         // Check if database with this name already exists and generate unique name if needed
         const existingTables = Array.from(get().registeredTables.keys());
         const attachedDatabases = new Set(
@@ -1869,7 +1936,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
             .filter(name => name.includes('.'))
             .map(name => name.split('.')[0])
         );
-        
+
         if (attachedDatabases.has(attachName)) {
           // Add timestamp to make it unique
           attachName = `${attachName}_${Date.now()}`;
@@ -1900,7 +1967,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           } catch (e) {
             // Database doesn't exist, which is expected
           }
-          
+
           // Attach the database file
           const attachQuery = `ATTACH '${registeredFileName}' AS ${attachName} (READ_ONLY)`;
           console.log(`[DuckDBStore] Attaching database: ${attachQuery}`);
@@ -1926,14 +1993,14 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           // Register each table from the attached database
           const newTables = new Map(get().registeredTables);
           const originalBaseName = fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]/g, "_");
-          
+
           for (const table of tables) {
             const tableName = table.table_name;
             // Register with the actual attached database name
             const qualifiedName = `${attachName}.${tableName}`;
             newTables.set(qualifiedName, `"${attachName}"."${tableName}"`);
             console.log(`[DuckDBStore] Registered table: ${qualifiedName}`);
-            
+
             // Also register with the original base name for user convenience
             if (attachName !== originalBaseName) {
               const originalQualifiedName = `${originalBaseName}.${tableName}`;
@@ -2079,8 +2146,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
                 } catch (err3) {
                   console.log(`[DuckDBStore] All approaches failed:`, err3);
                   throw new Error(
-                    `Failed to import ${delimiterName}-delimited TXT file: ${
-                      err3 instanceof Error ? err3.message : String(err3)
+                    `Failed to import ${delimiterName}-delimited TXT file: ${err3 instanceof Error ? err3.message : String(err3)
                     }`
                   );
                 }
@@ -2117,9 +2183,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
               isLoading: false,
               processingStatus: `TXT imported: ${(fileSize || fileSize).toFixed(
                 2
-              )}MB table with ${count} rows, ${
-                columns.length
-              } columns (${delimiterName}-delimited)`,
+              )}MB table with ${count} rows, ${columns.length
+                } columns (${delimiterName}-delimited)`,
               processingProgress: 1.0,
             });
 
@@ -2342,8 +2407,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         } catch (convErr) {
           console.error(`[DuckDBStore] Excel conversion failed:`, convErr);
           throw new Error(
-            `Excel conversion failed: ${
-              convErr instanceof Error ? convErr.message : String(convErr)
+            `Excel conversion failed: ${convErr instanceof Error ? convErr.message : String(convErr)
             }`
           );
         }
@@ -2454,9 +2518,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       console.error(`[DuckDBStore] Direct file import failed:`, err);
 
       // Provide clearer error messages based on common failures
-      let errorMessage = `Import failed: ${
-        err instanceof Error ? err.message : String(err)
-      }`;
+      let errorMessage = `Import failed: ${err instanceof Error ? err.message : String(err)
+        }`;
 
       if (err instanceof Error) {
         const errMsg = err.message.toLowerCase();
@@ -2515,34 +2578,117 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
     try {
       set({ isLoading: true, error: null });
-      
+
       // QUERY ROUTING: Use unified query router to determine execution target
-      const { postgresVirtualTables, postgresActiveConnections } = get();
+      const { postgresVirtualTables, postgresActiveConnections, databricksVirtualTables } = get();
       const { analyzeQuery } = await import('@/lib/duckdb/utils/queryRouter');
-      
+
       const routingResult = analyzeQuery(
         sql,
         postgresVirtualTables,
         postgresActiveConnections,
-        new Set() // TODO: Add MotherDuck databases when available
+        new Set(), // TODO: Add MotherDuck databases when available
+        databricksVirtualTables // Pass Databricks tables for routing
       );
-      
-      console.log(`[DuckDBStore] Paginated query routing analysis:`, {
-        sql: sql,
-        target: routingResult.target,
-        confidence: routingResult.confidence,
-        reasoning: routingResult.reasoning,
-        postgresqlTables: routingResult.postgresqlTables,
-        connectionId: routingResult.connectionId
-      });
-      
+
+      // Handle Databricks Routing
+      if (routingResult.target === 'databricks' && routingResult.databricksTables.length > 0) {
+        console.log(`[DuckDBStore] Routing paginated query to Databricks`);
+
+        try {
+          const { databricksService } = await import('@/lib/api/databricksService');
+
+          // Find the connection from the first matched table
+          // In a real scenario with cross-connection queries, we might need more complex logic
+          // But typically queries target one connection
+          const ref = routingResult.databricksTables[0];
+          let targetTable: any;
+
+          // Find the virtual table object to get the connection details
+          // We need to match the ref back to the virtual table
+          for (const [_, table] of databricksVirtualTables.entries()) {
+            const fullPathUnquoted = `${table.catalog}.${table.schema}.${table.tableName}`;
+            // Check if this table matches the reference
+            if (
+              (ref.table === table.tableName && ref.schema === table.schema) ||
+              (ref.database === table.catalog && ref.schema === table.schema && ref.table === table.tableName)
+            ) {
+              targetTable = table;
+              break;
+            }
+          }
+
+          if (!targetTable) {
+            throw new Error('Could not find connection details for Databricks table');
+          }
+
+          console.log(`[DuckDBStore] Using connection from table: ${targetTable.tableName}`);
+
+          const result = await databricksService.executeQuery(
+            targetTable.connection,
+            sql,
+            applyPagination ? pageSize : 50000 // limit
+          ) as any;
+
+          set({ isLoading: false });
+
+          // Handle potential wrapping of response
+          // API should return { rows: [], columns: [] } directly
+          // but depending on interceptors/axios configuration it might be in data
+          let safeRows: any[] = [];
+          let safeColumns: any[] = [];
+
+          if (result && Array.isArray(result.rows)) {
+            safeRows = result.rows;
+            safeColumns = Array.isArray(result.columns) ? result.columns : [];
+          } else if (result?.data && Array.isArray(result.data.rows)) {
+            safeRows = result.data.rows;
+            safeColumns = Array.isArray(result.data.columns) ? result.data.columns : [];
+          }
+
+          // If columns are missing/invalid, try to infer from first row
+          if ((!safeColumns || safeColumns.length === 0) && safeRows.length > 0) {
+            const firstRow = safeRows[0];
+            if (firstRow && typeof firstRow === 'object') {
+              safeColumns = Object.keys(firstRow).map(k => ({ name: k }));
+            }
+          }
+
+          const headers = safeColumns.map((c: any) => {
+            if (typeof c === 'string') return c;
+            return c.name || c.columnName || c.toString();
+          });
+
+          const paginatedResult: PaginatedQueryResult = {
+            data: safeRows,
+            columns: headers,
+            // Use current page length if total is unknown to avoid "-1 rows" in UI
+            totalRows: safeRows.length,
+            page: page,
+            pageSize: pageSize,
+            totalPages: -1,
+            queryTime: 0
+          };
+
+          return paginatedResult;
+
+        } catch (dbError: any) {
+          console.error(`[DuckDBStore] Databricks query execution failed:`, dbError);
+          set({
+            error: `Databricks error: ${dbError.message || String(dbError)}`,
+            isLoading: false,
+          });
+          return null;
+        }
+      }
+
       if (routingResult.target === 'postgresql' && routingResult.connectionId) {
         console.log(`[DuckDBStore] Routing paginated query to PostgreSQL connection: ${routingResult.connectionId}`);
-        
+
         try {
           // Route to PostgreSQL service with pagination
           const { postgreSQLService } = await import('@/lib/api/postgresService');
-          
+
           // Add pagination to PostgreSQL query if requested
           let paginatedSql = sql;
           if (applyPagination) {
@@ -2550,19 +2696,19 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
             const { addLimitIfMissing } = await import('@/lib/duckdb/query/pagination');
             paginatedSql = addLimitIfMissing(sql, page, pageSize);
           }
-          
+
           const result = await postgreSQLService.executeQuery(routingResult.connectionId, {
             sql: paginatedSql,
             timeout: 30000,
           });
-          
+
           set({ isLoading: false });
-          
+
           if (result.success && result.data) {
             // Convert PostgreSQL result to paginated format
             const headers = result.columns?.map(col => col.name) || [];
             const rows = result.data || [];
-            
+
             // Create a mock paginated result structure
             const paginatedResult: PaginatedQueryResult = {
               data: rows,
@@ -2571,8 +2717,9 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
               page: page,
               pageSize: pageSize,
               totalPages: countTotalRows ? Math.ceil(rows.length / pageSize) : -1,
+              queryTime: 0
             };
-            
+
             console.log(`[DuckDBStore] PostgreSQL paginated query executed successfully: ${rows.length} rows`);
             return paginatedResult;
           } else {
@@ -2581,9 +2728,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         } catch (pgError) {
           console.error(`[DuckDBStore] PostgreSQL paginated query execution failed:`, pgError);
           set({
-            error: `PostgreSQL query error: ${
-              pgError instanceof Error ? pgError.message : String(pgError)
-            }`,
+            error: `PostgreSQL query error: ${pgError instanceof Error ? pgError.message : String(pgError)
+              }`,
             isLoading: false,
           });
           throw pgError;
@@ -2592,7 +2738,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         set({ isLoading: false });
         throw new Error(`Cross-database query not supported yet!\n\n${routingResult.reasoning}`);
       }
-      
+
       const transformedSql = get().transformQueryForExecution(sql);
 
       // SMART DETECTION: Analyze the query to determine execution target
@@ -2611,13 +2757,13 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         set({ isLoading: false });
         throw new Error(
           `Cross-database query detected!\n\n` +
-            `This query references both local and MotherDuck tables:\n` +
-            `• Local: ${queryAnalysis.localTables.join(", ")}\n` +
-            `• MotherDuck: ${queryAnalysis.motherDuckTables
-              .map((t) => `${t.database}.${t.name}`)
-              .join(", ")}\n\n` +
-            `DataKit will support cross database queries in future.\n` +
-            `Please run separate queries for each database.`
+          `This query references both local and MotherDuck tables:\n` +
+          `• Local: ${queryAnalysis.localTables.join(", ")}\n` +
+          `• MotherDuck: ${queryAnalysis.motherDuckTables
+            .map((t) => `${t.database}.${t.name}`)
+            .join(", ")}\n\n` +
+          `DataKit will support cross database queries in future.\n` +
+          `Please run separate queries for each database.`
         );
       }
 
@@ -2773,10 +2919,10 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         set({ isLoading: false });
         throw new Error(
           `This query references MotherDuck tables but you're not connected:\n` +
-            `${queryAnalysis.motherDuckTables
-              .map((t) => `• ${t.database}.${t.name}`)
-              .join("\n")}\n\n` +
-            `Please connect to MotherDuck first.`
+          `${queryAnalysis.motherDuckTables
+            .map((t) => `• ${t.database}.${t.name}`)
+            .join("\n")}\n\n` +
+          `Please connect to MotherDuck first.`
         );
       }
 
@@ -2809,9 +2955,8 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     } catch (err) {
       console.error(`[DuckDBStore] Paginated query execution error:`, err);
       set({
-        error: `Query execution error: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        error: `Query execution error: ${err instanceof Error ? err.message : String(err)
+          }`,
         isLoading: false,
       });
       throw err;
@@ -2849,7 +2994,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           if (!database && tableName.includes('.')) {
             const [possibleDb, ...tableNameParts] = tableName.split('.');
             const possibleTableName = tableNameParts.join('.');
-            
+
             // Only consider dot-splitting if we have exactly one dot and both parts are meaningful
             if (tableNameParts.length === 1 && possibleDb && possibleTableName) {
               // Check if the first part might be a database name by looking at registered tables
@@ -2861,7 +3006,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
                   attachedDatabases.add(dbName);
                 }
               });
-              
+
               if (attachedDatabases.has(possibleDb)) {
                 references.push({
                   name: possibleTableName,
@@ -2906,7 +3051,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
   transformQueryForExecution: (sql: string): string => {
     const state = get();
     const { registeredTables } = state;
-    
+
     // Get list of attached databases
     const attachedDatabases = new Set<string>();
     registeredTables.forEach((value, key) => {
@@ -2917,7 +3062,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     });
 
     console.log('[DuckDBStore] transformQueryForExecution - Attached databases:', Array.from(attachedDatabases));
-    
+
     if (attachedDatabases.size === 0) {
       return sql; // No transformations needed if no attached databases
     }
@@ -2925,10 +3070,10 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
     // Transform "database.table" format to "database"."table" format
     // This regex matches quoted identifiers that contain exactly one dot and the first part is an attached database
     let transformedSql = sql;
-    
+
     // Pattern to match "database.table" where database is attached
     const quotedDotPattern = /"([^"]+)\.([^"]+)"/g;
-    
+
     transformedSql = sql.replace(quotedDotPattern, (match, possibleDb, tableName) => {
       if (attachedDatabases.has(possibleDb) && tableName) {
         const replacement = `"${possibleDb}"."${tableName}"`;
@@ -2937,7 +3082,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       }
       return match; // Keep original if not an attached database
     });
-    
+
     return transformedSql;
   },
 
@@ -3030,13 +3175,13 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       }
 
       // No database specified - check if it's a local table
-      
+
       if (registeredTables.has(ref.name)) {
         localTables.push(ref.name);
         return;
       }
 
-      
+
       // If no database specified, check all MotherDuck databases for this table
       let foundInMotherDuck = false;
       motherDuckSchemas.forEach((schemas, databaseName) => {
@@ -3163,8 +3308,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
             const objectTypeLabel =
               objectInfo.type === "view" ? "view" : "table";
             console.log(
-              `[DuckDBStore] Discovered new ${objectTypeLabel}: ${
-                objectInfo.name
+              `[DuckDBStore] Discovered new ${objectTypeLabel}: ${objectInfo.name
               } with ${objectInfo.rowCount || 0} rows`
             );
           } catch (schemaErr) {
@@ -3604,11 +3748,11 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
   listAttachedDatabases: async () => {
     const { connection, isInitialized } = get();
-    
+
     if (!connection || !isInitialized) {
       return [];
     }
-    
+
     try {
       // Query DuckDB for attached databases
       const result = await connection.query(`
@@ -3616,13 +3760,13 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         FROM information_schema.tables
         WHERE table_catalog NOT IN ('memory', 'system', 'temp')
       `);
-      
+
       const databases = result.toArray();
       const dbList = [];
-      
+
       for (const db of databases) {
         const dbName = db.database_name;
-        
+
         // Count tables in each database
         const tableCountResult = await connection.query(`
           SELECT COUNT(*) as count
@@ -3630,11 +3774,11 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           WHERE table_catalog = '${dbName}'
           AND table_type = 'BASE TABLE'
         `);
-        
+
         const tableCount = tableCountResult.toArray()[0].count;
         dbList.push({ name: dbName, tables: tableCount });
       }
-      
+
       return dbList;
     } catch (err) {
       console.error('[DuckDBStore] Error listing attached databases:', err);
@@ -3645,33 +3789,33 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
   // Detach a database
   detachDatabase: async (databaseName: string) => {
     const { connection, isInitialized } = get();
-    
+
     if (!connection || !isInitialized) {
       throw new Error("DuckDB is not initialized");
     }
-    
+
     try {
       // Detach the database
       await connection.query(`DETACH ${databaseName}`);
       console.log(`[DuckDBStore] Detached database: ${databaseName}`);
-      
+
       // Remove tables from registered tables
       const newTables = new Map(get().registeredTables);
       const keysToRemove = [];
-      
+
       newTables.forEach((value, key) => {
         if (key.startsWith(`${databaseName}.`)) {
           keysToRemove.push(key);
         }
       });
-      
+
       keysToRemove.forEach(key => newTables.delete(key));
-      
+
       set({ registeredTables: newTables });
-      
+
       // Refresh schema cache
       await get().refreshSchemaCache();
-      
+
       console.log(`[DuckDBStore] Removed ${keysToRemove.length} tables from ${databaseName}`);
     } catch (err) {
       console.error(`[DuckDBStore] Error detaching database ${databaseName}:`, err);
@@ -3686,7 +3830,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       const { usePostgreSQLStore } = await import('@/store/postgresStore');
       const postgresState = usePostgreSQLStore.getState();
       const connection = postgresState.connections.find(c => c.id === connectionId);
-      
+
       if (!connection) {
         throw new Error(`PostgreSQL connection ${connectionId} not found`);
       }
@@ -3710,10 +3854,10 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       set((state) => {
         const newConnections = new Map(state.postgresConnections);
         newConnections.delete(connectionId);
-        
+
         const newActiveConnections = new Set(state.postgresActiveConnections);
         newActiveConnections.delete(connectionId);
-        
+
         // Remove virtual tables for this connection
         const newVirtualTables = new Map(state.postgresVirtualTables);
         for (const [key, table] of newVirtualTables) {
@@ -3721,11 +3865,11 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
             newVirtualTables.delete(key);
           }
         }
-        
+
         // Remove schemas for this connection
         const newSchemas = new Map(state.postgresSchemas);
         newSchemas.delete(connectionId);
-        
+
         return {
           postgresConnections: newConnections,
           postgresActiveConnections: newActiveConnections,
@@ -3733,7 +3877,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           postgresSchemas: newSchemas,
         };
       });
-      
+
       console.log(`[DuckDBStore] Disconnected from PostgreSQL: ${connectionId}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to disconnect from PostgreSQL';
@@ -3744,7 +3888,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
 
   addVirtualPostgreSQLTable: (connectionId: string, table: PostgreSQLTable, columns = []) => {
     const tableKey = `${connectionId}.${table.schemaName}.${table.tableName}`;
-    
+
     set((state) => {
       const newVirtualTables = new Map(state.postgresVirtualTables);
       newVirtualTables.set(tableKey, {
@@ -3759,10 +3903,10 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         isImported: false,
         estimatedSize: table.size ? parseInt(table.size.replace(/[^0-9]/g, '')) || 0 : 0,
       });
-      
+
       return { postgresVirtualTables: newVirtualTables };
     });
-    
+
     console.log(`[DuckDBStore] Added virtual PostgreSQL table: ${tableKey}`);
   },
 
@@ -3772,7 +3916,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       newVirtualTables.delete(tableKey);
       return { postgresVirtualTables: newVirtualTables };
     });
-    
+
     console.log(`[DuckDBStore] Removed virtual PostgreSQL table: ${tableKey}`);
   },
 
@@ -3781,7 +3925,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       const { postgreSQLService } = await import('@/lib/api/postgresService');
       const schemas = await postgreSQLService.getSchemas(connectionId);
       const allTables = await postgreSQLService.getAllTables(connectionId);
-      
+
       // Convert to our schema format
       const schemaMap = new Map();
       allTables.forEach(table => {
@@ -3795,7 +3939,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           tableType: table.tableType
         });
       });
-      
+
       set((state) => {
         const newSchemas = new Map(state.postgresSchemas);
         for (const [schemaName, tables] of schemaMap) {
@@ -3803,7 +3947,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         }
         return { postgresSchemas: newSchemas };
       });
-      
+
       console.log(`[DuckDBStore] Refreshed PostgreSQL schemas for connection: ${connectionId}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to refresh PostgreSQL schemas';
@@ -3827,7 +3971,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
   getAllAvailableTablesWithPostgreSQL: () => {
     const state = get();
     const tables = [];
-    
+
     // Add local tables
     const localTables = state.getAvailableTables();
     localTables.forEach(tableName => {
@@ -3836,7 +3980,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         source: "local" as const,
       });
     });
-    
+
     // Add MotherDuck tables (if connected)
     if (state.motherDuckConnected) {
       state.motherDuckDatabases.forEach(db => {
@@ -3850,7 +3994,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         });
       });
     }
-    
+
     // Add PostgreSQL virtual tables
     state.postgresVirtualTables.forEach((table, tableKey) => {
       tables.push({
@@ -3860,20 +4004,20 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
         isVirtual: !table.isImported,
       });
     });
-    
+
     return tables;
   },
 
   isPostgreSQLQuery: (sql: string) => {
     const state = get();
     const sqlLower = sql.toLowerCase();
-    
+
     const localTables: string[] = [];
     const postgreSQLTables: Array<{ name: string; connectionId: string; schemaName: string }> = [];
-    
+
     // Extract table references from SQL
     const tableReferences = state.extractTableReferences(sql);
-    
+
     for (const ref of tableReferences) {
       // Check if it's a virtual PostgreSQL table
       let foundPostgres = false;
@@ -3888,16 +4032,16 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           break;
         }
       }
-      
+
       if (!foundPostgres && state.getAvailableTables().includes(ref.name)) {
         localTables.push(ref.name);
       }
     }
-    
+
     const isPostgreSQL = postgreSQLTables.length > 0;
     const isHybrid = postgreSQLTables.length > 0 && localTables.length > 0;
     const targetConnection = postgreSQLTables.length > 0 ? postgreSQLTables[0].connectionId : undefined;
-    
+
     return {
       isPostgreSQL,
       targetConnection,
@@ -3915,27 +4059,27 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
   importPostgreSQLTableData: async (tableKey: string, forceImport = false) => {
     const state = get();
     const virtualTable = state.postgresVirtualTables.get(tableKey);
-    
+
     if (!virtualTable) {
       throw new Error(`Virtual table ${tableKey} not found`);
     }
-    
+
     if (virtualTable.isImported && !forceImport) {
       console.log(`[DuckDBStore] Table ${tableKey} already imported`);
       return;
     }
-    
+
     try {
       const { postgreSQLService } = await import('@/lib/api/postgresService');
-      
+
       // Check if we should auto-import based on size threshold
-      const shouldAutoImport = !virtualTable.estimatedSize || 
-        virtualTable.estimatedSize <= state.postgresAutoImportThreshold || 
+      const shouldAutoImport = !virtualTable.estimatedSize ||
+        virtualTable.estimatedSize <= state.postgresAutoImportThreshold ||
         forceImport;
-      
+
       if (shouldAutoImport) {
         console.log(`[DuckDBStore] Importing PostgreSQL table data: ${tableKey}`);
-        
+
         // Fetch table data
         const tableData = await postgreSQLService.fetchTableDataForImport(
           virtualTable.connectionId,
@@ -3943,24 +4087,23 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           virtualTable.tableName,
           { sampleOnly: !forceImport }
         );
-        
+
         // Generate local table name
         const localTableName = `pg_${virtualTable.connectionId}_${virtualTable.schemaName}_${virtualTable.tableName}`
           .replace(/[^a-zA-Z0-9_]/g, '_');
-        
+
         // Create table in DuckDB
         await state.createTable(
-          localTableName, 
+          localTableName,
           tableData.columns.map(col => col.name),
           tableData.columns.map(() => ColumnType.Text) // Use text for all initially
         );
-        
+
         // Insert data if available
-        if (tableData.data.length > 1) {
-          const dataRows = tableData.data.slice(1); // Remove header row
-          await state.insertData(localTableName, dataRows);
+        if (tableData.rows.length > 0) {
+          await state.insertData(localTableName, tableData.rows);
         }
-        
+
         // Mark as imported
         set((state) => {
           const newVirtualTables = new Map(state.postgresVirtualTables);
@@ -3968,7 +4111,7 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
           newVirtualTables.set(tableKey, updatedTable);
           return { postgresVirtualTables: newVirtualTables };
         });
-        
+
         console.log(`[DuckDBStore] Successfully imported PostgreSQL table: ${tableKey} -> ${localTableName}`);
       } else {
         console.log(`[DuckDBStore] Table ${tableKey} exceeds auto-import threshold (${virtualTable.estimatedSize} bytes)`);
@@ -3978,5 +4121,24 @@ export const useDuckDBStore = create<DuckDBState>((set, get) => ({
       set({ postgresError: errorMessage });
       throw err;
     }
+  },
+
+
+  // Databricks Actions
+  addVirtualDatabricksTable: (table: DatabricksVirtualTable) => {
+    set((state) => {
+      const key = `${table.catalog}.${table.schema}.${table.tableName}`;
+      const newTables = new Map(state.databricksVirtualTables);
+      newTables.set(key, table);
+      return { databricksVirtualTables: newTables };
+    });
+  },
+
+  removeVirtualDatabricksTable: (tableKey: string) => {
+    set((state) => {
+      const newTables = new Map(state.databricksVirtualTables);
+      newTables.delete(tableKey);
+      return { databricksVirtualTables: newTables };
+    });
   },
 }));

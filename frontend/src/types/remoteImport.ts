@@ -10,7 +10,8 @@ export type ImportProvider =
   | "huggingface"
   | "google-sheets"
   | "motherduck"
-  | "postgresql";
+  | "postgresql"
+  | "databricks";
 
 /**
  * Provider configuration interface

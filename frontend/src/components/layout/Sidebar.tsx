@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
     isRemoteModalOpen,
     setIsRemoteModalOpen
   } = useAppStore();
-  
+
   // Handle settings navigation
   const handleOpenSettings = () => {
     window.location.href = '/settings';
@@ -250,7 +250,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
     if (node.fileData?.isTemporary && node.fileData?.tableName) {
       console.log('[Sidebar] Opening temporary table:', node.fileData.tableName);
       const { files, setActiveFile, addFile } = useAppStore.getState();
-      
+
       // Check if this temporary table is already open
       const existingFile = files.find((f) => f.tableName === node.fileData?.tableName);
       if (existingFile) {
@@ -258,7 +258,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
         setActiveFile(existingFile.id);
         return;
       }
-      
+
       // Create a new tab for this temporary table
       const tempTableData = {
         data: [], // Data will be queried from DuckDB
@@ -275,7 +275,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           sourceFileName: node.fileData.sourceFileName,
         }
       };
-      
+
       addFile(tempTableData);
       console.log('[Sidebar] Created new tab for temporary table:', node.fileData.tableName);
       return;
@@ -286,7 +286,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
     if (node.fileData?.tableName && node.fileData?.isLoaded && !node.fileData?.isTemporary && node.fileData?.fileType === 'query') {
       console.log('[Sidebar] Opening saved table:', node.fileData.tableName);
       const { files, setActiveFile, addFile } = useAppStore.getState();
-      
+
       // Check if this saved table is already open
       const existingFile = files.find((f) => f.tableName === node.fileData?.tableName);
       if (existingFile) {
@@ -294,7 +294,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
         setActiveFile(existingFile.id);
         return;
       }
-      
+
       // Create a new tab for this saved table
       const savedTableData = {
         data: [], // Data will be queried from DuckDB
@@ -310,9 +310,44 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           originalName: node.name,
         }
       };
-      
+
       addFile(savedTableData);
       console.log('[Sidebar] Created new tab for saved table:', node.fileData.tableName);
+      addFile(savedTableData);
+      console.log('[Sidebar] Created new tab for saved table:', node.fileData.tableName);
+      return;
+    }
+
+    // Special handling for remote tables (e.g. Databricks)
+    if (node.fileData?.isRemote && node.fileData?.tableName) {
+      console.log('[Sidebar] Opening remote table:', node.fileData.tableName);
+      const { files, setActiveFile, addFile } = useAppStore.getState();
+
+      const existingFile = files.find((f) => f.tableName === node.fileData?.tableName);
+      if (existingFile) {
+        console.log('[Sidebar] Remote table already open, switching to it');
+        setActiveFile(existingFile.id);
+        return;
+      }
+
+      const remoteTableData = {
+        data: [],
+        columnTypes: [],
+        fileName: node.name,
+        rowCount: node.fileData.rowCount || 0,
+        columnCount: node.fileData.columnCount || 0,
+        sourceType: 'TABLE' as any,
+        loadedToDuckDB: true,
+        tableName: node.fileData.tableName,
+        isRemote: true,
+        metadata: {
+          isRemote: true,
+          remoteUrl: node.fileData.remoteUrl
+        }
+      };
+
+      addFile(remoteTableData);
+      console.log('[Sidebar] Created new tab for remote table:', node.fileData.tableName);
       return;
     }
 
@@ -488,7 +523,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:text-primary-foreground transition-custom p-2 hover:bg-background hover:bg-opacity-30 rounded"
-            aria-label={t('sidebar.footer.visitAmin')}
+            aria-label={t('sidebar.footer.visitAdmin')}
           >
             <ExternalLink size={16} />
           </a>
@@ -659,7 +694,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
                       />
                     </a>
                   </div>
-                  
+
                   {/* Second line: Built by links */}
                   <div className="flex items-center gap-1">
                     <a
@@ -683,7 +718,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Settings always on the right */}
             <div className="flex-shrink-0 ml-2">
               <SettingsPopover variant="sidebar" />
@@ -698,9 +733,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
     <>
       <motion.div
         ref={sidebarRef}
-        className={`relative bg-darkNav flex flex-col h-full border-r border-gray-500/20 overflow-visible sidebar-container ${
-          sidebarCollapsed ? 'sidebar-collapsed' : ''
-        }`}
+        className={`relative bg-darkNav flex flex-col h-full border-r border-gray-500/20 overflow-visible sidebar-container ${sidebarCollapsed ? 'sidebar-collapsed' : ''
+          }`}
         initial={sidebarCollapsed ? 'collapsed' : 'expanded'}
         animate={sidebarCollapsed ? 'collapsed' : 'expanded'}
         variants={sidebarVariants}
@@ -716,9 +750,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
           >
             {/* Fade-out border effect with primary gradient */}
             <div
-              className={`absolute top-0 right-0 w-1 h-full transition-all duration-150 ease-out ${
-                isResizing ? 'opacity-100' : 'opacity-0 group-hover:opacity-80'
-              }`}
+              className={`absolute top-0 right-0 w-1 h-full transition-all duration-150 ease-out ${isResizing ? 'opacity-100' : 'opacity-0 group-hover:opacity-80'
+                }`}
               style={{
                 background: isResizing
                   ? 'linear-gradient(to bottom, transparent 0%, hsl(175 100% 36% / 0.6) 10%, hsl(175 100% 45% / 0.7) 30%, hsl(175 100% 55% / 0.5) 50%, hsl(175 100% 45% / 0.7) 70%, hsl(175 100% 36% / 0.6) 90%, transparent 100%)'
@@ -750,11 +783,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onDataLoad }) => {
 
         <button
           onClick={toggleSidebar}
-          className={`absolute top-3 w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover:border-white/10 transition-colors shadow-lg cursor-pointer rounded-md hover:bg-white/10 ${
-            sidebarCollapsed 
-              ? 'left-1/2 transform -translate-x-1/2' 
-              : 'right-3'
-          }`}
+          className={`absolute top-3 w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover:border-white/10 transition-colors shadow-lg cursor-pointer rounded-md hover:bg-white/10 ${sidebarCollapsed
+            ? 'left-1/2 transform -translate-x-1/2'
+            : 'right-3'
+            }`}
           aria-label={
             sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')
           }

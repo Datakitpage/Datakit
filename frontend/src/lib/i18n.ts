@@ -3,8 +3,8 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translation files
-import enTranslation from '../../public/locales/en/translation.json';
-import ptTranslation from '../../public/locales/pt/translation.json';
+import enTranslation from '../locales/en/translation.json';
+import ptTranslation from '../locales/pt/translation.json';
 
 i18n
   .use(LanguageDetector)
@@ -13,7 +13,7 @@ i18n
     debug: import.meta.env.DEV,
     fallbackLng: 'en',
     supportedLngs: ['en', 'pt'],
-    
+
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },

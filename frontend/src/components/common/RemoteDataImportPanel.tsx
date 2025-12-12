@@ -17,6 +17,7 @@ import GoogleSheetsPanel from './import-modal/GoogleSheetsPanel';
 import HuggingFacePanel from './import-modal/HuggingFacePanel';
 import MotherDuckPanel from './import-modal/MotherDuckPanel';
 import PostgreSQLPanel from './import-modal/PostgreSQLPanel';
+import DatabricksPanel from './import-modal/DatabricksPanel';
 
 // import GCSImportPanel from './import-modal/GCSImportPanel';
 // import GoogleDrivePanel from './import-modal/GoogleDrivePanel';
@@ -28,6 +29,7 @@ import Drive from '@/assets/drive.svg';
 import HuggingFace from '@/assets/huggingface.png';
 import MotherDuckIcon from '@/assets/md.png';
 import PostgreSQLIcon from '@/assets/postgres.png';
+import DatabricksIcon from '@/assets/databricks.png';
 import { ImportProvider } from '@/types/remoteImport';
 
 export interface RemoteDataImportModalProps {
@@ -85,6 +87,14 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
       label: t('remoteImport.providers.postgresql.label', { defaultValue: 'PostgreSQL' }),
       icon: <img src={PostgreSQLIcon} className="h-5 w-5" alt="PostgreSQL" />,
       description: t('remoteImport.providers.postgresql.description', { defaultValue: 'PG databases' }),
+      featured: true,
+      requiresAuth: true,
+    },
+    {
+      id: 'databricks',
+      label: t('remoteImport.providers.databricks.label', { defaultValue: 'Databricks SQL' }),
+      icon: <img src={DatabricksIcon} className="h-5 w-5" alt="Databricks" />,
+      description: t('remoteImport.providers.databricks.description', { defaultValue: 'Databricks SQL Warehouse' }),
       featured: true,
       requiresAuth: true,
     },
@@ -155,6 +165,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
         return <MotherDuckPanel onImport={onClose} />;
       case 'postgresql':
         return <PostgreSQLPanel onImport={handleImportSuccess} />;
+      case 'databricks':
+        return <DatabricksPanel onImport={onClose} />;
       default:
         return (
           <div className="p-8 text-center text-white/60">
@@ -224,6 +236,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                             ? 'bg-orange-300/10 border border-orange-300/20 text-white' // Light orange
                             : tab.id === 'postgresql'
                             ? 'bg-blue-600/10 border border-blue-600/20 text-white' // PostgreSQL blue
+                            : tab.id === 'databricks'
+                            ? 'bg-red-500/10 border border-red-500/20 text-white' // Databricks red
                             : 'bg-primary/20 border border-primary/30 text-white'
                           : tab.comingSoon
                           ? 'text-white/40 cursor-not-allowed'
@@ -251,6 +265,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                                 ? 'border-orange-300/50 text-orange-300'
                                 : tab.id === 'postgresql'
                                 ? 'border-blue-600/50 text-blue-600'
+                                : tab.id === 'databricks'
+                                ? 'bg-red-500/30 border-red-500/50 text-red-500'
                                 : 'bg-primary/30 border-primary/50 text-primary'
                               : tab.comingSoon
                               ? 'bg-white/5 border-white/10 text-white/40'
@@ -304,6 +320,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                               ? 'bg-orange-300'
                               : tab.id === 'postgresql'
                               ? 'bg-blue-600'
+                              : tab.id === 'databricks'
+                              ? 'bg-red-500'
                               : 'bg-primary'
                           )}
                           transition={{
@@ -343,6 +361,8 @@ const RemoteDataImportModal: React.FC<RemoteDataImportModalProps> = ({
                         ? 'border-orange-300/50'
                         : activeProvider === 'postgresql'
                         ? 'bg-blue-600/20 border-blue-600/30'
+                        : activeProvider === 'databricks'
+                        ? 'bg-red-500/20 border-red-500/30'
                         : 'bg-primary/20 border-primary/30'
                     )}
                   >

@@ -7,6 +7,17 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: 'suppress-source-map-warnings',
+      transform(code, id) {
+        if (id.includes('duckdb-browser-eh.worker.js') || id.includes('duckdb-browser-mvp.worker.js')) {
+          return {
+            code: code.replace(/\/\/# sourceMappingURL=.*/g, ''),
+            map: null
+          };
+        }
+      }
+    }
   ],
   resolve: {
     alias: {
@@ -30,18 +41,6 @@ export default defineConfig({
         /.*\.wasm(\?url)?$/,
         /.*\.worker\.js(\?url)?$/,
       ],
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('@duckdb/duckdb-wasm')) {
-              return 'duckdb';
-            }
-            if (id.includes('xlsx')) {
-              return 'xlsx';
-            }
-          }
-        },
-      },
     },
   },
   esbuild: {
@@ -52,9 +51,10 @@ export default defineConfig({
       // Required headers for MotherDuck WASM client (SharedArrayBuffer support)
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
       // Allow iframe embedding from demo domains
       'X-Frame-Options': 'ALLOWALL',
-      'Content-Security-Policy': 'frame-ancestors \'self\' https://datakit.studio https://*.datakit.studio',
+      'Content-Security-Policy': "frame-ancestors 'self' https://datakit.studio https://*.datakit.studio",
     },
     fs: {
       allow: ['..'], // Allow serving files from parent directories if needed

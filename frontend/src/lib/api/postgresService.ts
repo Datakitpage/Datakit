@@ -58,7 +58,7 @@ class PostgreSQLService {
   // Schema Discovery
   async getSchemas(connectionId: string): Promise<PostgreSQLSchema[]> {
     const response = await apiClient.get<BackendResponse<any[]>>(`${this.baseUrl}/connections/${connectionId}/schemas`);
-    
+
     // Transform API response to match frontend types
     return response.data.map((schema: any) => ({
       schemaName: schema.name,
@@ -72,7 +72,7 @@ class PostgreSQLService {
     const response = await apiClient.get<BackendResponse<any[]>>(
       `${this.baseUrl}/connections/${connectionId}/schemas/${encodeURIComponent(schemaName)}/tables`
     );
-    
+
     return this.transformTablesResponse(response.data);
   }
 
@@ -127,14 +127,14 @@ class PostgreSQLService {
     options: TablePreviewRequest = {}
   ): Promise<TablePreviewResult> {
     const params = new URLSearchParams();
-    
+
     if (options.limit) params.append('limit', options.limit.toString());
     if (options.offset) params.append('offset', options.offset.toString());
     if (options.orderBy) {
       params.append('orderBy', options.orderBy.column);
       params.append('orderDirection', options.orderBy.direction);
     }
-    
+
     // Add filters as JSON if present
     if (options.filters && options.filters.length > 0) {
       params.append('filters', JSON.stringify(options.filters));
@@ -147,6 +147,33 @@ class PostgreSQLService {
 
     const response = await apiClient.post<BackendResponse<TablePreviewResult>>(url, options);
     return response.data;
+  }
+
+  async fetchTableDataForImport(
+    connectionId: string,
+    schemaName: string,
+    tableName: string,
+    options: { sampleOnly?: boolean } = {}
+  ): Promise<{ columns: { name: string; type: string }[]; rows: any[][] }> {
+    // API limits preview to 100 rows, so we use that as max for now
+    // In the future, a proper export endpoint should be used for full imports
+    const limit = options.sampleOnly ? 50 : 100;
+
+    const result = await this.previewTableData(
+      connectionId,
+      schemaName,
+      tableName,
+      { limit }
+    );
+
+    return {
+      // Map QueryColumn to simple format expected by DuckDBStore
+      columns: result.columns.map((c: any) => ({
+        name: c.name,
+        type: c.dataTypeID?.toString() || 'text' // Fallback to text if type missing
+      })),
+      rows: result.rows
+    };
   }
 
   // Query Execution
@@ -171,7 +198,7 @@ class PostgreSQLService {
     const allTables: PostgreSQLTable[] = [];
 
     // Fetch tables for each schema concurrently
-    const tablePromises = schemas.map(schema => 
+    const tablePromises = schemas.map(schema =>
       this.getTables(connectionId, schema.schemaName)
         .catch(error => {
           console.warn(`Failed to load tables for schema ${schema.schemaName}:`, error);
@@ -180,7 +207,7 @@ class PostgreSQLService {
     );
 
     const schemaTablesArrays = await Promise.allSettled(tablePromises);
-    
+
     schemaTablesArrays.forEach(result => {
       if (result.status === 'fulfilled') {
         allTables.push(...result.value);
@@ -196,8 +223,8 @@ class PostgreSQLService {
   async searchTables(connectionId: string, searchTerm: string): Promise<PostgreSQLTable[]> {
     const allTables = await this.getAllTables(connectionId);
     const lowerSearchTerm = searchTerm.toLowerCase();
-    
-    return allTables.filter(table => 
+
+    return allTables.filter(table =>
       table.tableName.toLowerCase().includes(lowerSearchTerm) ||
       table.schemaName.toLowerCase().includes(lowerSearchTerm)
     );
@@ -214,10 +241,10 @@ class PostgreSQLService {
   }> {
     const schemas = await this.getSchemas(connectionId);
     const allTables = await this.getAllTables(connectionId);
-    
+
     const totalTables = allTables.filter(t => t.tableType === 'table').length;
     const totalViews = allTables.filter(t => t.tableType === 'view' || t.tableType === 'materialized_view').length;
-    
+
     // Find largest table by attempting to parse size
     let largestTable: { name: string; size: string } | undefined;
     for (const table of allTables) {
@@ -242,11 +269,11 @@ class PostgreSQLService {
    */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 bytes';
-    
+
     const k = 1024;
     const sizes = ['bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
@@ -257,10 +284,10 @@ class PostgreSQLService {
     const parseSize = (size: string): number => {
       const match = size.match(/^([\d.]+)\s*(bytes?|KB|MB|GB|TB)?$/i);
       if (!match) return 0;
-      
+
       const value = parseFloat(match[1]);
       const unit = (match[2] || 'bytes').toLowerCase();
-      
+
       const multipliers: Record<string, number> = {
         'bytes': 1,
         'byte': 1,
@@ -269,10 +296,10 @@ class PostgreSQLService {
         'gb': 1024 * 1024 * 1024,
         'tb': 1024 * 1024 * 1024 * 1024,
       };
-      
+
       return value * (multipliers[unit] || 1);
     };
-    
+
     return parseSize(size1) - parseSize(size2);
   }
 
@@ -288,11 +315,11 @@ class PostgreSQLService {
   ): Promise<QueryResult> {
     const columnList = columns.join(', ');
     const sql = `SELECT ${columnList} FROM "${schemaName}"."${tableName}" LIMIT ${limit}`;
-    
-    return this.executeQuery(connectionId, { 
+
+    return this.executeQuery(connectionId, {
       sql,
       limit,
-      timeout: 30000 
+      timeout: 30000
     });
   }
 
@@ -301,9 +328,9 @@ class PostgreSQLService {
    */
   async testConnectionHealth(connectionId: string): Promise<boolean> {
     try {
-      const result = await this.executeQuery(connectionId, { 
+      const result = await this.executeQuery(connectionId, {
         sql: 'SELECT 1 as health_check',
-        timeout: 5000 
+        timeout: 5000
       });
       return result.rowCount === 1;
     } catch (error) {

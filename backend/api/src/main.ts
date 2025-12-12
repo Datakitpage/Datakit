@@ -34,12 +34,13 @@ async function bootstrap() {
     credentials: true, // Required for cookies
   });
 
-  // Enable global validation
+  // Enable global validation (but skip for OPTIONS requests)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      skipMissingProperties: false,
     }),
   );
 

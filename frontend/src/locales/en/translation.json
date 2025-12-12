@@ -107,7 +107,8 @@
       "built": "built"
     },
     "on": "ON",
-    "off": "OFF"
+    "off": "OFF",
+    "clear": "Clear"
   },
   "layout": {
     "app": {
@@ -131,7 +132,13 @@
       "expand": "Expand sidebar",
       "collapse": "Collapse sidebar",
       "fileImported": "File Imported",
-      "fileImportedMessage": "{{fileName}} has been imported successfully"
+      "fileImportedMessage": "{{fileName}} has been imported successfully",
+      "footer": {
+        "settings": "Settings",
+        "visitAdmin": "Visit Admin",
+        "built": "Built with",
+        "company": "DataKit"
+      }
     },
     "mobile": {
       "title": "DataKit works best on desktop",
@@ -435,7 +442,11 @@
     },
     "sidebar": {
       "expand": "Expand sidebar",
-      "collapse": "Collapse sidebar"
+      "collapse": "Collapse sidebar",
+      "footer": {
+        "settings": "Settings",
+        "visitAdmin": "Visit Admin"
+      }
     },
     "title": "Settings",
     "language": "Language",
@@ -1303,736 +1314,39 @@
       "selectColumns": "Select columns to visualize"
     }
   },
+  "query": {
+    "workspace": {
+      "status": {
+        "initializing": "Initializing Python environment...",
+        "settingUp": "Setting up workspace..."
+      }
+    },
+    "schema": {
+      "title": "Schema"
+    }
+  },
   "sidebar": {
     "header": {
       "title": "DataKit"
     },
     "footer": {
-      "poweredBy": "Powered by",
-      "visitAmin": "Visit Amin",
-      "built": "built",
-      "company": "DataKit"
+      "company": "DataKit",
+      "poweredBy": "Powered by DuckDB",
+      "built": "built"
     },
-    "workspace": {
-      "confirmRemove": "Remove \"{{fileName}}\" from workspace? This will not delete the actual file.",
-      "fileRemovedTitle": "File Removed",
-      "fileRemovedMessage": "\"{{fileName}}\" has been removed from workspace"
-    },
-    "upload": {
-      "title": "Upload File",
-      "description": "Import your data file for analysis"
-    },
-    "remote": {
-      "importedTitle": "Remote File Imported",
-      "importedMessage": "\"{{fileName}}\" has been imported from {{provider}}",
-      "defaultProvider": "remote source",
-      "notImplemented": "Remote source re-import not yet implemented. Please use the Cloud Sources button to re-import."
-    },
-    "fileAccess": {
-      "browserNotSupported": "Your browser ({{browserName}}) does not support automatic file access. Please re-import the file manually. ",
-      "useChrome": "For automatic file access, please use Chrome or Edge.",
-      "safariLimited": "File access support is limited in Safari. For better experience, use Chrome or Edge.",
-      "useChromeForFeatures": "For automatic import features, please use Chrome or Edge.",
-      "permissionDenied": "Permission denied to access \"{{fileName}}\". This can happen due to browser security policies.\n\nClick \"OK\" to manually select the file again, or \"Cancel\" to skip.",
-      "nameMismatch": "The stored file reference for \"{{fileName}}\" points to a different file. Please re-select the correct file.",
-      "cannotAccess": "Cannot automatically access \"{{fileName}}\". The file may have been moved, deleted, or access permissions changed.\n\nClick \"OK\" to manually select the file again, or \"Cancel\" to skip.",
-      "selectCorrectFile": "Please select the correct file: {{fileName}}",
-      "couldNotLoad": "Could not load file {{fileName}}. Please re-import it using the file upload button."
-    },
-    "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
-    "fileDialog": {
-      "dataFiles": "Data Files"
-    }
-  },
-  "pagination": {
-    "show": "Show",
-    "rows": "rows",
-    "showing": "Showing",
-    "countingRows": "Counting rows...",
-    "countingLarge": "Counting (large file)...",
-    "of": "of",
-    "columns": "columns",
-    "page": "Page",
-    "firstPage": "First page",
-    "previousPage": "Previous page",
-    "nextPage": "Next page",
-    "lastPage": "Last page",
-    "notAvailableForViews": "Not available for views"
-  },
-  "remoteImport": {
-    "title": "Import from Cloud",
-    "subtitle": "Connect to your cloud data sources",
-    "selectProvider": "Select a provider to get started",
-    "comingSoon": "Soon",
-    "signInRequired": "Sign in required",
-    "providers": {
-      "customUrl": "Custom URL",
-      "s3": "Amazon S3",
-      "huggingface": "HuggingFace",
-      "motherduck": "MotherDuck",
-      "postgresql": "PostgreSQL",
-      "googleSheets": "Google Sheets",
-      "googleCloud": "Google Cloud",
-      "googleDrive": "Google Drive"
-    }
-  },
-  "consent": {
-    "thanks": {
-      "title": "Thank you!",
-      "message": "Your preferences have been saved"
-    },
-    "header": {
-      "title": "Help improve DataKit"
-    },
-    "description": "We use analytics to improve your experience. All data processing happens locally - your files never leave your device.",
-    "dropdown": {
-      "title": "What do we collect?"
-    },
-    "collection": {
-      "basic": {
-        "title": "Basic analytics (always collected):",
-        "performance": "Performance metrics",
-        "errors": "Error reports",
-        "usage": "Anonymous usage patterns"
-      },
-      "advanced": {
-        "title": "Advanced analytics (with your consent):",
-        "detailed": "Detailed feature usage",
-        "sessions": "Session recordings (data masked)",
-        "journeys": "User journey tracking"
-      },
-      "never": {
-        "title": "We never collect:",
-        "files": "Your uploaded files",
-        "content": "File contents or personal data",
-        "queries": "SQL queries or code"
-      }
-    },
-    "privacyPolicy": "Privacy Policy",
-    "buttons": {
-      "accept": "Accept Analytics",
-      "decline": "Essential Only"
-    }
-  },
-  "ai": {
-    "modelSelector": {
-      "selectModel": "Select Model",
-      "title": "Select AI Model",
-      "claudeModels": "Claude Models",
-      "signInRequired": "Sign in required",
-      "apiKeyRequired": "API key required",
-      "creditsPerToken": "{{cost}} credits/1K tokens",
-      "dollarsPerToken": "${{cost}}/1K",
-      "signUpCredits": "Sign up to use DataKit credits",
-      "noApiKeysNeeded": "No API keys needed. Credits included with your account.",
-      "signUpButton": "Sign up to get started",
-      "creditsRemaining": "Credits remaining: {{count}}"
-    },
-    "providers": {
-      "datakit": "DataKit",
-      "openai": "OpenAI",
-      "anthropic": "Anthropic",
-      "groq": "Groq",
-      "ollama": "Ollama"
-    },
-    "prompts": {
-      "schemas": "Schemas",
-      "hideSchema": "Hide Schema",
-      "showSchema": "Show Schema",
-      "navigation": {
-        "previous": "Previous message",
-        "next": "Next message"
-      },
-      "actions": {
-        "startNewChat": "Start a new chat"
-      },
-      "placeholders": {
-        "askAboutData": "Ask about your data...",
-        "followUp": "Ask follow up question...",
-        "askAboutTable": "Ask about {{tableName}}..."
-      },
-      "setup": {
-        "configure": "Configure your AI model to start asking questions",
-        "signUpCredits": "Sign Up for Free Credits",
-        "useApiKeys": "Or Use Your Own API Keys",
-        "privacyNote": "Models only see your table structure, not your actual data"
-      },
-      "suggestions": {
-        "title": "Suggestions",
-        "exploreData": {
-          "title": "Explore Data",
-          "prompt": "Give me an overview of this dataset - what columns do we have and what insights can you find?"
-        },
-        "findPatterns": {
-          "title": "Find Patterns",
-          "prompt": "What are the most interesting patterns or trends in this data?"
-        },
-        "dataQuality": {
-          "title": "Data Quality",
-          "prompt": "Check this dataset for missing values, duplicates, or data quality issues"
-        },
-        "quickStats": {
-          "title": "Quick Stats",
-          "prompt": "Show me summary statistics for all numeric columns"
-        }
-      },
-      "status": {
-        "thinking": "Thinking..."
-      }
-    },
-    "localModels": {
-      "title": "Local AI Models",
-      "description": "Run AI models locally using WebLLM",
-      "webgpu": {
-        "supported": "WebGPU Supported",
-        "notSupported": "Not Supported",
-        "required": "WebGPU Required"
-      },
-      "storage": {
-        "title": "Storage Usage",
-        "downloadedModels": "Downloaded Models"
-      },
-      "availableModels": "Available Models",
-      "useModel": "Use Model",
-      "download": "Download",
-      "current": "Current",
-      "active": "Active",
-      "refresh": "Refresh",
-      "done": "Done",
-      "deleteConfirm": "Are you sure you want to delete this model?"
-    },
-    "ollama": {
-      "connecting": "Connecting to Ollama...",
-      "connected": "Connected to Ollama",
-      "connectionFailed": "Connection Failed",
-      "connectionFailedTitle": "Failed to connect to Ollama",
-      "cannotConnect": "Cannot connect to Ollama server",
-      "howToFix": "How to fix this:",
-      "installStep": "1. Install Ollama from ollama.ai",
-      "runCommand": "2. Run: OLLAMA_ORIGINS=* ollama serve",
-      "browserCompatibility": "Browser Compatibility Note:",
-      "firefoxNote": "If connection still fails, try using Firefox as it has better support for localhost connections from HTTPS sites.",
-      "installedModels": "Installed Models",
-      "noModels": "No models installed",
-      "pullModelHint": "Pull a model below to get started",
-      "pullModelToStart": "Pull a model below to get started",
-      "inTerminal": "in terminal",
-      "makeSureRunning": "Make sure it's running on {{baseUrl}}",
-      "privacyNote": "Models run entirely on your machine for complete privacy.",
-      "needMoreModels": "Need more models? Visit",
-      "ollamaLibrary": "Ollama Library",
-      "tryAgain": "Try Again"
-    },
-    "tableSelector": {
-      "title": "Select Tables for AI Context",
-      "searchPlaceholder": "Search tables...",
-      "noTablesFound": "No tables found matching your search",
-      "noTablesAvailable": "No tables available",
-      "selectedCount": "{{count}} selected",
-      "columns": "columns",
-      "postgresql": "PostgreSQL",
-      "motherduck": "MotherDuck",
-      "remote": "Remote",
-      "clearAll": "Clear all",
-      "cancel": "Cancel",
-      "addToContext": "Add to Context",
-      "applying": "Applying..."
-    },
-    "queryCard": {
-      "query": "Query",
-      "primary": "Primary",
-      "visualize": "Visualize",
-      "copySQL": "Copy SQL",
-      "copied": "Copied!",
-      "editInQueryTab": "Edit in Query Tab",
-      "run": "Run",
-      "generatingVisualization": "Generating visualization...",
-      "queryRunning": "Query is running..."
-    },
-    "visualization": {
-      "export": {
-        "title": "Export Visualization",
-        "format": "Export Format",
-        "quality": "Quality",
-        "options": "Options",
-        "includeTitle": "Include title",
-        "includeBackground": "Include background",
-        "copy": "Copy",
-        "copied": "Copied!",
-        "export": "Export",
-        "exporting": "Exporting...",
-        "chartNotFound": "Chart not found",
-        "exportFailed": "Export failed"
-      }
-    }
-  },
-  "query": {
-    "workspace": {
-      "poweredBy": "Powered by WebAssembly",
-      "errors": {
-        "initFailed": "DuckDB Initialization Failed"
-      },
-      "status": {
-        "initializing": "Initializing DuckDB",
-        "notReady": "DuckDB Not Ready",
-        "settingUp": "Setting up your in-browser SQL database...",
-        "preparing": "Preparing your environment..."
-      },
-      "actions": {
-        "retryInit": "Retry Initialization",
-        "fullScreenResults": "Full Screen Results",
-        "hideHistory": "Hide Query History",
-        "showHistory": "Show Query History",
-        "exitFullScreen": "Exit Full Screen",
-        "hideSchema": "Hide Schema Browser",
-        "showSchema": "Show Schema Browser",
-        "save": "Save",
-        "execute": "Execute",
-        "executeShortcut": "Execute query (⌘+Enter)",
-        "fullScreenEditor": "Full Screen Editor",
-        "dismiss": "Dismiss",
-        "cancel": "Cancel"
-      },
-      "results": {
-        "title": "Query Results",
-        "executionTime": "{{time}}ms",
-        "rowCount": "{{count}} rows"
-      },
-      "fullscreen": {
-        "editor": "SQL Editor (Fullscreen)",
-        "results": "Query Results (Fullscreen)"
-      },
-      "editor": {
-        "title": "SQL Editor",
-        "optimize": "Optimize",
-        "optimizationAvailable": "Query optimization suggestions available"
-      },
-      "optimization": {
-        "title": "Query Optimization Tips",
-        "applyFix": "Apply Fix",
-        "optimizeQuery": "Optimize Query"
-      },
-      "warnings": {
-        "largeDataset": {
-          "title": "Large Result Set ({{count}} rows)",
-          "description": "This query is returning a large dataset which may affect performance. Consider adding filters or LIMIT clause with lower value to reduce the result size.",
-          "addLimit": "Add LIMIT Clause"
-        }
-      },
-      "gettingStarted": {
-        "title": "Ready to Query Sample Data!",
-        "dataReady": "You have uploaded data ready to query. Try the sample query above or write your own SQL.",
-        "sampleData": "A sample employees table is available for testing. Import your own CSV, JSON, or Parquet files to query your data."
-      },
-      "saveDialog": {
-        "title": "Save Query",
-        "placeholder": "Enter query name"
-      }
-    },
-    "schema": {
-      "title": "Schema Browser",
-      "noData": "No data available. Import files to get started.",
-      "local": "Local",
-      "attached": "Attached",
-      "shared": "Shared",
-      "actions": {
-        "refresh": "Refresh schemas",
-        "refreshTables": "Refresh tables",
-        "refreshSchemas": "Refresh schemas",
-        "insertSelect": "Insert SELECT query",
-        "insertColumn": "Insert column query"
-      },
-      "loading": {
-        "local": "Loading local schemas...",
-        "database": "Loading {{name}} tables...",
-        "schemas": "Loading {{name}} schemas...",
-        "postgres": "Loading PostgreSQL schemas...",
-        "columns": "Loading columns..."
-      },
-      "empty": {
-        "local": "No local tables. Import data to get started.",
-        "database": "No tables found in {{name}}",
-        "postgres": "No tables found. Click refresh to load schemas.",
-        "columns": "No columns available"
-      },
-      "sections": {
-        "tables": "Tables ({{count}})",
-        "views": "Views ({{count}})"
-      },
-      "postgres": {
-        "available": "Available",
-        "connected": "Connected",
-        "connect": "Connect and browse tables"
-      }
-    },
-    "draft": {
-      "label": "Draft"
-    }
-  },
-  "visualization": {
-    "saveChart": {
-      "myChart": "My Chart",
-      "title": "Save Chart",
-      "chartName": "Chart Name",
-      "enterChartName": "Enter chart name",
-      "descriptionOptional": "Description (optional)",
-      "enterChartDescription": "Enter chart description",
-      "saveAsTemplate": "Save as Template",
-      "saveChart": "Save Chart"
-    },
-    "export": {
-      "title": "Export Chart",
-      "exportFormat": "Export Format",
-      "options": "Options",
-      "includeTitle": "Include title",
-      "includeDescription": "Include description",
-      "includeBackground": "Include background",
-      "exportButton": "Export {{format}}",
-      "copied": "Copied!",
-      "copy": "Copy"
-    },
-    "config": {
-      "noChart": "No Chart Selected",
-      "chartTitle": "Chart Title",
-      "chartTitlePlaceholder": "Enter chart title",
-      "tabs": {
-        "data": "Data",
-        "style": "Style",
-        "transform": "Transform"
-      },
-      "resetSettings": "Reset Chart Settings"
-    },
-    "gallery": {
-      "title": "Chart Gallery",
-      "searchPlaceholder": "Search charts...",
-      "savedCharts": "Saved Charts",
-      "templates": "Templates",
-      "noCharts": {
-        "title": "No Charts Found",
-        "noSaved": "You haven't saved any charts yet. Create and save a chart to see it here.",
-        "noSearchResults": "No templates match your search.",
-        "noTemplates": "No chart templates available."
-      },
-      "createNew": "Create New Chart",
-      "chartType": "{{type}} Chart",
-      "template": "Template",
-      "duplicate": "Duplicate",
-      "delete": "Delete"
-    },
-    "canvas": {
-      "noData": {
-        "title": "No Chart Data",
-        "message": "Configure your chart or run a query to visualize data."
-      },
-      "unsupported": "Chart type not supported"
-    },
-    "generator": {
-      "xAxisField": "X-Axis Field",
-      "yAxisField": "Y-Axis Field",
-      "selectField": "Select field...",
-      "xAxisHelp": "Categories to group your data by",
-      "yAxisHelpDate": "Date fields for time analysis",
-      "yAxisHelpNumeric": "Numeric values to measure",
-      "aggregation": "Aggregation",
-      "aggregationHelpDate": "Date aggregations: earliest, latest, or count",
-      "aggregationHelpNumeric": "How to calculate the numeric values",
-      "aggregationHelpGeneric": "How to aggregate the values",
-      "usingAllData": "Using all {{tableName}} data for visualization",
-      "processing": "Processing...",
-      "generateChart": "Generate Chart",
-      "aggregationLabels": {
-        "sum": "Sum",
-        "avg": "Average",
-        "min": "Minimum",
-        "max": "Maximum",
-        "count": "Count"
-      },
-      "description": {
-        "sum": "This chart will show the total sum of \"{{measure}}\" for each \"{{dimension}}\" category.",
-        "avg": "This chart will show the average \"{{measure}}\" for each \"{{dimension}}\" category.",
-        "min": "This chart will show the minimum \"{{measure}}\" value for each \"{{dimension}}\" category.",
-        "minDate": "This chart will show the earliest \"{{measure}}\" date for each \"{{dimension}}\" category.",
-        "max": "This chart will show the maximum \"{{measure}}\" value for each \"{{dimension}}\" category.",
-        "maxDate": "This chart will show the latest \"{{measure}}\" date for each \"{{dimension}}\" category.",
-        "count": "This chart will show the count of items in each \"{{dimension}}\" category."
-      }
-    }
-  },
-  "inspector": {
-    "title": "Data Inspector",
-    "fileSelector": {
-      "placeholder": "Select file..."
-    },
-    "postgresql": {
-      "title": "PostgreSQL Inspector",
-      "comingSoon": "Coming soon! We're working on data inspection for PostgreSQL tables."
-    },
-    "overview": {
-      "title": "Overview",
-      "dataOverview": "Data Overview",
-      "quality": "{{score}}% Quality",
-      "analyzedAt": "Analyzed at {{time}}",
-      "rows": "Rows",
-      "columns": "Columns",
-      "duplicates": "Duplicates",
-      "issues": "Issues",
-      "critical": "{{count}} critical",
-      "qualityBreakdown": "Quality Breakdown",
-      "completeness": "Completeness",
-      "uniqueness": "Uniqueness",
-      "consistency": "Consistency",
-      "analysisCompleted": "Analysis completed in {{time}}s"
-    },
-    "problems": {
-      "title": "Data Quality Issues",
-      "noProblems": {
-        "title": "No Problems Found!",
-        "description": "Your data appears to be clean with no critical issues detected.",
-        "healthScore": "Health Score: {{score}}%"
-      },
-      "duplicateRows": {
-        "title": "Duplicate Rows",
-        "description": "{{count}} duplicate rows found ({{percentage}}% of total)"
-      },
-      "missingValues": {
-        "title": "Missing Values in {{columnName}}",
-        "description": "{{count}} null values ({{percentage}}% of column)"
-      },
-      "typeIssue": {
-        "title": "{{issue}} in {{columnName}}",
-        "description": "{{count}} problematic values found"
-      },
-      "issueCount": "{{filtered}} of {{total}} issues",
-      "severity": {
-        "critical": "Critical",
-        "warning": "Warning",
-        "info": "Info"
-      },
-      "filteredBy": "Filtered by:",
-      "actions": {
-        "viewDetails": "View details",
-        "exporting": "Exporting...",
-        "exportCompleted": "Export completed!",
-        "exportData": "Export data",
-        "signInToExport": "Sign in to export data"
-      },
-      "details": {
-        "examples": "Examples:",
-        "count": "Count: {{count}}",
-        "percentage": "Percentage: {{percentage}}%",
-        "column": "Column: {{columnName}}"
-      },
-      "noIssuesFound": "No {{filter}} issues found"
-    },
-    "emptyStates": {
-      "noAnalysis": {
-        "title": "Ready to Analyze",
-        "descriptionWithFile": "Start analyzing \"{{fileName}}\" to discover data quality insights",
-        "descriptionNoFile": "Select a file to start your data quality analysis",
-        "startButton": "Start Analysis",
-        "timeEstimate": "Analysis typically takes 10-30 seconds depending on your data size"
-      },
-      "noColumns": {
-        "title": "No Columns Found",
-        "noMatchingColumns": "No columns matching \"{{searchTerm}}\"",
-        "noFilteredColumns": "No {{filterType}} columns found",
-        "totalColumns": "in {{totalColumns}} total columns",
-        "noAnalyzableColumns": "This dataset doesn't have any analyzable columns",
-        "clearFiltersButton": "Clear Filters",
-        "suggestion": "Try adjusting your search or filter criteria"
-      },
-      "error": {
-        "title": "Analysis Failed",
-        "tryAgainButton": "Try Again",
-        "resetButton": "Reset",
-        "suggestion": "If the problem persists, try with a different file or contact support"
-      }
-    },
-    "loading": {
-      "steps": {
-        "validation": {
-          "label": "Validating Data",
-          "description": "Checking table structure and accessibility"
-        },
-        "schema": {
-          "label": "Reading Schema",
-          "description": "Identifying column types and structure"
-        },
-        "duplicates": {
-          "label": "Detecting Duplicates",
-          "description": "Scanning for duplicate rows"
-        },
-        "columns": {
-          "label": "Analyzing Columns",
-          "description": "Computing statistics and patterns"
-        },
-        "quality": {
-          "label": "Quality Assessment",
-          "description": "Calculating health scores and recommendations"
-        }
-      },
-      "analyzingColumn": "Analyzing: {{currentColumn}} • Column {{currentColumnNumber}} of {{totalColumns}}"
-    },
-    "quickActions": {
-      "lastAnalyzed": "Last analyzed: {{time}}"
-    }
-  },
-  "queryHistory": {
-    "title": "Query History",
-    "source": "from indexedDB",
-    "tabs": {
-      "recent": "Recent",
-      "saved": "Saved"
-    },
-    "empty": {
-      "recent": "No recent queries. Execute a query to see it here.",
-      "saved": "No saved queries. Click the star icon to save a query."
-    },
-    "unnamedQuery": "Unnamed Query",
-    "actions": {
-      "save": "Save Query",
-      "editName": "Edit Name",
-      "copy": "Copy Query",
-      "delete": "Delete Query",
-      "cancel": "Cancel",
-      "use": "Use"
-    },
-    "dateFormat": {
-      "today": "Today at {{time}}",
-      "yesterday": "Yesterday at {{time}}"
-    }
-  },
-  "queryResults": {
-    "header": {
-      "rowsReturned": "rows returned",
-      "showingPage": "showing page {{current}} of {{total}}",
-      "downloadCSV": "Download CSV"
-    },
-    "emptyState": {
-      "executing": "Executing query...",
-      "error": "Error",
-      "empty": "Execute a query to see results.",
-      "noResults": "Query executed successfully. No results returned."
-    },
-    "pagination": {
-      "rowsPerPage": "Rows per page:",
-      "firstPage": "First Page",
-      "previousPage": "Previous Page",
-      "pageOf": "Page {{current}} of {{total}}",
-      "nextPage": "Next Page",
-      "lastPage": "Last Page",
-      "goTo": "Go to:"
-    }
-  },
-  "import": {
-    "customUrl": {
-      "dataset": {
-        "featured": "Featured",
-        "importing": "Importing",
-        "import": "Import Dataset"
-      },
-      "validation": {
-        "enterUrl": "Please enter a URL",
-        "validUrl": "Please enter a valid URL",
-        "fileDetected": "{{format}} file detected",
-        "readyToImport": "Valid URL - ready to import"
-      },
-      "form": {
-        "fileUrlLabel": "File URL (public access)",
-        "placeholder": "https://raw.githubusercontent.com/user/repo/main/data.csv"
-      },
-      "actions": {
-        "importing": "Importing",
-        "importFromUrl": "Import from URL",
-        "openFileUrl": "Open file URL"
-      },
-      "examples": {
-        "title": "Example Datasets",
-        "subtitle": "Try these curated public datasets from GitHub",
-        "loading": "Loading datasets..."
-      },
-      "footer": {
-        "supportedUrls": "Supported URLs:",
-        "directFiles": "Direct file URLs (CSV, JSON, Parquet, Excel)",
-        "publicRepos": "Public data repositories and APIs"
-      }
-    },
-    "motherduck": {
-      "success": {
-        "title": "You're all set!",
-        "description": "Connection successful. You can query your MotherDuck in the query tab.",
-        "goToQuery": "Go to Query Tab"
-      }
-    },
-    "gcs": {
-      "categories": {
-        "all": "All Datasets",
-        "earthObservation": "Earth Observation",
-        "climate": "Climate Data",
-        "geospatial": "Geospatial",
-        "research": "Research"
-      },
-      "dataset": {
-        "featured": "Featured",
-        "preview": "Preview",
-        "importing": "Importing",
-        "import": "Import"
-      },
-      "preview": {
-        "category": "Category",
-        "size": "Size",
-        "formats": "Formats",
-        "lastUpdated": "Last Updated",
-        "tags": "Tags",
-        "gcsUrl": "GCS URL",
-        "cancel": "Cancel",
-        "docs": "Docs",
-        "importing": "Importing",
-        "importDataset": "Import Dataset"
-      },
-      "header": {
-        "title": "Google Cloud Storage",
-        "subtitle": "Access public datasets and earth observation data"
-      },
-      "search": {
-        "placeholder": "Search datasets..."
-      },
-      "loading": {
-        "datasets": "Loading datasets..."
-      },
-      "sections": {
-        "featured": "Featured Earth Observation",
-        "allDatasets": "All Datasets ({{count}})"
-      },
-      "empty": {
-        "noDatasets": "No datasets found",
-        "tryAdjusting": "Try adjusting your search or category filter"
-      }
-    }
-  },
-  "dialog": {
-    "unsavedChanges": {
-      "title": "Unsaved Changes",
-      "message": "You have unsaved changes in your current notebook. What would you like to do?",
-      "saveAndContinue": "Save and Continue",
-      "discardChanges": "Discard Changes"
-    }
+    "processing": "Processing files..."
   },
   "workspace": {
     "toolbar": {
-      "uploadFiles": "Import",
+      "uploadFiles": "Import Files",
       "newFolder": "New Folder",
-      "newFolderPrompt": "Enter folder name:",
       "openFolder": "Open Folder",
-      "browserNotSupported": "Your browser does not support folder access. Please use Chrome or Edge.",
       "remoteSources": "Remote Sources",
-      "moreOptions": "More Options",
-      "exportStructure": "Export Structure",
-      "importStructure": "Import Structure",
       "helpTooltip": "Help - How the workspace works",
       "helpModal": {
         "title": "Workspace Guide",
+        "tip": "Files location persist between sessions and can be accessed directly from your computer.",
         "importFiles": {
           "title": "Import Files",
           "description": "Add files with persistent access"
@@ -2048,128 +1362,131 @@
         "remoteSources": {
           "title": "Remote Sources",
           "description": "Connect to databases and cloud storage"
-        },
-        "tip": "Files location persist between sessions and can be accessed directly from your computer."
-      }
-    },
-    "fileTree": {
-      "noFiles": "No files in workspace",
-      "addFilesHint": "Add files using the source panel above",
-      "workspaceFiles": "Workspace Files ({{count}})",
-      "remove": "Remove",
-      "rename": "Rename"
-    },
-    "selector": {
-      "selectWorkspace": "Select Workspace",
-      "unsaved": "unsaved",
-      "workspaces": "Workspaces",
-      "organizeDescription": "Organize your files into workspaces. Files are referenced, not stored.",
-      "draft": "draft",
-      "fileCount": "{{count}} files",
-      "file": "file",
-      "files": "files",
-      "workspaceNamePlaceholder": "Workspace name...",
-      "saveDraftAsWorkspace": "Save Draft as Workspace",
-      "newWorkspace": "New Workspace",
-      "workspaceCreated": "Workspace Created",
-      "workspaceCreatedMessage": "\"{{name}}\" workspace has been created successfully",
-      "workspaceRenamed": "Workspace Renamed",
-      "workspaceRenamedMessage": "Workspace renamed from \"{{oldName}}\" to \"{{newName}}\"",
-      "deleteConfirmation": "Delete workspace \"{{name}}\"? This action cannot be undone.",
-      "workspaceDeleted": "Workspace Deleted",
-      "workspaceDeletedMessage": "\"{{name}}\" workspace has been deleted",
-      "workspaceSaved": "Workspace Saved",
-      "workspaceSavedMessage": "Draft workspace saved as \"{{name}}\" with {{count}} {{files}}",
-      "tooltip": {
-        "workspaces": "Workspaces",
-        "organizeFiles": "organize your files without storing actual data - only references for privacy.",
-        "draft": "Draft",
-        "draftDescription": "Temporary workspace for files before saving to a named workspace.",
-        "benefits": "Benefits",
-        "benefitsDescription": "Keep projects organized, switch between datasets.",
-        "limit": "Limit",
-        "limitDescription": "Create up to 1 workspaces.",
-        "signUp": "Sign up"
-      }
-    }
-  },
-  "dataSources": {
-    "files": "Files",
-    "localFiles": "Local files",
-    "remote": "Remote",
-    "remoteData": "Remote data",
-    "connectCloudSources": "Connect Cloud Sources"
-  },
-  "ui": {
-    "notebookEditor": {
-      "title": "Edit Notebook",
-      "nameLabel": "Name",
-      "namePlaceholder": "Untitled Notebook",
-      "descriptionLabel": "Description",
-      "descriptionPlaceholder": "Optional description...",
-      "autoSaveMessage": "Changes are saved automatically"
-    }
-  },
-  "settingsPopover": {
-    "title": "Settings",
-    "language": "Language",
-    "presets": "Presets"
-  },
-  "pages": {
-    "privacy": {
-      "dataStaysLocal": {
-        "title": "Your Data Stays Local",
-        "description": "All data analysis is performed locally in your browser using DuckDB-WASM. Your files and data never leave your device, ensuring complete privacy and security.",
-        "aiModelsTitle": "DataKit AI Models - Column Schema Only",
-        "importantException": "Important exception:",
-        "aiModelsDescription": "When using DataKit AI features, we only send column headers and data types to our AI models - never your actual data. This allows AI to understand your dataset structure while keeping your sensitive information completely private.",
-        "aiModelsExample": "For example, from a CSV with customer data, we only send: [\"customer_id: INTEGER\", \"email: VARCHAR\", \"purchase_amount: DECIMAL\"] - the AI never sees actual customer emails or purchase amounts."
-      },
-      "analytics": {
-        "title": "Our Two-Tiered Analytics System",
-        "description": "We use a privacy-first approach to understand how DataKit is used and improve the experience:",
-        "basic": {
-          "title": "Basic Analytics (Always Active)",
-          "items": [
-            "Page views and feature usage",
-            "Performance metrics and error tracking",
-            "Browser type and general location (country-level)"
-          ],
-          "note": "This helps us understand which features are popular and fix bugs quickly."
-        },
-        "advanced": {
-          "title": "Advanced Analytics (Opt-in Only)",
-          "items": [
-            "Detailed user journey tracking",
-            "A/B testing for new features",
-            "More granular usage patterns"
-          ]
-        },
-        "neverCollect": {
-          "title": "We Never Collect",
-          "items": [
-            "Your actual data or file contents",
-            "Personal information beyond what you voluntarily provide",
-            "Passwords or authentication tokens",
-            "Precise location data"
-          ]
         }
+      }
+    }
+  },
+  "ai": {
+    "assistant": {
+      "title": "Assistant"
+    },
+    "prompts": {
+      "actions": {
+        "startNewChat": "Start New Chat"
       },
-      "thirdParty": {
-        "title": "Third-Party Services",
-        "items": [
-          "Google Analytics: Website usage analytics",
-          "PostHog: Product analytics and user feedback",
-          "Anthropic Claude: AI-powered data insights (column schemas only)",
-          "OpenAI: AI-powered data insights (column schemas only)"
-        ]
+      "setup": {
+        "signUpCredits": "Sign up to get free credits"
       },
-      "choices": {
-        "title": "Your Choices",
-        "description": "You can disable advanced analytics in Settings. Basic analytics remain active to ensure DataKit works properly and securely for all users.",
-        "contact": "Questions about privacy? Contact us at privacy@datakit.dev"
+      "suggestions": {
+        "title": "Suggestions",
+        "quickStats": {
+          "title": "Quick Stats",
+          "prompt": "Show me descriptive statistics for the selected table"
+        },
+        "exploreData": {
+          "title": "Explore Data",
+          "prompt": "Analyze the distribution of columns and show distinct values"
+        },
+        "findPatterns": {
+          "title": "Find Patterns",
+          "prompt": "Find interesting patterns, correlations, and outliers in the data"
+        },
+        "dataQuality": {
+          "title": "Data Quality",
+          "prompt": "Check for null values, duplicates, and data consistency issues"
+        }
+      }
+    },
+    "modelSelector": {
+      "model": "Model"
+    },
+    "apiKey": {
+      "providers": {
+        "ollama": {
+          "description": "Local Ollama server - runs models on your machine",
+          "helpText": "Run AI models locally with complete privacy. Requires Ollama to be running at http://localhost:11434"
+        },
+        "openai": {
+          "description": "GPT-4o and GPT-4o Mini models",
+          "helpText": "Most capable models for complex reasoning and analysis."
+        },
+        "anthropic": {
+          "description": "Claude 4.5 Sonnet and smaller models",
+          "helpText": "Excellent for detailed analysis and explanations. Free credits for new users."
+        },
+        "groq": {
+          "description": "Ultra-fast Llama 3.1 models with free tier",
+          "helpText": "Fastest inference speed, perfect for trying AI features. Completely free to start."
+        }
+      }
+    }
+  },
+  "remoteImport": {
+    "title": "Import Remote Sources",
+    "subtitle": "Connect to various data sources",
+    "selectProvider": "Select a provider to continue",
+    "comingSoon": "Coming Soon",
+    "signInRequired": "Sign in required",
+    "providers": {
+      "databricks": {
+        "label": "Databricks SQL",
+        "description": "Databricks SQL Warehouse"
       },
-      "lastUpdated": "Last updated"
+      "s3": {
+        "label": "Amazon S3",
+        "description": "Public S3 buckets"
+      },
+      "huggingface": {
+        "label": "HuggingFace",
+        "description": "ML datasets"
+      },
+      "motherduck": {
+        "label": "MotherDuck",
+        "description": "Cloud DuckDB"
+      },
+      "postgresql": {
+        "label": "PostgreSQL",
+        "description": "PG databases"
+      },
+      "googleSheets": {
+        "label": "Google Sheets",
+        "description": "Published Google Sheets"
+      },
+      "gcs": {
+        "label": "Google Cloud",
+        "description": "Public GCS buckets"
+      },
+      "googleDrive": {
+        "label": "Google Drive",
+        "description": "Files from Google Drive"
+      },
+      "customUrl": {
+        "label": "Custom URL",
+        "description": "Import from any public URL"
+      }
+    }
+  },
+  "import": {
+    "databricks": {
+      "title": "Databricks SQL Warehouse",
+      "subtitle": "Connect with a personal access token and warehouse endpoint.",
+      "tokenLabel": "Personal Access Token",
+      "tokenPlaceholder": "dapi...",
+      "hostLabel": "Workspace Host",
+      "hostPlaceholder": "dbc-xxxx.cloud.databricks.com",
+      "httpPathLabel": "SQL Warehouse HTTP Path",
+      "httpPathPlaceholder": "/sql/1.0/warehouses/xxxxxxxx",
+      "connect": "Connect",
+      "connecting": "Connecting…",
+      "refresh": "Refresh",
+      "availableTables": "Available Tables"
+    }
+  },
+  "queryResults": {
+    "emptyState": {
+      "title": "No Results",
+      "empty": "Execute a query to see results.",
+      "executing": "Executing query..."
     }
   }
 }

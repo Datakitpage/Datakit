@@ -13,11 +13,12 @@ export const useDemoFileDrops = ({ processFile, addFile, analytics }: UseDemoFil
   useEffect(() => {
     const handleDemoFileDrops = (event: MessageEvent) => {
       console.log('Home.tsx received message:', event.data, 'from origin:', event.origin)
-      
+
       // Security: only accept from your demo domains
       const allowedOrigins = [
         'https://datakit.studio',
-        'http://localhost:5174'
+        'http://localhost:5174',
+        'http://localhost:5173'
       ]
 
       const isOriginAllowed = allowedOrigins.some(origin => {

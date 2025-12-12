@@ -16,6 +16,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { PostgresProxyModule } from './postgres-proxy/postgres-proxy.module';
 import { getDatabaseConfig } from './config/database.config';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
+import { DatabricksModule } from './databricks/databricks.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
     AIModule,
     WaitlistModule,
     PostgresProxyModule,
+    DatabricksModule,
   ],
   controllers: [AppController],
   providers: [
