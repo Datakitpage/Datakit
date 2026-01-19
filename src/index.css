@@ -1,0 +1,308 @@
+/* Board - Linear/Raycast inspired dark theme */
+
+/* Fonts - Inter for UI, JetBrains Mono for code */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* Tailwind v4 */
+@import "tailwindcss";
+
+/* Theme Configuration */
+@theme {
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Spacing */
+  --radius: 0.5rem;
+
+  /* Linear-inspired dark color palette */
+  --background: hsl(220 13% 5%);
+  --background-subtle: hsl(220 13% 8%);
+  --background-elevated: hsl(220 13% 10%);
+  
+  --foreground: hsl(0 0% 98%);
+  --foreground-muted: hsl(0 0% 63%);
+  --foreground-subtle: hsl(0 0% 45%);
+
+  /* Primary - Soft blue accent (Linear-like) */
+  --primary: hsl(221 83% 53%);
+  --primary-hover: hsl(221 83% 60%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  /* Secondary - Muted for less emphasis */
+  --secondary: hsl(220 13% 18%);
+  --secondary-hover: hsl(220 13% 22%);
+  --secondary-foreground: hsl(0 0% 98%);
+
+  /* Accents */
+  --accent: hsl(220 13% 15%);
+  --accent-hover: hsl(220 13% 18%);
+  --accent-foreground: hsl(0 0% 98%);
+
+  /* Semantic colors */
+  --success: hsl(142 76% 36%);
+  --warning: hsl(38 92% 50%);
+  --destructive: hsl(0 84% 60%);
+  --info: hsl(199 89% 48%);
+
+  /* UI Elements */
+  --border: hsl(0 0% 100% / 0.08);
+  --border-hover: hsl(0 0% 100% / 0.12);
+  --input: hsl(220 13% 12%);
+  --ring: hsl(221 83% 53% / 0.5);
+
+  /* Cards and popovers */
+  --card: hsl(220 13% 8%);
+  --card-foreground: hsl(0 0% 98%);
+  --popover: hsl(220 13% 10%);
+  --popover-foreground: hsl(0 0% 98%);
+
+  /* Muted elements */
+  --muted: hsl(220 13% 15%);
+  --muted-foreground: hsl(0 0% 63%);
+}
+
+/* Inline theme for CSS variable compatibility */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+}
+
+/* Base Styles */
+@layer base {
+  html, body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  /* Custom scrollbar - minimal like Linear */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(0 0% 100% / 0.1);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(0 0% 100% / 0.2);
+  }
+
+  /* Selection */
+  ::selection {
+    background: hsl(221 83% 53% / 0.3);
+    color: var(--foreground);
+  }
+
+  /* Focus visible - keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* Code blocks */
+  code, pre {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Component Styles */
+@layer components {
+  /* Command Palette (Raycast-style) */
+  .command-palette {
+    background: var(--popover);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 
+      0 0 0 1px hsl(0 0% 0% / 0.05),
+      0 4px 16px hsl(0 0% 0% / 0.2),
+      0 16px 48px hsl(0 0% 0% / 0.3);
+    backdrop-filter: blur(20px);
+  }
+
+  .command-input {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    color: var(--foreground);
+    width: 100%;
+    padding: 1rem;
+    outline: none;
+  }
+
+  .command-input::placeholder {
+    color: var(--foreground-subtle);
+  }
+
+  .command-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+
+  .command-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 100ms ease;
+  }
+
+  .command-item:hover,
+  .command-item[data-selected="true"] {
+    background: var(--accent);
+  }
+
+  .command-item-icon {
+    color: var(--foreground-muted);
+    flex-shrink: 0;
+  }
+
+  .command-item-label {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--foreground);
+  }
+
+  .command-item-shortcut {
+    font-size: 0.75rem;
+    color: var(--foreground-subtle);
+    font-family: var(--font-mono);
+  }
+
+  /* Widget Container */
+  .widget {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 150ms ease;
+  }
+
+  .widget:hover {
+    border-color: var(--border-hover);
+  }
+
+  .widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .widget-title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--foreground-muted);
+  }
+
+  .widget-content {
+    padding: 1rem;
+  }
+
+  /* Canvas Grid */
+  .canvas-grid {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  /* Metric Widget */
+  .metric-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--foreground);
+    letter-spacing: -0.02em;
+  }
+
+  .metric-label {
+    font-size: 0.8125rem;
+    color: var(--foreground-muted);
+    margin-top: 0.25rem;
+  }
+
+  .metric-change {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+  }
+
+  .metric-change.positive {
+    color: var(--success);
+  }
+
+  .metric-change.negative {
+    color: var(--destructive);
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  .transition-fast {
+    transition: all 100ms ease;
+  }
+
+  .transition-normal {
+    transition: all 150ms ease;
+  }
+
+  .transition-slow {
+    transition: all 250ms ease;
+  }
+
+  /* Glass effect */
+  .glass {
+    background: hsl(0 0% 100% / 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+  }
+
+  /* Subtle glow */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(221 83% 53% / 0.15);
+  }
+}
