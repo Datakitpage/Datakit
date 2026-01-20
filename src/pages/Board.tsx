@@ -10,12 +10,12 @@ import {
   SettingsPanel,
 } from '@/components/flow';
 import type { WarmCanvasRef } from '@/components/flow/WarmCanvas';
-import { useFlowStore } from '@/store/flowStore';
+import { useBoardStore } from '@/store/boardStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useKeyboard } from '@/hooks/useKeyboard';
 import { DownloadButton } from '@/components/DownloadButton';
 
-export function Flow() {
+export function Board() {
   const {
     files,
     folders,
@@ -38,7 +38,7 @@ export function Flow() {
     startRenamingFolder,
     stopRenamingFolder,
     setDragOverFile,
-  } = useFlowStore();
+  } = useBoardStore();
 
   // Get the currently focused file
   const focusedFile = useMemo(
@@ -380,7 +380,7 @@ export function Flow() {
         transition={{ delay: 0.2 }}
       >
         <div className="flex items-center gap-3">
-          <span className="text-lg font-light" style={{ color: 'var(--text-primary)' }}>Flow</span>
+          <span className="text-lg font-light" style={{ color: 'var(--text-primary)' }}>Board</span>
           <motion.button
             className="text-xs px-2 py-1 rounded-md transition-colors"
             style={{ color: 'var(--text-tertiary)' }}
@@ -554,4 +554,4 @@ export function Flow() {
   );
 }
 
-export default Flow;
+export default Board;

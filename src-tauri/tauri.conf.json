@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Flow Data",
+  "productName": "Board",
   "version": "0.1.0",
-  "identifier": "com.flowdata.app",
+  "identifier": "com.board.app",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:5180",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Flow Data",
+        "title": "Board",
         "width": 1400,
         "height": 900,
         "minWidth": 800,

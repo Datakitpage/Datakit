@@ -1,1 +1,1 @@
-export { Flow } from './Flow';
+export { Board } from './Board';

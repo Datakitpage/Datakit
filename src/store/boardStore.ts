@@ -1,184 +1,358 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
+import { create } from 'zustand';
+import { v4 as uuid } from 'uuid';
+import type { ContentNodeData, ContentType } from '@/components/flow/ContentNode';
+import Papa from 'papaparse';
 
-export type WidgetType = "metric" | "chart" | "table" | "text" | "query";
-
-export interface WidgetPosition {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface WidgetStyle {
-  backgroundColor?: string;
-  borderColor?: string;
-  borderRadius?: string;
-  borderWidth?: string;
-  padding?: string;
-  boxShadow?: string;
-  opacity?: string;
-}
-
-export interface Widget {
+export interface Folder {
   id: string;
-  type: WidgetType;
-  title: string;
-  position: WidgetPosition;
-  style?: WidgetStyle;
-  config: Record<string, unknown>;
-  dataSourceId?: string;
-}
-
-export interface Connection {
-  id: string;
-  sourceId: string;
-  targetId: string;
-  sourceHandle: "top" | "right" | "bottom" | "left";
-  targetHandle: "top" | "right" | "bottom" | "left";
+  name: string;
+  position: { x: number; y: number };
+  fileIds: string[];
+  color?: string;
+  isOpen?: boolean;
+  selected?: boolean;
+  isRenaming?: boolean;
 }
 
 interface BoardState {
-  boards: Array<{ id: string; name: string; createdAt: string }>;
-  activeBoardId: string | null;
-  widgets: Widget[];
-  connections: Connection[];
-  selectedWidgetId: string | null;
-  connectingFrom: { widgetId: string; handle: Connection["sourceHandle"] } | null;
-  
-  addWidget: (type: WidgetType, title?: string) => string;
-  removeWidget: (id: string) => void;
-  updateWidget: (id: string, updates: Partial<Widget>) => void;
-  selectWidget: (id: string | null) => void;
-  moveWidget: (id: string, position: Partial<WidgetPosition>) => void;
-  resizeWidget: (id: string, size: { width: number; height: number }) => void;
-  
-  addConnection: (sourceId: string, targetId: string, sourceHandle: Connection["sourceHandle"], targetHandle: Connection["targetHandle"]) => void;
-  removeConnection: (id: string) => void;
-  startConnecting: (widgetId: string, handle: Connection["sourceHandle"]) => void;
-  endConnecting: () => void;
+  // Data
+  files: ContentNodeData[];
+  folders: Folder[];
+
+  // UI state
+  selectedId: string | null;
+  focusedFileId: string | null;
+  openFileIds: string[];
+  dragOverFileId: string | null;
+  pendingFolderFiles: string[] | null;
+
+  // Actions - Files
+  addFile: (file: File, position: { x: number; y: number }) => Promise<void>;
+  updateFilePosition: (id: string, position: { x: number; y: number }) => void;
+  deleteFile: (id: string) => void;
+  selectItem: (id: string | null) => void;
+  focusFile: (id: string) => void;
+  unfocusFile: () => void;
+  closeFileTab: (id: string) => void;
+  reorderTabs: (newOrder: string[]) => void;
+
+  // Actions - Folders
+  createFolder: (fileIds: string[], position: { x: number; y: number }) => string;
+  addFileToFolder: (folderId: string, fileId: string) => void;
+  removeFileFromFolder: (folderId: string, fileId: string) => void;
+  deleteFolder: (folderId: string, keepFiles?: boolean) => void;
+  renameFolder: (folderId: string, name: string) => void;
+  updateFolderPosition: (folderId: string, position: { x: number; y: number }) => void;
+  openFolder: (folderId: string) => void;
+  closeFolder: (folderId: string) => void;
+  startRenamingFolder: (folderId: string) => void;
+  stopRenamingFolder: (folderId: string) => void;
+  setDragOverFile: (fileId: string | null) => void;
+  setPendingFolderFiles: (fileIds: string[] | null) => void;
+  getFilesInFolder: (folderId: string) => ContentNodeData[];
 }
 
-const getDefaultConfig = (type: WidgetType) => {
-  const configs: Record<WidgetType, { position: WidgetPosition; config: Record<string, unknown> }> = {
-    metric: { position: { x: 0, y: 0, width: 3, height: 2 }, config: { value: 0, label: "Metric", format: "number" } },
-    chart: { position: { x: 0, y: 0, width: 6, height: 4 }, config: { chartType: "line", data: [] } },
-    table: { position: { x: 0, y: 0, width: 6, height: 4 }, config: { columns: [], rows: [] } },
-    text: { position: { x: 0, y: 0, width: 4, height: 2 }, config: { content: "" } },
-    query: { position: { x: 0, y: 0, width: 6, height: 4 }, config: { sql: "", results: null } },
-  };
-  return configs[type];
-};
+export const useBoardStore = create<BoardState>((set, get) => ({
+  files: [],
+  folders: [],
+  selectedId: null,
+  focusedFileId: null,
+  openFileIds: [],
+  dragOverFileId: null,
+  pendingFolderFiles: null,
 
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  addFile: async (file: File, position: { x: number; y: number }) => {
+    const id = uuid();
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
 
-export const useBoardStore = create<BoardState>()(
-  persist(
-    (set, get) => ({
-      boards: [],
-      activeBoardId: null,
-      widgets: [],
-      connections: [],
-      selectedWidgetId: null,
-      connectingFrom: null,
+    // Detect file type
+    let fileType: ContentType = 'unknown';
+    if (ext === 'csv') fileType = 'csv';
+    else if (ext === 'json') fileType = 'json';
+    else if (ext === 'xlsx' || ext === 'xls') fileType = 'xlsx';
+    else if (ext === 'parquet') fileType = 'parquet';
+    else if (ext === 'txt') fileType = 'txt';
+    else if (ext === 'md' || ext === 'markdown') fileType = 'md';
+    else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) fileType = 'image';
+    else if (ext === 'pdf') fileType = 'pdf';
 
-      addWidget: (type, title) => {
-        const id = uuidv4();
-        const defaults = getDefaultConfig(type);
-        const widgets = get().widgets;
-        
-        // Smart positioning: find empty spot
-        let x = 0;
-        let y = 0;
-        const occupied = new Set(widgets.map(w => `${w.position.x},${w.position.y}`));
-        while (occupied.has(`${x},${y}`)) {
-          x += 3;
-          if (x > 9) { x = 0; y += 2; }
-        }
-        
-        const newWidget: Widget = {
+    // Add file immediately with processing state and auto-focus it
+    set(state => ({
+      files: [
+        ...state.files,
+        {
           id,
-          type,
-          title: title || "New " + capitalize(type),
-          position: { ...defaults.position, x, y },
-          config: defaults.config,
-        };
-        set((state) => ({
-          widgets: [...state.widgets, newWidget],
-          selectedWidgetId: id,
-        }));
-        return id;
-      },
+          name: file.name,
+          type: fileType,
+          size: file.size,
+          position,
+          processing: true,
+        },
+      ],
+      focusedFileId: id,
+      openFileIds: [...state.openFileIds.filter(fid => fid !== id), id],
+    }));
 
-      removeWidget: (id) => {
-        set((state) => ({
-          widgets: state.widgets.filter((w) => w.id !== id),
-          connections: state.connections.filter((c) => c.sourceId !== id && c.targetId !== id),
-          selectedWidgetId: state.selectedWidgetId === id ? null : state.selectedWidgetId,
-        }));
-      },
+    // Parse file contents
+    try {
+      let data: unknown[] = [];
+      let rawContent: string | undefined;
+      let imageUrl: string | undefined;
+      let rowCount = 0;
+      let columnCount = 0;
+      let columns: string[] = [];
 
-      updateWidget: (id, updates) => {
-        set((state) => ({
-          widgets: state.widgets.map((w) => (w.id === id ? { ...w, ...updates } : w)),
-        }));
-      },
+      if (fileType === 'csv') {
+        const text = await file.text();
+        const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+        data = result.data;
+        columns = result.meta.fields || [];
+        rowCount = data.length;
+        columnCount = columns.length;
+      } else if (fileType === 'json') {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        data = Array.isArray(parsed) ? parsed : [parsed];
+        rowCount = data.length;
+        if (data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
+          columns = Object.keys(data[0] as object);
+          columnCount = columns.length;
+        }
+      } else if (fileType === 'parquet') {
+        // Parquet files are binary and require DuckDB to parse
+        // Mark as empty data - FocusedFileView will use DuckDB's createViewFromFile
+        data = [];
+        columns = [];
+        rowCount = 0;
+        columnCount = 0;
+      } else if (fileType === 'txt' || fileType === 'md') {
+        rawContent = await file.text();
+      } else if (fileType === 'image') {
+        imageUrl = URL.createObjectURL(file);
+      }
 
-      selectWidget: (id) => set({ selectedWidgetId: id }),
-
-      moveWidget: (id, position) => {
-        set((state) => ({
-          widgets: state.widgets.map((w) => (w.id === id ? { ...w, position: { ...w.position, ...position } } : w)),
-        }));
-      },
-
-      resizeWidget: (id, size) => {
-        set((state) => ({
-          widgets: state.widgets.map((w) => (w.id === id ? { ...w, position: { ...w.position, ...size } } : w)),
-        }));
-      },
-
-      addConnection: (sourceId, targetId, sourceHandle, targetHandle) => {
-        if (sourceId === targetId) return;
-        const existing = get().connections.find(
-          c => c.sourceId === sourceId && c.targetId === targetId
-        );
-        if (existing) return;
-        
-        set((state) => ({
-          connections: [...state.connections, {
-            id: uuidv4(),
-            sourceId,
-            targetId,
-            sourceHandle,
-            targetHandle,
-          }],
-        }));
-      },
-
-      removeConnection: (id) => {
-        set((state) => ({
-          connections: state.connections.filter((c) => c.id !== id),
-        }));
-      },
-
-      startConnecting: (widgetId, handle) => {
-        set({ connectingFrom: { widgetId, handle } });
-      },
-
-      endConnecting: () => {
-        set({ connectingFrom: null });
-      },
-    }),
-    {
-      name: "board-storage",
-      partialize: (state) => ({ 
-        boards: state.boards, 
-        widgets: state.widgets, 
-        connections: state.connections,
-        activeBoardId: state.activeBoardId 
-      }),
+      // Update file with parsed data
+      set(state => ({
+        files: state.files.map(f =>
+          f.id === id
+            ? {
+                ...f,
+                data,
+                columns,
+                rawContent,
+                imageUrl,
+                rowCount,
+                columnCount,
+                processing: false,
+                // Keep file reference for binary formats that need DuckDB
+                ...(fileType === 'parquet' ? { file } : {}),
+              }
+            : f
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to parse file:', error);
+      set(state => ({
+        files: state.files.map(f =>
+          f.id === id
+            ? { ...f, processing: false, error: 'Failed to parse file' }
+            : f
+        ),
+      }));
     }
-  )
-);
+  },
+
+  updateFilePosition: (id, position) => {
+    set(state => ({
+      files: state.files.map(f => (f.id === id ? { ...f, position } : f)),
+    }));
+  },
+
+  deleteFile: (id) => {
+    set(state => ({
+      files: state.files.filter(f => f.id !== id),
+      openFileIds: state.openFileIds.filter(fid => fid !== id),
+      focusedFileId: state.focusedFileId === id ? null : state.focusedFileId,
+      selectedId: state.selectedId === id ? null : state.selectedId,
+      // Also remove from any folders
+      folders: state.folders.map(f => ({
+        ...f,
+        fileIds: f.fileIds.filter(fid => fid !== id),
+      })),
+    }));
+  },
+
+  selectItem: (id) => {
+    set({ selectedId: id });
+  },
+
+  focusFile: (id) => {
+    set(state => ({
+      focusedFileId: id,
+      selectedId: id,
+      openFileIds: state.openFileIds.includes(id)
+        ? state.openFileIds
+        : [...state.openFileIds, id],
+    }));
+  },
+
+  unfocusFile: () => {
+    set({ focusedFileId: null });
+  },
+
+  closeFileTab: (id) => {
+    const { openFileIds, focusedFileId } = get();
+    const newOpenIds = openFileIds.filter(fid => fid !== id);
+
+    let newFocusedId = focusedFileId;
+    if (focusedFileId === id) {
+      const currentIndex = openFileIds.indexOf(id);
+      if (newOpenIds.length > 0) {
+        newFocusedId = newOpenIds[Math.max(0, currentIndex - 1)];
+      } else {
+        newFocusedId = null;
+      }
+    }
+
+    set({
+      openFileIds: newOpenIds,
+      focusedFileId: newFocusedId,
+    });
+  },
+
+  reorderTabs: (newOrder) => {
+    set({ openFileIds: newOrder });
+  },
+
+  // Folder actions
+  createFolder: (fileIds, position) => {
+    const id = uuid();
+    const files = get().files;
+
+    const fileNames = fileIds
+      .map(fid => files.find(f => f.id === fid)?.name)
+      .filter(Boolean)
+      .slice(0, 2);
+    const name = fileNames.length === 1
+      ? `${fileNames[0]} folder`
+      : fileNames.length === 2
+        ? `${fileNames.join(' & ')}`
+        : `${fileNames[0]} + ${fileIds.length - 1}`;
+
+    set(state => ({
+      folders: [
+        ...state.folders,
+        {
+          id,
+          name,
+          position,
+          fileIds,
+          color: '#6366F1',
+        },
+      ],
+      pendingFolderFiles: null,
+      dragOverFileId: null,
+    }));
+
+    return id;
+  },
+
+  addFileToFolder: (folderId, fileId) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId && !f.fileIds.includes(fileId)
+          ? { ...f, fileIds: [...f.fileIds, fileId] }
+          : f
+      ),
+    }));
+  },
+
+  removeFileFromFolder: (folderId, fileId) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId
+          ? { ...f, fileIds: f.fileIds.filter(id => id !== fileId) }
+          : f
+      ),
+    }));
+  },
+
+  deleteFolder: (folderId, keepFiles = true) => {
+    const folder = get().folders.find(f => f.id === folderId);
+    if (!folder) return;
+
+    set(state => {
+      const newFiles = keepFiles
+        ? state.files
+        : state.files.filter(f => !folder.fileIds.includes(f.id));
+
+      return {
+        folders: state.folders.filter(f => f.id !== folderId),
+        files: newFiles,
+      };
+    });
+  },
+
+  renameFolder: (folderId, name) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, name, isRenaming: false } : f
+      ),
+    }));
+  },
+
+  updateFolderPosition: (folderId, position) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, position } : f
+      ),
+    }));
+  },
+
+  openFolder: (folderId) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, isOpen: true } : f
+      ),
+    }));
+  },
+
+  closeFolder: (folderId) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, isOpen: false } : f
+      ),
+    }));
+  },
+
+  startRenamingFolder: (folderId) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, isRenaming: true } : f
+      ),
+    }));
+  },
+
+  stopRenamingFolder: (folderId) => {
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, isRenaming: false } : f
+      ),
+    }));
+  },
+
+  setDragOverFile: (fileId) => {
+    set({ dragOverFileId: fileId });
+  },
+
+  setPendingFolderFiles: (fileIds) => {
+    set({ pendingFolderFiles: fileIds });
+  },
+
+  getFilesInFolder: (folderId) => {
+    const { folders, files } = get();
+    const folder = folders.find(f => f.id === folderId);
+    if (!folder) return [];
+    return files.filter(f => folder.fileIds.includes(f.id));
+  },
+}));
