@@ -1,73 +1,210 @@
-# React + TypeScript + Vite
+# Flow Data App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A **dual-platform data manipulation tool** that runs as both a web app and a high-performance desktop app. Visualize, edit, and transform data files with a flow-based interface powered by DuckDB.
 
-Currently, two official plugins are available:
+## 🚀 Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Universal Platform Support
+- **Web App**: Run in any browser with DuckDB-WASM
+- **Desktop App**: Native performance with Tauri + Rust + DuckDB
+- **Same Codebase**: One React app, two execution environments
 
-## React Compiler
+### Native DuckDB Integration
+- **Direct File Access**: Desktop app reads files from disk without upload
+- **10x Performance**: Native DuckDB vs WASM in browser
+- **Universal Formats**: CSV, JSON, Parquet, Excel
+- **SQL-Level Operations**: Millions of rows with instant pagination
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Flow-Based UI
+- **Visual Canvas**: Drag files onto a desktop-like workspace
+- **Focused View**: Deep-dive into data with inline editing
+- **AI Commands**: Natural language → SQL transformations
+- **Change Tracking**: Undo/redo with atomic commits
 
-## Expanding the ESLint configuration
+## 🏗️ Architecture
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+┌─────────────────────────────────────────────────────────┐
+│                    REACT APP                             │
+│         (Flow UI, Components, State)                     │
+└────────────────┬────────────────────────────────────────┘
+                 │
+        ┌────────┴────────┐
+        │                 │
+    WEB MODE        DESKTOP MODE
+        │                 │
+        ▼                 ▼
+┌──────────────┐  ┌──────────────┐
+│ DuckDB-WASM  │  │Native DuckDB │
+│  (Browser)   │  │   (Rust)     │
+└──────────────┘  └──────────────┘
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Platform Detection Layer (`src/lib/platform.ts`)
+Automatically detects environment and routes to appropriate engine:
+- **Web**: Uses DuckDB-WASM via `useDuckDBViewStore`
+- **Desktop**: Uses native DuckDB via Tauri IPC commands
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Native Backend (`src-tauri/src/lib.rs`)
+Rust backend with DuckDB integration:
+- In-memory database for fast queries
+- Tauri commands for IPC (e.g., `create_view_from_file`, `query_view`)
+- Change tracking with delta tables
+- Export to CSV/Parquet/JSON
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 📦 Installation
+
+### Web App
+```bash
+yarn install
+yarn dev
 ```
+Visit http://localhost:5180
+
+### Desktop App
+```bash
+# Install Rust (if needed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install dependencies
+yarn install
+
+# Run desktop app
+yarn tauri dev
+```
+
+### Building Desktop Release
+```bash
+yarn tauri build
+```
+Outputs to `src-tauri/target/release/bundle/`
+
+## 📁 Project Structure
+
+```
+├── src/
+│   ├── components/
+│   │   ├── flow/              # Canvas, nodes, file icons
+│   │   └── flow/focused/      # Data table, editing UI
+│   ├── lib/
+│   │   ├── platform.ts        # Platform detection & abstraction
+│   │   ├── duckdb/
+│   │   │   ├── native.ts      # Tauri IPC client
+│   │   │   └── duckdb.ts      # WASM interface
+│   │   └── ai/                # AI command parsing
+│   ├── store/                 # Zustand state management
+│   ├── pages/Flow.tsx         # Main app page
+│   └── App.tsx
+├── src-tauri/
+│   ├── src/
+│   │   ├── lib.rs             # Rust backend + DuckDB
+│   │   └── main.rs
+│   ├── Cargo.toml             # Rust dependencies
+│   └── tauri.conf.json        # App config
+└── docs/
+    ├── ARCHITECTURE_VISION_DUCKDB_FOCUSED_VIEW.md
+    └── IMPLEMENTATION_GUIDE_DUCKDB_EDITING.md
+```
+
+## 🎯 How It Works
+
+### 1. Opening Files
+
+**Web (DuckDB-WASM)**:
+```typescript
+const file = await fileInput.files[0];
+const view = await createViewFromFile(file, 'my_data');
+// Uploads file to WASM, creates SQL VIEW
+```
+
+**Desktop (Native DuckDB)**:
+```typescript
+const filePath = '/Users/you/data.csv';
+const view = await createViewFromFile(filePath, 'my_data');
+// DuckDB reads directly from disk!
+```
+
+### 2. Querying Data
+
+Both platforms use the same interface:
+```typescript
+const result = await engine.queryView('my_data', {
+  page: 0,
+  pageSize: 50,
+  sortColumn: 'revenue',
+  sortDirection: 'DESC',
+  search: 'california'
+});
+// Returns paginated results from SQL query
+```
+
+### 3. Editing & Change Tracking
+
+```typescript
+// Record a cell edit
+await engine.recordChange('my_data', rowId, 'price', 19.99, 24.99, 'update', 'user');
+
+// Get pending changes
+const changes = await engine.getPendingChanges('my_data');
+
+// Commit or discard
+await engine.commitChanges('my_data');
+await engine.discardChanges('my_data');
+```
+
+## 🔧 Configuration
+
+### Tauri Config (`src-tauri/tauri.conf.json`)
+- App name, version, identifier
+- Window size and decorations
+- Build commands
+- Bundle settings
+
+### Environment Variables
+```bash
+# For AI features (optional)
+VITE_ANTHROPIC_API_KEY=your_key_here
+```
+
+## 📚 Documentation
+
+- [Architecture Vision](./docs/ARCHITECTURE_VISION_DUCKDB_FOCUSED_VIEW.md) - Deep dive into DuckDB-powered design
+- [Implementation Guide](./docs/IMPLEMENTATION_GUIDE_DUCKDB_EDITING.md) - How to add features and extend the app
+
+## 🚢 Deployment
+
+### Web App
+Deploy the `dist/` folder to any static host (Vercel, Netlify, Cloudflare Pages)
+
+### Desktop App
+GitHub Actions workflow (`.github/workflows/release-desktop.yml`) automatically builds installers when you push a tag:
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Creates:
+- **macOS**: `.dmg` installer
+- **Windows**: `.msi` installer
+- **Linux**: `.deb` and `.AppImage`
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Test in both web and desktop modes
+5. Submit a pull request
+
+## 📄 License
+
+MIT
+
+## 🙏 Credits
+
+Built with:
+- [Tauri](https://tauri.app) - Desktop app framework
+- [DuckDB](https://duckdb.org) - High-performance SQL engine
+- [React](https://react.dev) - UI framework
+- [Zustand](https://zustand-demo.pmnd.rs/) - State management
+- [Framer Motion](https://www.framer.com/motion/) - Animations

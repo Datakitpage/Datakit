@@ -13,6 +13,7 @@ import type { WarmCanvasRef } from '@/components/flow/WarmCanvas';
 import { useFlowStore } from '@/store/flowStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useKeyboard } from '@/hooks/useKeyboard';
+import { DownloadButton } from '@/components/DownloadButton';
 
 export function Flow() {
   const {
@@ -396,6 +397,7 @@ export function Flow() {
           {folders.length > 0 && (
             <span>{folders.length} folder{folders.length !== 1 ? 's' : ''}</span>
           )}
+          <DownloadButton />
           <motion.button
             className="px-2 py-1 rounded-md transition-colors"
             style={{
