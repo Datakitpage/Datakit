@@ -1,0 +1,21 @@
+export { WarmCanvas } from './WarmCanvas';
+export type { WarmCanvasRef } from './WarmCanvas';
+export { FileObject, type FileObjectData } from './FileObject';
+export { FileNode, type FileNodeData, type FileType } from './FileNode';
+export { ContentNode, type ContentNodeData, type ContentType } from './ContentNode';
+export { DesktopFileIcon, type DesktopFileIconData } from './DesktopFileIcon';
+export { DesktopFolderIcon } from './DesktopFolderIcon';
+export { DataStream, ConnectionPreview } from './DataStream';
+export { AmbientWhisper, WhisperContainer, useAmbientAI, type Whisper } from './AmbientWhisper';
+export { TransformNode, TransformPalette, type TransformNodeData, type TransformType } from './TransformNode';
+export { ContextMenu, ShortcutHint } from './ContextMenu';
+export { DataPreview, ColumnTypeBadge } from './DataPreview';
+export { ControlPanel, QuickActionButton } from './ControlPanel';
+export { AICommandBar } from './AICommandBar';
+export { PerformanceMonitor, usePerformanceTracker } from './PerformanceMonitor';
+export { ConnectionPort, ConnectionLinePreview } from './ConnectionPort';
+export { FocusedFileView as LegacyFocusedFileView } from './FocusedFileView';
+export { MinimizedFileIcon, FileIconRail } from './MinimizedFileIcon';
+export { SettingsPanel } from './SettingsPanel';
+// New enhanced focused view components
+export { FocusedFileView, FileTabs, ColumnInspector, FocusedCommandPalette, type FileTab } from './focused';
