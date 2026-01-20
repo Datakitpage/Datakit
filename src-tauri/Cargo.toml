@@ -1,12 +1,12 @@
 [package]
-name = "flow-data-app"
+name = "board-app"
 version = "0.1.0"
 description = "A high-performance data manipulation app"
 authors = ["you"]
 edition = "2021"
 
 [lib]
-name = "flow_data_app_lib"
+name = "board_app_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Flow Data running in 5 minutes.
+Get Board running in 5 minutes.
 
 ## Web App (Fastest)
 

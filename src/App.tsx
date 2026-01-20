@@ -1,7 +1,7 @@
-import { Flow } from '@/pages/Flow';
+import { Board } from '@/pages/Board';
 
 function App() {
-  return <Flow />;
+  return <Board />;
 }
 
 export default App;

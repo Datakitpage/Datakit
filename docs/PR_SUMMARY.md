@@ -40,7 +40,7 @@ await invoke('execute_sql', { sql });
 - **Change tracking** - Delta tables for undo/redo
 - **Export** - CSV, Parquet, JSON formats
 
-### 5. Flow-Based UI
+### 5. Board-Based UI
 Extensive component library for visual data manipulation:
 - **Canvas** - Drag/drop workspace (`WarmCanvas.tsx`)
 - **File nodes** - Desktop-style file icons
@@ -117,9 +117,9 @@ Web app header button that:
 - `src/components/DownloadButton.tsx` - Download UI
 - `src/components/flow/` - 20+ components for canvas UI
 - `src/components/flow/focused/` - Data table components
-- `src/store/flowStore.ts` - Canvas state
+- `src/store/boardStore.ts` - Canvas state
 - `src/store/duckDBViewStore.ts` - WASM DuckDB store
-- `src/pages/Flow.tsx` - Main page
+- `src/pages/Board.tsx` - Main page
 
 ### Documentation
 - `README.md` - Complete project overview
