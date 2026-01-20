@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "resolutions": {
+  "overrides": {
     "@tabler/icons": "3.36.1"
   },
   "scripts": {

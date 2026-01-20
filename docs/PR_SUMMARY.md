@@ -134,19 +134,19 @@ Web app header button that:
 
 ### Web App
 ```bash
-yarn dev
+bun dev
 # Visit http://localhost:5180
 ```
 
 ### Desktop App
 ```bash
-yarn tauri dev
+bun tauri dev
 # Desktop window opens
 ```
 
 ### Build Release
 ```bash
-yarn tauri build
+bun tauri build
 # Check src-tauri/target/release/bundle/
 ```
 
