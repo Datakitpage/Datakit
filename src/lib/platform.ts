@@ -266,6 +266,21 @@ async function createWebEngine(): Promise<DataEngine> {
  */
 async function createTauriEngine(): Promise<DataEngine> {
   const { getNativeDuckDB } = await import('./duckdb/native');
+  type NativeChangeRecord = Awaited<ReturnType<ReturnType<typeof getNativeDuckDB>['recordChange']>>;
+
+  // Helper to convert native snake_case ChangeRecord to camelCase
+  const convertChangeRecord = (native: NativeChangeRecord): ChangeRecord => ({
+    id: native.id,
+    viewName: native.view_name,
+    rowId: native.row_id,
+    column: native.column,
+    oldValue: native.old_value,
+    newValue: native.new_value,
+    changeType: native.change_type,
+    timestamp: native.timestamp,
+    source: native.source,
+  });
+
   const db = getNativeDuckDB();
   let ready = false;
 
@@ -404,15 +419,18 @@ async function createTauriEngine(): Promise<DataEngine> {
     },
 
     async recordChange(viewName, rowId, column, oldValue, newValue, changeType, source) {
-      return db.recordChange(viewName, rowId, column, oldValue, newValue, changeType, source);
+      const result = await db.recordChange(viewName, rowId, column, oldValue, newValue, changeType, source);
+      return convertChangeRecord(result);
     },
 
     async getPendingChanges(viewName: string) {
-      return db.getPendingChanges(viewName);
+      const results = await db.getPendingChanges(viewName);
+      return results.map(convertChangeRecord);
     },
 
     async undoLastChange(viewName: string) {
-      return db.undoLastChange(viewName);
+      const result = await db.undoLastChange(viewName);
+      return result ? convertChangeRecord(result) : null;
     },
 
     async discardChanges(viewName: string) {
