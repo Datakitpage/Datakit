@@ -7,12 +7,12 @@ import {
   IconTable,
   IconTypography,
   IconDatabase,
-  IconSparkles,
   IconPalette,
   IconFileUpload
 } from "@tabler/icons-react";
 import { useAppStore } from "@/store/appStore";
 import { useBoardStore } from "@/store/boardStore";
+import anthropicIcon from "@/assets/anthropic.webp";
 
 interface CommandItem {
   id: string;
@@ -38,7 +38,7 @@ export function CommandPalette() {
     { id: "add-text", label: "Add Text Widget", description: "Add text or markdown", icon: <IconTypography size={18} stroke={1.5} />, action: () => { addWidget("text"); closeCommandPalette(); }, category: "Widgets" },
     { id: "import-data", label: "Import Data", description: "CSV, JSON, Excel files", icon: <IconFileUpload size={18} stroke={1.5} />, action: () => { closeCommandPalette(); }, category: "Data" },
     { id: "connect-db", label: "Connect Database", description: "PostgreSQL, DuckDB", icon: <IconDatabase size={18} stroke={1.5} />, action: () => { closeCommandPalette(); }, category: "Data" },
-    { id: "ask-ai", label: "Ask AI", description: "Chat with AI about your data", icon: <IconSparkles size={18} stroke={1.5} />, shortcut: "J", action: () => { closeCommandPalette(); openAIPanel(); }, category: "AI" },
+    { id: "ask-ai", label: "Ask AI", description: "Chat with AI about your data", icon: <img src={anthropicIcon} alt="" className="w-[18px] h-[18px] opacity-70 invert dark:invert-0" />, shortcut: "J", action: () => { closeCommandPalette(); openAIPanel(); }, category: "AI" },
     { id: "theme", label: "Theme Settings", description: "Customize colors and appearance", icon: <IconPalette size={18} stroke={1.5} />, action: () => { closeCommandPalette(); openSettings(); }, category: "Settings" },
   ];
 

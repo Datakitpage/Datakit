@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  IconSparkles,
   IconX,
   IconBolt,
   IconLoader2,
@@ -15,6 +14,7 @@ import { useAppStore } from "@/store/appStore";
 import { useAIStore } from "@/store/aiStore";
 import { useDataStore } from "@/store/dataStore";
 import { useBoardStore } from "@/store/boardStore";
+import anthropicIcon from "@/assets/anthropic.webp";
 
 interface AIAction {
   type: "chart" | "table" | "metric" | "query";
@@ -155,7 +155,7 @@ export function AIPanel() {
               className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-50"
             >
               <div className="mx-4 bg-popover border border-border rounded-2xl shadow-2xl p-6 text-center">
-                <IconSparkles size={32} stroke={1.5} className="text-primary mx-auto mb-4" />
+                <img src={anthropicIcon} alt="" className="w-8 h-8 mx-auto mb-4 opacity-60 invert dark:invert-0" />
                 <h3 className="font-medium text-foreground mb-2">AI Not Configured</h3>
                 <p className="text-sm text-foreground-muted mb-4">
                   Add your Anthropic API key in settings to use AI features.
@@ -198,7 +198,7 @@ export function AIPanel() {
             <div className="mx-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <IconSparkles size={18} stroke={1.5} className="text-primary" />
+                  <img src={anthropicIcon} alt="" className="w-4 h-4 opacity-70 invert dark:invert-0" />
                   <span className="font-medium text-sm text-foreground">Ask AI</span>
                   {activeDataSource && (
                     <span className="text-[10px] px-2 py-0.5 bg-secondary rounded-full text-foreground-muted">

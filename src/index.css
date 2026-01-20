@@ -1,4 +1,4 @@
-/* Board - Linear/Raycast inspired dark theme */
+/* Board - Dual theme (light/dark) with customizable accent */
 
 /* Fonts - Inter for UI, JetBrains Mono for code */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
@@ -7,60 +7,170 @@
 /* Tailwind v4 */
 @import "tailwindcss";
 
-/* Theme Configuration */
-@theme {
+/* ============================================================================
+   CSS Custom Properties for Theme Switching
+   ============================================================================ */
+
+:root {
+  /* Accent color (customizable via JS) */
+  --accent-hue: 221;
+  --accent-saturation: 83%;
+  --accent-lightness: 53%;
+
   /* Typography */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-
-  /* Spacing */
   --radius: 0.5rem;
 
-  /* Linear-inspired dark color palette */
-  --background: hsl(220 13% 5%);
-  --background-subtle: hsl(220 13% 8%);
-  --background-elevated: hsl(220 13% 10%);
-  
-  --foreground: hsl(0 0% 98%);
-  --foreground-muted: hsl(0 0% 63%);
-  --foreground-subtle: hsl(0 0% 45%);
+  /* ========== LIGHT THEME (default) ========== */
+  /* Canvas */
+  --canvas-bg: #FDFBF7;
+  --canvas-dot: rgba(0, 0, 0, 0.08);
+  --canvas-glow: rgba(251, 191, 36, 0.03);
 
-  /* Primary - Soft blue accent (Linear-like) */
-  --primary: hsl(221 83% 53%);
-  --primary-hover: hsl(221 83% 60%);
-  --primary-foreground: hsl(0 0% 100%);
+  /* Surfaces */
+  --surface-primary: #FFFFFF;
+  --surface-secondary: #F9FAFB;
+  --surface-tertiary: #F3F4F6;
+  --surface-elevated: #FFFFFF;
 
-  /* Secondary - Muted for less emphasis */
-  --secondary: hsl(220 13% 18%);
-  --secondary-hover: hsl(220 13% 22%);
-  --secondary-foreground: hsl(0 0% 98%);
+  /* Text */
+  --text-primary: #1F2937;
+  --text-secondary: #4B5563;
+  --text-tertiary: #9CA3AF;
+  --text-inverted: #FFFFFF;
 
-  /* Accents */
-  --accent: hsl(220 13% 15%);
-  --accent-hover: hsl(220 13% 18%);
-  --accent-foreground: hsl(0 0% 98%);
+  /* Borders */
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.12);
+  --border-focus: hsl(var(--accent-hue) var(--accent-saturation) var(--accent-lightness));
 
-  /* Semantic colors */
-  --success: hsl(142 76% 36%);
-  --warning: hsl(38 92% 50%);
-  --destructive: hsl(0 84% 60%);
-  --info: hsl(199 89% 48%);
+  /* Primary (accent-based) */
+  --primary: hsl(var(--accent-hue) var(--accent-saturation) var(--accent-lightness));
+  --primary-hover: hsl(var(--accent-hue) var(--accent-saturation) calc(var(--accent-lightness) + 7%));
+  --primary-subtle: hsl(var(--accent-hue) var(--accent-saturation) 95%);
+  --primary-foreground: #FFFFFF;
 
-  /* UI Elements */
-  --border: hsl(0 0% 100% / 0.08);
-  --border-hover: hsl(0 0% 100% / 0.12);
-  --input: hsl(220 13% 12%);
-  --ring: hsl(221 83% 53% / 0.5);
+  /* Semantic */
+  --success: #10B981;
+  --success-subtle: #D1FAE5;
+  --warning: #F59E0B;
+  --warning-subtle: #FEF3C7;
+  --error: #EF4444;
+  --error-subtle: #FEE2E2;
+  --info: #3B82F6;
+  --info-subtle: #DBEAFE;
 
-  /* Cards and popovers */
-  --card: hsl(220 13% 8%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(220 13% 10%);
-  --popover-foreground: hsl(0 0% 98%);
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.16);
 
-  /* Muted elements */
-  --muted: hsl(220 13% 15%);
-  --muted-foreground: hsl(0 0% 63%);
+  /* Glass effect */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.5);
+}
+
+/* ========== DARK THEME ========== */
+:root.dark {
+  /* Canvas */
+  --canvas-bg: hsl(220 13% 5%);
+  --canvas-dot: rgba(255, 255, 255, 0.06);
+  --canvas-glow: rgba(99, 102, 241, 0.05);
+
+  /* Surfaces */
+  --surface-primary: hsl(220 13% 8%);
+  --surface-secondary: hsl(220 13% 10%);
+  --surface-tertiary: hsl(220 13% 13%);
+  --surface-elevated: hsl(220 13% 12%);
+
+  /* Text */
+  --text-primary: #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --text-tertiary: #6B7280;
+  --text-inverted: #1F2937;
+
+  /* Borders */
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-focus: hsl(var(--accent-hue) var(--accent-saturation) var(--accent-lightness));
+
+  /* Primary (accent-based) */
+  --primary: hsl(var(--accent-hue) var(--accent-saturation) var(--accent-lightness));
+  --primary-hover: hsl(var(--accent-hue) var(--accent-saturation) calc(var(--accent-lightness) + 7%));
+  --primary-subtle: hsl(var(--accent-hue) var(--accent-saturation) 15%);
+  --primary-foreground: #FFFFFF;
+
+  /* Semantic (adjusted for dark) */
+  --success: #34D399;
+  --success-subtle: hsl(158 64% 15%);
+  --warning: #FBBF24;
+  --warning-subtle: hsl(43 96% 15%);
+  --error: #F87171;
+  --error-subtle: hsl(0 91% 15%);
+  --info: #60A5FA;
+  --info-subtle: hsl(217 91% 15%);
+
+  /* Shadows (darker for dark mode) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.6);
+
+  /* Glass effect */
+  --glass-bg: rgba(0, 0, 0, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================================
+   Tailwind Theme Configuration
+   ============================================================================ */
+
+@theme {
+  /* Typography */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --radius: var(--radius);
+
+  /* Map CSS variables to Tailwind theme */
+  --background: var(--canvas-bg);
+  --background-subtle: var(--surface-secondary);
+  --background-elevated: var(--surface-elevated);
+
+  --foreground: var(--text-primary);
+  --foreground-muted: var(--text-secondary);
+  --foreground-subtle: var(--text-tertiary);
+
+  --primary: var(--primary);
+  --primary-hover: var(--primary-hover);
+  --primary-foreground: var(--primary-foreground);
+
+  --secondary: var(--surface-secondary);
+  --secondary-hover: var(--surface-tertiary);
+  --secondary-foreground: var(--text-primary);
+
+  --accent: var(--surface-tertiary);
+  --accent-hover: var(--border-hover);
+  --accent-foreground: var(--text-primary);
+
+  --success: var(--success);
+  --warning: var(--warning);
+  --destructive: var(--error);
+  --info: var(--info);
+
+  --border: var(--border-default);
+  --border-hover: var(--border-hover);
+  --input: var(--surface-secondary);
+  --ring: var(--border-focus);
+
+  --card: var(--surface-primary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-elevated);
+  --popover-foreground: var(--text-primary);
+
+  --muted: var(--surface-tertiary);
+  --muted-foreground: var(--text-secondary);
 }
 
 /* Inline theme for CSS variable compatibility */
