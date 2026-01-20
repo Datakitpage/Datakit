@@ -27,28 +27,10 @@ const CDN_URLS = {
 };
 
 async function getDevBundles(): Promise<duckdb.DuckDBBundles> {
-  try {
-    console.log("[DuckDB] Loading development bundles...");
-    const [
-      { default: duckdb_wasm },
-      { default: mvp_worker },
-      { default: duckdb_wasm_eh },
-      { default: eh_worker },
-    ] = await Promise.all([
-      import("@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url"),
-      import("@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url"),
-      import("@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url"),
-      import("@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url"),
-    ]);
-    console.log("[DuckDB] Dev bundles loaded successfully");
-    return {
-      mvp: { mainModule: duckdb_wasm, mainWorker: mvp_worker },
-      eh: { mainModule: duckdb_wasm_eh, mainWorker: eh_worker },
-    };
-  } catch (error) {
-    console.error("[DuckDB] Failed to load dev bundles:", error);
-    return getProdBundles();
-  }
+  // Always use CDN bundles to avoid bundling large WASM files (~70MB)
+  // This keeps the build size small for Cloudflare Pages/Workers deployment
+  console.log("[DuckDB] Using CDN bundles for all environments...");
+  return getProdBundles();
 }
 
 async function getProdBundles(): Promise<duckdb.DuckDBBundles> {
