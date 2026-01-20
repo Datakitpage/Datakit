@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.board.app",
   "build": {
-    "beforeDevCommand": "yarn dev",
+    "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:5180",
-    "beforeBuildCommand": "yarn build",
+    "beforeBuildCommand": "bun run build",
     "frontendDist": "../dist"
   },
   "app": {

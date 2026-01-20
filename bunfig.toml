@@ -1,0 +1,20 @@
+# Bun configuration file
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use a lockfile for reproducible installs
+lockfile = true
+
+# Save exact versions by default
+exact = true
+
+# Install peer dependencies automatically
+peer = true
+
+[install.cache]
+# Enable global cache for faster installs
+dir = "~/.bun/install/cache"
+
+[run]
+# Silence bun's startup messages
+silent = false

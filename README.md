@@ -54,28 +54,29 @@ Rust backend with DuckDB integration:
 
 ## 📦 Installation
 
+### Prerequisites
+- **Bun** (install with: `curl -fsSL https://bun.sh/install | bash`)
+- **Rust** (for desktop app, install with: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+
 ### Web App
 ```bash
-yarn install
-yarn dev
+bun install
+bun dev
 ```
 Visit http://localhost:5180
 
 ### Desktop App
 ```bash
-# Install Rust (if needed)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
 # Install dependencies
-yarn install
+bun install
 
 # Run desktop app
-yarn tauri dev
+bun tauri dev
 ```
 
 ### Building Desktop Release
 ```bash
-yarn tauri build
+bun tauri build
 ```
 Outputs to `src-tauri/target/release/bundle/`
 

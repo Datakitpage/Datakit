@@ -2,13 +2,11 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+bun-debug.log*
 pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-.yarn/install-state.gz
 dist
 dist-ssr
 *.local
@@ -27,3 +25,6 @@ dist-ssr
 # Tauri/Rust build artifacts
 src-tauri/target/
 src-tauri/Cargo.lock
+
+# Context directory (Conductor)
+.context/

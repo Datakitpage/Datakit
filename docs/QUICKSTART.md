@@ -5,8 +5,8 @@ Get Board running in 5 minutes.
 ## Web App (Fastest)
 
 ```bash
-yarn install
-yarn dev
+bun install
+bun dev
 ```
 
 Open http://localhost:5180 and drag a CSV file onto the canvas!
@@ -14,13 +14,13 @@ Open http://localhost:5180 and drag a CSV file onto the canvas!
 ## Desktop App (Native Performance)
 
 ### Prerequisites
-- **Node.js 20+** and Yarn
+- **Bun** (install with: `curl -fsSL https://bun.sh/install | bash`)
 - **Rust** (install with: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
 
 ### Run
 ```bash
-yarn install
-yarn tauri dev
+bun install
+bun tauri dev
 ```
 
 The desktop app window will open automatically.
