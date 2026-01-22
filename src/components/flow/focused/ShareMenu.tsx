@@ -6,13 +6,12 @@ interface ShareMenuProps {
   fileName: string;
   onExport: (format: 'csv' | 'json' | 'parquet') => void;
   onCopyToClipboard?: () => Promise<boolean>;
-  onShareViaEmail?: () => void;
   accentColor: string;
   disabled?: boolean;
   rowCount?: number;
 }
 
-export function ShareMenu({ fileName, onExport, onCopyToClipboard, onShareViaEmail, accentColor, disabled, rowCount }: ShareMenuProps) {
+export function ShareMenu({ fileName, onExport, onCopyToClipboard, accentColor, disabled, rowCount }: ShareMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -177,34 +176,32 @@ export function ShareMenu({ fileName, onExport, onCopyToClipboard, onShareViaEma
                 </motion.button>
               )}
 
-              {/* Share via Email */}
-              {onShareViaEmail && (
-                <motion.button
-                  onClick={() => {
-                    onShareViaEmail();
-                    setIsOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors"
-                  style={{ backgroundColor: 'transparent' }}
-                  whileHover={{ backgroundColor: 'var(--surface-secondary)' }}
-                  whileTap={{ scale: 0.99 }}
+              {/* Share via Email - disabled */}
+              <div
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left cursor-not-allowed"
+                style={{ opacity: 0.5 }}
+              >
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-md"
+                  style={{ backgroundColor: '#f1f3f410' }}
                 >
-                  <span
-                    className="flex items-center justify-center w-8 h-8 rounded-md"
-                    style={{ backgroundColor: '#f1f3f410' }}
-                  >
-                    <img src={gmailLogo} alt="Gmail" className="w-5 h-5" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                      Share via email
-                    </div>
-                    <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
-                      Opens Gmail or email client
-                    </div>
+                  <img src={gmailLogo} alt="Gmail" className="w-5 h-5 grayscale" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--text-tertiary)' }}>
+                    Share
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
+                      style={{ backgroundColor: 'var(--surface-tertiary)', color: 'var(--text-tertiary)' }}
+                    >
+                      Soon
+                    </span>
                   </div>
-                </motion.button>
-              )}
+                  <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                    Opens Gmail or email client
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Keyboard shortcut hint */}

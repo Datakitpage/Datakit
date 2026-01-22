@@ -1,6 +1,10 @@
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as Dialog from '@radix-ui/react-dialog';
 import { useCanvas } from '@/hooks/useCanvas';
+
+// 450MB in bytes
+const MAX_FILE_SIZE = 450 * 1024 * 1024;
 
 interface WarmCanvasProps {
   children: React.ReactNode;
@@ -35,6 +39,7 @@ export const WarmCanvas = forwardRef<WarmCanvasRef, WarmCanvasProps>(({
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [trail, setTrail] = useState<{ x: number; y: number; id: number }[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [largeFileWarning, setLargeFileWarning] = useState<{ fileName: string; fileSize: number } | null>(null);
 
   // Canvas interactions
   const canvas = useCanvas({
@@ -118,6 +123,15 @@ export const WarmCanvas = forwardRef<WarmCanvasRef, WarmCanvasProps>(({
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0 && onFileDrop) {
       const canvasPos = canvas.screenToCanvas(e.clientX, e.clientY);
+
+      // Check for large files
+      for (const file of files) {
+        if (file.size > MAX_FILE_SIZE) {
+          setLargeFileWarning({ fileName: file.name, fileSize: file.size });
+          return;
+        }
+      }
+
       files.forEach(file => onFileDrop(file, canvasPos));
     }
   };
@@ -220,6 +234,157 @@ export const WarmCanvas = forwardRef<WarmCanvasRef, WarmCanvasProps>(({
 
       {/* Zoom indicator (shows briefly when zooming) */}
       <ZoomIndicator zoom={canvas.zoom} />
+
+      {/* Large file warning dialog */}
+      <Dialog.Root open={!!largeFileWarning} onOpenChange={(open) => !open && setLargeFileWarning(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay asChild>
+            <motion.div
+              className="fixed inset-0 z-50 backdrop-blur-sm"
+              style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+          </Dialog.Overlay>
+          <Dialog.Content asChild>
+            <motion.div
+              className="fixed z-50 w-full max-w-sm rounded-2xl overflow-hidden"
+              style={{
+                backgroundColor: 'var(--surface-primary)',
+                border: '1px solid var(--border-default)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                left: '50%',
+                top: '50%',
+              }}
+              initial={{ opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
+              animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%' }}
+              exit={{ opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
+            >
+              {/* Header with file info */}
+              <div className="p-5 pb-4">
+                {/* File icon and info */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: 'var(--surface-secondary)' }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Dialog.Title
+                      className="text-sm font-medium truncate mb-1"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {largeFileWarning?.fileName}
+                    </Dialog.Title>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-lg font-semibold tabular-nums"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {largeFileWarning ? Math.round(largeFileWarning.fileSize / (1024 * 1024)) : 0} MB
+                      </span>
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'var(--error-subtle)', color: 'var(--error)' }}
+                      >
+                        Too large
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Size comparison bar */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-[11px] mb-1.5">
+                    <span style={{ color: 'var(--text-tertiary)' }}>Web limit: 450 MB</span>
+                    <span style={{ color: 'var(--text-tertiary)' }}>
+                      {largeFileWarning ? Math.round((largeFileWarning.fileSize / (1024 * 1024) / 450) * 100) : 0}% over
+                    </span>
+                  </div>
+                  <div
+                    className="h-2 rounded-full overflow-hidden"
+                    style={{ backgroundColor: 'var(--surface-tertiary)' }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(90deg, var(--primary) 0%, var(--primary) 45%, var(--error) 45%, var(--error) 100%)',
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] mt-1">
+                    <span style={{ color: 'var(--text-tertiary)' }}>0</span>
+                    <span style={{ color: 'var(--text-tertiary)' }}>450 MB</span>
+                    <span style={{ color: 'var(--error)' }}>
+                      {largeFileWarning ? Math.round(largeFileWarning.fileSize / (1024 * 1024)) : 0} MB
+                    </span>
+                  </div>
+                </div>
+
+                <Dialog.Description className="sr-only">
+                  This file exceeds the 450MB limit for the web version.
+                </Dialog.Description>
+              </div>
+
+              {/* macOS promo card */}
+              <div
+                className="mx-5 mb-5 p-4 rounded-xl"
+                style={{
+                  background: 'linear-gradient(135deg, var(--surface-secondary) 0%, var(--surface-tertiary) 100%)',
+                  border: '1px solid var(--border-default)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--surface-primary)' }}
+                  >
+                    <svg width="18" height="22" viewBox="0 0 384 512" fill="var(--text-secondary)">
+                      <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium mb-0.5" style={{ color: 'var(--text-primary)' }}>
+                      Desktop app coming soon
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                      No file size limits with native performance
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div
+                className="px-5 py-4 flex gap-3"
+                style={{
+                  backgroundColor: 'var(--surface-secondary)',
+                  borderTop: '1px solid var(--border-default)',
+                }}
+              >
+                <Dialog.Close asChild>
+                  <button
+                    className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
+                    style={{
+                      backgroundColor: '#3B82F6',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                    }}
+                  >
+                    Got it
+                  </button>
+                </Dialog.Close>
+              </div>
+            </motion.div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 });

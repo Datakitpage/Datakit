@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import {
   WarmCanvas,
   DesktopFileIcon,
@@ -72,7 +73,6 @@ export function OpenSheet() {
 
   const [zoom, setZoom] = useState(1);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
-  const [aiPanelOpen, setAIPanelOpen] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
 
   // Settings (theme is applied automatically via settingsStore's onRehydrateStorage)
@@ -101,7 +101,6 @@ export function OpenSheet() {
   // Keyboard navigation (disabled when a file is focused - FocusedFileView has its own handlers)
   useKeyboard({
     onToggleCommandPalette: () => setCommandBarOpen(prev => !prev),
-    onToggleAI: () => setAIPanelOpen(prev => !prev),
     onZoomIn: () => canvasRef.current?.zoomIn(),
     onZoomOut: () => canvasRef.current?.zoomOut(),
     onZoomReset: () => canvasRef.current?.reset(),
@@ -452,23 +451,39 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
 
         {/* Right: Minimal actions */}
         <div className="flex items-center gap-2">
-          {/* File count - subtle indicator */}
-          {(files.length > 0 || folders.length > 0) && (
-            <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-disabled)' }}>
-              {files.length + folders.length}
-            </span>
-          )}
+          {/* Feedback button */}
+          <Tooltip.Provider delayDuration={100}>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  onClick={() => window.open('https://amin.contact', '_blank')}
+                  className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors hover:bg-[var(--surface-secondary)]"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  side="bottom"
+                  sideOffset={8}
+                  className="px-3 py-2 rounded-lg text-xs z-50"
+                  style={{
+                    backgroundColor: 'var(--surface-elevated)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-default)',
+                    boxShadow: 'var(--shadow-lg)',
+                  }}
+                >
+                  Send feedback
+                  <Tooltip.Arrow style={{ fill: 'var(--surface-elevated)' }} />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
           <DownloadButton />
-          <button
-            className="flex items-center gap-1 h-6 px-2 rounded text-xs transition-colors"
-            style={{
-              backgroundColor: aiPanelOpen ? 'var(--primary-subtle)' : 'transparent',
-              color: aiPanelOpen ? 'var(--primary)' : 'var(--text-tertiary)',
-            }}
-            onClick={() => setAIPanelOpen(!aiPanelOpen)}
-          >
-            ✦
-          </button>
         </div>
       </header>
 
@@ -568,8 +583,6 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
         onCenterCanvas={() => canvasRef.current?.reset()}
         nodeCount={files.length + folders.length}
         connectionCount={0}
-        onToggleAI={() => setAIPanelOpen(!aiPanelOpen)}
-        aiActive={aiPanelOpen}
       />
 
       {/* AI Command Bar */}

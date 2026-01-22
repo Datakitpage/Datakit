@@ -454,3 +454,43 @@
     box-shadow: 0 0 20px hsl(221 83% 53% / 0.15);
   }
 }
+
+/* ============================================================================
+   Radix UI Tooltip Animations
+   ============================================================================ */
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tooltip-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+[data-radix-tooltip-content] {
+  animation-duration: 150ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-radix-tooltip-content][data-state="delayed-open"],
+[data-radix-tooltip-content][data-state="instant-open"] {
+  animation-name: tooltip-fade-in;
+}
+
+[data-radix-tooltip-content][data-state="closed"] {
+  animation-name: tooltip-fade-out;
+}
