@@ -30,6 +30,7 @@ export function OpenSheet() {
     focusedFileId,
     openFileIds,
     dragOverFileId,
+    dragOverFolderId,
     addFile,
     updateFilePosition,
     renameFile,
@@ -47,6 +48,7 @@ export function OpenSheet() {
     startRenamingFolder,
     stopRenamingFolder,
     setDragOverFile,
+    setDragOverFolder,
   } = useBoardStore();
 
   // Get open files for tabs (in order they were opened)
@@ -271,9 +273,23 @@ export function OpenSheet() {
     [selectItem]
   );
 
-  // Detect file overlap during drag (for folder creation)
+  // Detect file/folder overlap during drag (for folder creation or adding to folder)
   const handleFileDragMove = useCallback(
     (draggedId: string, position: { x: number; y: number }) => {
+      // First, check if dragged file overlaps any folder (priority over files)
+      const overlappingFolder = folders.find(f => {
+        const dx = Math.abs(f.position.x - position.x);
+        const dy = Math.abs(f.position.y - position.y);
+        // Folder icons are ~88x100px, consider overlap if within ~50px
+        return dx < 50 && dy < 50;
+      });
+
+      if (overlappingFolder) {
+        setDragOverFolder(overlappingFolder.id);
+        setDragOverFile(null);
+        return;
+      }
+
       // Check if dragged file overlaps any other file
       const overlappingFile = desktopFiles.find(f => {
         if (f.id === draggedId) return false;
@@ -284,14 +300,24 @@ export function OpenSheet() {
       });
 
       setDragOverFile(overlappingFile?.id || null);
+      setDragOverFolder(null);
     },
-    [desktopFiles, setDragOverFile]
+    [desktopFiles, folders, setDragOverFile, setDragOverFolder]
   );
 
-  // Handle drag end - create folder if dropped on another file
+  // Handle drag end - create folder if dropped on another file, or add to folder
   const handleFileDragEnd = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- position parameter available for future drag-and-drop logic
     (draggedId: string, position: { x: number; y: number }) => {
+      // If dropped on a folder, add the file to that folder
+      if (dragOverFolderId) {
+        addFileToFolder(dragOverFolderId, draggedId);
+        setDragOverFolder(null);
+        setDragOverFile(null);
+        return;
+      }
+
+      // If dropped on another file, create a new folder
       if (dragOverFileId && dragOverFileId !== draggedId) {
         const targetFile = files.find(f => f.id === dragOverFileId);
         if (targetFile) {
@@ -299,8 +325,9 @@ export function OpenSheet() {
         }
       }
       setDragOverFile(null);
+      setDragOverFolder(null);
     },
-    [dragOverFileId, files, createFolder, setDragOverFile]
+    [dragOverFileId, dragOverFolderId, files, createFolder, addFileToFolder, setDragOverFile, setDragOverFolder]
   );
 
   // Handle file dropped on a folder
@@ -558,6 +585,7 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
               onRename={handleFolderRename}
               onRenameStart={handleFolderRenameStart}
               onRenameCancel={handleFolderRenameCancel}
+              isDragTarget={dragOverFolderId === folder.id}
             />
           );
         })}

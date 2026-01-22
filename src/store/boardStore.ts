@@ -98,6 +98,7 @@ interface BoardState {
   focusedFileId: string | null;
   openFileIds: string[];
   dragOverFileId: string | null;
+  dragOverFolderId: string | null;
   pendingFolderFiles: string[] | null;
 
   // Actions - Files
@@ -123,6 +124,7 @@ interface BoardState {
   startRenamingFolder: (folderId: string) => void;
   stopRenamingFolder: (folderId: string) => void;
   setDragOverFile: (fileId: string | null) => void;
+  setDragOverFolder: (folderId: string | null) => void;
   setPendingFolderFiles: (fileIds: string[] | null) => void;
   getFilesInFolder: (folderId: string) => ContentNodeData[];
   addSampleFiles: () => void;
@@ -135,6 +137,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   focusedFileId: null,
   openFileIds: [],
   dragOverFileId: null,
+  dragOverFolderId: null,
   pendingFolderFiles: null,
 
   addFile: async (file: File, position: { x: number; y: number }) => {
@@ -433,6 +436,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
   setDragOverFile: (fileId) => {
     set({ dragOverFileId: fileId });
+  },
+
+  setDragOverFolder: (folderId) => {
+    set({ dragOverFolderId: folderId });
   },
 
   setPendingFolderFiles: (fileIds) => {

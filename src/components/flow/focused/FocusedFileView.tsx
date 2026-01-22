@@ -1397,6 +1397,7 @@ export function FocusedFileView({
         accentColor={config.color}
         viewName={viewState.viewName || 'data'}
         recentCommands={recentCommands}
+        fileId={activeFileId}
       />
 
       {/* Change Log - only shown in DuckDB mode with pending changes */}

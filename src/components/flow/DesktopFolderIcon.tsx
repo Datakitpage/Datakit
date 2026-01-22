@@ -18,6 +18,7 @@ interface DesktopFolderIconProps {
   onRename?: (folderId: string, newName: string) => void;
   onRenameStart?: (folderId: string) => void;
   onRenameCancel?: (folderId: string) => void;
+  isDragTarget?: boolean; // True when a file is being dragged over this folder
 }
 
 // ============================================================================
@@ -102,17 +103,20 @@ export function DesktopFolderIcon({
   onRename,
   onRenameStart,
   onRenameCancel,
+  isDragTarget = false,
 }: DesktopFolderIconProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [editingName, setEditingName] = useState(folder.name);
+  const [showComingSoonTooltip, setShowComingSoonTooltip] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastClickTime = useRef(0);
   const clickCount = useRef(0);
   const clickTimer = useRef<NodeJS.Timeout | null>(null);
+  const tooltipTimer = useRef<NodeJS.Timeout | null>(null);
   const dragState = useRef<{
     startMouseX: number;
     startMouseY: number;
@@ -121,6 +125,9 @@ export function DesktopFolderIcon({
   } | null>(null);
 
   const isRenaming = folder.isRenaming;
+
+  // Combined drag target state (from props or HTML5 drag)
+  const isFileDragTarget = isDragTarget || isDragOver;
 
   // Motion values for smooth visual position
   const x = useMotionValue(folder.position.x);
@@ -143,6 +150,15 @@ export function DesktopFolderIcon({
       setEditingName(folder.name);
     }
   }, [isRenaming, folder.name]);
+
+  // Clean up tooltip timer on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimer.current) {
+        clearTimeout(tooltipTimer.current);
+      }
+    };
+  }, []);
 
   // Manual drag handling with zoom awareness
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -239,7 +255,15 @@ export function DesktopFolderIcon({
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY });
+
+    // Show "coming soon" tooltip on right-click instead of context menu
+    setShowComingSoonTooltip(true);
+    if (tooltipTimer.current) {
+      clearTimeout(tooltipTimer.current);
+    }
+    tooltipTimer.current = setTimeout(() => {
+      setShowComingSoonTooltip(false);
+    }, 3000);
   };
 
   const handleRenameSubmit = () => {
@@ -312,7 +336,7 @@ export function DesktopFolderIcon({
           className="flex flex-col items-center gap-1.5 p-2 rounded-xl cursor-pointer select-none"
           style={{ width: 88 }}
           animate={{
-            scale: isDragging ? 1.1 : isDragOver ? 1.15 : isHovered ? 1.05 : 1,
+            scale: isDragging ? 1.1 : isFileDragTarget ? 1.15 : isHovered ? 1.05 : 1,
             y: isDragging ? -8 : 0,
           }}
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -323,13 +347,13 @@ export function DesktopFolderIcon({
             style={{
               background: folder.selected
                 ? `${folder.color || '#6366F1'}15`
-                : isDragOver
+                : isFileDragTarget
                   ? 'rgba(99, 102, 241, 0.15)'
                   : isHovered
                     ? 'rgba(0,0,0,0.03)'
                     : 'transparent',
             }}
-            animate={{ opacity: folder.selected || isHovered || isDragOver ? 1 : 0 }}
+            animate={{ opacity: folder.selected || isHovered || isFileDragTarget ? 1 : 0 }}
           />
 
           {/* Folder icon */}
@@ -417,7 +441,7 @@ export function DesktopFolderIcon({
             )}
 
             {/* Drag over indicator */}
-            {isDragOver && (
+            {isFileDragTarget && (
               <motion.div
                 className="absolute inset-0 rounded-lg border-2 border-dashed"
                 style={{ borderColor: folder.color || '#6366F1' }}
@@ -464,12 +488,52 @@ export function DesktopFolderIcon({
             className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 whitespace-nowrap"
             initial={{ opacity: 0, y: -4 }}
             animate={{
-              opacity: isHovered && !isDragging && !isRenaming ? 1 : 0,
+              opacity: isHovered && !isDragging && !isRenaming && !isFileDragTarget ? 1 : 0,
               y: isHovered && !isDragging ? 0 : -4,
             }}
           >
             {folder.selected ? 'click again to rename' : 'double-click to open'}
           </motion.div>
+
+          {/* Drop to add hint */}
+          <motion.div
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-indigo-500 font-medium whitespace-nowrap"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{
+              opacity: isFileDragTarget ? 1 : 0,
+              y: isFileDragTarget ? 0 : -4,
+            }}
+          >
+            drop to add to folder
+          </motion.div>
+
+          {/* Coming soon tooltip */}
+          <AnimatePresence>
+            {showComingSoonTooltip && (
+              <motion.div
+                className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 rounded-lg text-xs whitespace-nowrap z-50"
+                style={{
+                  backgroundColor: 'var(--surface-elevated, #27272a)',
+                  color: 'var(--text-secondary, #a1a1aa)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--border-subtle, #3f3f46)',
+                }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+              >
+                Soon, you'll be able to have more features on folders
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 rotate-45"
+                  style={{
+                    backgroundColor: 'var(--surface-elevated, #27272a)',
+                    borderRight: '1px solid var(--border-subtle, #3f3f46)',
+                    borderBottom: '1px solid var(--border-subtle, #3f3f46)',
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.div>
 
