@@ -1,6 +1,6 @@
 # AI System Documentation
 
-This directory contains the AI-powered functionality for Board, including natural language command processing, SQL generation, and intelligent data assistance.
+This directory contains the AI-powered functionality for OpenSheet, including natural language command processing, SQL generation, and intelligent data assistance.
 
 ## Architecture Overview
 

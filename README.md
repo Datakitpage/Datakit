@@ -1,4 +1,4 @@
-# Board
+# OpenSheet
 
 A **dual-platform data manipulation tool** that runs as both a web app and a high-performance desktop app. Visualize, edit, and transform data files with a flow-based interface powered by DuckDB.
 
@@ -26,7 +26,7 @@ A **dual-platform data manipulation tool** that runs as both a web app and a hig
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    REACT APP                             │
-│         (Board UI, Components, State)                    │
+│         (OpenSheet UI, Components, State)                │
 └────────────────┬────────────────────────────────────────┘
                  │
         ┌────────┴────────┐
@@ -94,7 +94,7 @@ Outputs to `src-tauri/target/release/bundle/`
 │   │   │   └── duckdb.ts      # WASM interface
 │   │   └── ai/                # AI command parsing
 │   ├── store/                 # Zustand state management
-│   ├── pages/Board.tsx        # Main app page
+│   ├── pages/OpenSheet.tsx    # Main app page
 │   └── App.tsx
 ├── src-tauri/
 │   ├── src/

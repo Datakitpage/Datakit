@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Board running in 5 minutes.
+Get OpenSheet running in 5 minutes.
 
 ## Web App (Fastest)
 
