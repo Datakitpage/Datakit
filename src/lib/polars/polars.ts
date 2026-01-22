@@ -82,7 +82,6 @@ export function isAvailable(): boolean {
  * Create a DataFrame from JSON data
  */
 export async function fromJSON(data: Record<string, unknown>[]): Promise<PolarsDataFrame> {
-  const startTime = performance.now();
 
   if (polarsModule && isPolarsAvailable) {
     try {

@@ -110,7 +110,6 @@ export function parseNaturalLanguage(
   context: AICommandContext
 ): AIDataCommand | null {
   const { viewName, schema, totalRows } = context;
-  const inputLower = input.toLowerCase().trim();
 
   // Try sort patterns
   for (const pattern of COMMAND_PATTERNS.sort) {
@@ -254,7 +253,7 @@ export function parseNaturalLanguage(
         if (column) {
           const colSchema = schema.find(c => c.name === column);
           const sqlOp = normalizeOperator(operator);
-          let sqlValue = parseValue(value, colSchema?.type || 'VARCHAR');
+          const sqlValue = parseValue(value, colSchema?.type || 'VARCHAR');
 
           if (value.toLowerCase() === 'null') {
             return {

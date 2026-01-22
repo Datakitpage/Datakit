@@ -38,6 +38,7 @@ interface KeyboardConfig {
   onZoomOut?: () => void;
   onZoomReset?: () => void;
   onEscape?: () => void;
+  onEnter?: () => void;
 
   // Custom shortcuts
   customShortcuts?: {
@@ -54,7 +55,11 @@ interface KeyboardConfig {
 
 export function useKeyboard(config: KeyboardConfig) {
   const configRef = useRef(config);
-  configRef.current = config;
+
+  // Update ref in useEffect instead of during render
+  useEffect(() => {
+    configRef.current = config;
+  });
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const cfg = configRef.current;
@@ -150,6 +155,13 @@ export function useKeyboard(config: KeyboardConfig) {
     // Escape
     if (e.key === 'Escape') {
       cfg.onEscape?.();
+      return;
+    }
+
+    // Enter - open/activate selected item
+    if (e.key === 'Enter') {
+      if (cfg.preventDefault !== false) e.preventDefault();
+      cfg.onEnter?.();
       return;
     }
 

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+// Simplified - removed framer-motion animations to eliminate flashing
 
 // PendingChange matches the ChangeRecord structure from duckDBViewStore
 interface PendingChange {
@@ -59,8 +59,8 @@ export function HeaderStatusBar({
   );
 
   return (
-    <motion.div
-      className="flex items-center justify-between px-4 py-2"
+    <div
+      className="flex items-center justify-between px-4 py-2 transition-colors"
       style={{
         backgroundColor: hasPendingChanges
           ? 'rgba(245, 158, 11, 0.08)'
@@ -69,39 +69,19 @@ export function HeaderStatusBar({
           : 'var(--surface-secondary)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
-      initial={false}
-      animate={{
-        backgroundColor: hasPendingChanges
-          ? 'rgba(245, 158, 11, 0.08)'
-          : error
-          ? 'rgba(239, 68, 68, 0.08)'
-          : 'var(--surface-secondary)',
-      }}
     >
       {/* Left side: Status indicators */}
       <div className="flex items-center gap-4">
         {/* DuckDB Status */}
         <div className="flex items-center gap-2">
-          <motion.div
-            className="w-2 h-2 rounded-full"
+          <div
+            className={`w-2 h-2 rounded-full ${isLoading ? 'animate-pulse' : ''}`}
             style={{
               backgroundColor: error
                 ? '#EF4444'
                 : isDuckDBReady
                 ? '#10B981'
                 : '#F59E0B',
-            }}
-            animate={
-              isLoading
-                ? {
-                    scale: [1, 1.3, 1],
-                    opacity: [1, 0.6, 1],
-                  }
-                : {}
-            }
-            transition={{
-              duration: 0.8,
-              repeat: isLoading ? Infinity : 0,
             }}
           />
           <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -121,182 +101,131 @@ export function HeaderStatusBar({
         )}
 
         {/* Error display */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="flex items-center gap-2"
-            >
-              <span className="text-xs" style={{ color: '#EF4444' }}>
-                {error.length > 50 ? `${error.slice(0, 50)}...` : error}
-              </span>
-              {onClearError && (
-                <button
-                  onClick={onClearError}
-                  className="text-[10px] px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors"
-                  style={{ color: '#EF4444' }}
-                >
-                  Dismiss
-                </button>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {error && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs" style={{ color: '#EF4444' }}>
+              {error.length > 50 ? `${error.slice(0, 50)}...` : error}
+            </span>
+            {onClearError && (
+              <button
+                onClick={onClearError}
+                className="text-[10px] px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors"
+                style={{ color: '#EF4444' }}
+              >
+                Dismiss
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Pending changes indicator */}
-        <AnimatePresence>
-          {hasPendingChanges && !error && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="flex items-center gap-3"
-            >
-              {/* Change count */}
-              <div className="flex items-center gap-1.5">
-                <motion.span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: '#F59E0B' }}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-                <span className="text-xs font-medium" style={{ color: '#F59E0B' }}>
-                  {pendingChanges.length} unsaved change{pendingChanges.length !== 1 ? 's' : ''}
-                </span>
-              </div>
+        {hasPendingChanges && !error && (
+          <div className="flex items-center gap-3">
+            {/* Change count */}
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: '#F59E0B' }}
+              />
+              <span className="text-xs font-medium" style={{ color: '#F59E0B' }}>
+                {pendingChanges.length} unsaved change{pendingChanges.length !== 1 ? 's' : ''}
+              </span>
+            </div>
 
-              {/* Change type breakdown */}
-              <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-                {changeSummary.update && (
-                  <span className="flex items-center gap-1">
-                    <span style={{ color: '#3B82F6' }}>●</span>
-                    {changeSummary.update} edit{changeSummary.update !== 1 ? 's' : ''}
-                  </span>
-                )}
-                {changeSummary.delete && (
-                  <span className="flex items-center gap-1">
-                    <span style={{ color: '#EF4444' }}>●</span>
-                    {changeSummary.delete} delete{changeSummary.delete !== 1 ? 's' : ''}
-                  </span>
-                )}
-                {changeSummary.insert && (
-                  <span className="flex items-center gap-1">
-                    <span style={{ color: '#10B981' }}>●</span>
-                    {changeSummary.insert} insert{changeSummary.insert !== 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Change type breakdown */}
+            <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+              {changeSummary.update && (
+                <span className="flex items-center gap-1">
+                  <span style={{ color: '#3B82F6' }}>●</span>
+                  {changeSummary.update} edit{changeSummary.update !== 1 ? 's' : ''}
+                </span>
+              )}
+              {changeSummary.delete && (
+                <span className="flex items-center gap-1">
+                  <span style={{ color: '#EF4444' }}>●</span>
+                  {changeSummary.delete} delete{changeSummary.delete !== 1 ? 's' : ''}
+                </span>
+              )}
+              {changeSummary.insert && (
+                <span className="flex items-center gap-1">
+                  <span style={{ color: '#10B981' }}>●</span>
+                  {changeSummary.insert} insert{changeSummary.insert !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right side: Actions */}
       <div className="flex items-center gap-2">
-        <AnimatePresence>
-          {hasPendingChanges && (
-            <motion.div
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="flex items-center gap-2"
+        {hasPendingChanges && (
+          <div className="flex items-center gap-2">
+            {/* Undo button */}
+            <button
+              className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors hover:bg-[var(--surface-tertiary)]"
+              style={{ color: 'var(--text-secondary)' }}
+              onClick={onUndo}
             >
-              {/* Undo button */}
-              <motion.button
-                className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onClick={onUndo}
-                whileHover={{ backgroundColor: 'var(--surface-tertiary)' }}
-                whileTap={{ scale: 0.97 }}
+              <span>↩</span>
+              <span>Undo</span>
+              <kbd
+                className="px-1 py-0.5 rounded text-[9px] font-mono ml-1"
+                style={{ backgroundColor: 'var(--surface-tertiary)', color: 'var(--text-tertiary)' }}
               >
-                <span>↩</span>
-                <span>Undo</span>
-                <kbd
-                  className="px-1 py-0.5 rounded text-[9px] font-mono ml-1"
-                  style={{ backgroundColor: 'var(--surface-tertiary)', color: 'var(--text-tertiary)' }}
-                >
-                  ⌘Z
-                </kbd>
-              </motion.button>
+                ⌘Z
+              </kbd>
+            </button>
 
-              {/* Discard button */}
-              <motion.button
-                className="text-xs px-2 py-1 rounded-md transition-colors"
-                style={{ color: 'var(--text-tertiary)' }}
-                onClick={onDiscard}
-                whileHover={{ backgroundColor: 'var(--surface-tertiary)', color: '#EF4444' }}
-                whileTap={{ scale: 0.97 }}
-              >
-                Discard
-              </motion.button>
+            {/* Discard button */}
+            <button
+              className="text-xs px-2 py-1 rounded-md transition-colors hover:bg-[var(--surface-tertiary)] hover:text-red-500"
+              style={{ color: 'var(--text-tertiary)' }}
+              onClick={onDiscard}
+            >
+              Discard
+            </button>
 
-              {/* Save/Commit button */}
-              <motion.button
-                className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-md font-medium transition-colors"
-                style={{
-                  backgroundColor: '#F59E0B',
-                  color: 'white',
-                  opacity: isCommitting ? 0.7 : 1,
-                }}
-                onClick={onCommit}
-                disabled={isCommitting}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isCommitting ? (
-                  <>
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    >
-                      ◌
-                    </motion.span>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Save</span>
-                    <kbd
-                      className="px-1 py-0.5 rounded text-[9px] font-mono"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                    >
-                      ⌘S
-                    </kbd>
-                  </>
-                )}
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Save/Commit button */}
+            <button
+              className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-md font-medium transition-colors hover:opacity-90 active:scale-98"
+              style={{
+                backgroundColor: '#F59E0B',
+                color: 'white',
+                opacity: isCommitting ? 0.7 : 1,
+              }}
+              onClick={onCommit}
+              disabled={isCommitting}
+            >
+              {isCommitting ? (
+                <>
+                  <span className="animate-spin">◌</span>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <span>Save</span>
+                  <kbd
+                    className="px-1 py-0.5 rounded text-[9px] font-mono"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                  >
+                    ⌘S
+                  </kbd>
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* AI status when no changes */}
         {!hasPendingChanges && !error && isDuckDBReady && (
           <div className="flex items-center gap-1.5 text-xs" style={{ color: accentColor }}>
-            <motion.span
-              animate={{
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              ✦
-            </motion.span>
+            <span>✦</span>
             <span>AI-powered editing enabled</span>
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

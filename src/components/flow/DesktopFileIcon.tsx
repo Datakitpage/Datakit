@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
 import type { ContentType } from './ContentNode';
+import { FileContextMenu } from './FileContextMenu';
 
 // ============================================================================
 // Types
@@ -24,6 +25,8 @@ interface DesktopFileIconProps {
   zoom?: number; // Canvas zoom level for drag calculations
   onSelect?: (id: string) => void;
   onDoubleClick?: (id: string) => void;
+  onRename?: (id: string, newName: string) => void;
+  onDelete?: (id: string) => void;
   onDrag?: (id: string, position: { x: number; y: number }) => void;
   onDragMove?: (id: string, position: { x: number; y: number }) => void;
   onDragEnd?: (id: string, position: { x: number; y: number }) => void;
@@ -127,6 +130,8 @@ export function DesktopFileIcon({
   zoom = 1,
   onSelect,
   onDoubleClick,
+  onRename,
+  onDelete,
   onDrag,
   onDragMove,
   onDragEnd,
@@ -134,6 +139,8 @@ export function DesktopFileIcon({
 }: DesktopFileIconProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const nodeRef = useRef<HTMLDivElement>(null);
   const lastClickTime = useRef(0);
   const dragState = useRef<{
@@ -232,6 +239,14 @@ export function DesktopFileIcon({
     lastClickTime.current = now;
   };
 
+  // Right-click context menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setContextMenuOpen(true);
+  };
+
   // File name without extension
   const displayName = node.name.replace(/\.[^.]+$/, '');
   const truncatedName = displayName.length > 12
@@ -247,16 +262,17 @@ export function DesktopFileIcon({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
     >
 
       <motion.div
-        className="flex flex-col items-center gap-1.5 p-2 rounded-xl cursor-pointer select-none"
+        className="flex flex-col items-center gap-1 p-1.5 rounded-lg cursor-pointer select-none"
         style={{
-          width: 88,
+          width: 72,
         }}
         animate={{
           scale: isDragging ? 1.1 : isDragTarget ? 1.15 : isHovered ? 1.05 : 1,
-          y: isDragging ? -8 : 0,
+          y: isDragging ? -6 : 0,
         }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
@@ -280,14 +296,14 @@ export function DesktopFileIcon({
 
         {/* Icon container */}
         <motion.div
-          className="relative w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden"
+          className="relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
           style={{
             background: config.bgGradient,
             boxShadow: isDragging
-              ? `0 12px 24px ${config.shadowColor}, 0 0 0 2px ${config.color}40`
+              ? `0 8px 16px ${config.shadowColor}, 0 0 0 2px ${config.color}40`
               : node.selected
-                ? `0 4px 12px ${config.shadowColor}, 0 0 0 2px ${config.color}`
-                : `0 2px 8px ${config.shadowColor}`,
+                ? `0 3px 8px ${config.shadowColor}, 0 0 0 2px ${config.color}`
+                : `0 2px 6px ${config.shadowColor}`,
           }}
           animate={{
             rotate: isDragging ? [-1, 1, -1] : 0,
@@ -299,7 +315,7 @@ export function DesktopFileIcon({
           {/* Processing spinner */}
           {node.processing ? (
             <motion.div
-              className="w-8 h-8 border-3 rounded-full"
+              className="w-5 h-5 border-2 rounded-full"
               style={{
                 borderColor: `${config.color}30`,
                 borderTopColor: config.color,
@@ -308,36 +324,26 @@ export function DesktopFileIcon({
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             />
           ) : (
-            <>
-              {/* File type icon */}
-              <span
-                className="text-2xl font-medium"
-                style={{ color: config.color }}
-              >
-                {config.icon}
-              </span>
-
-              {/* Type badge */}
-              <div
-                className="absolute bottom-1 right-1 px-1 py-0.5 rounded text-[8px] font-bold tracking-wide"
-                style={{
-                  backgroundColor: config.color,
-                  color: 'white',
-                }}
-              >
-                {config.label}
-              </div>
-            </>
+            /* Type badge - in corner */
+            <div
+              className="absolute bottom-1 right-1 px-1 py-0.5 rounded text-[8px] font-bold tracking-wide"
+              style={{
+                backgroundColor: config.color,
+                color: 'white',
+              }}
+            >
+              {config.label}
+            </div>
           )}
 
           {/* Error indicator */}
           {node.error && (
             <motion.div
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center"
+              className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 flex items-center justify-center"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
             >
-              <span className="text-white text-[10px]">!</span>
+              <span className="text-white text-[8px]">!</span>
             </motion.div>
           )}
         </motion.div>
@@ -346,16 +352,14 @@ export function DesktopFileIcon({
         <motion.div
           className="text-center w-full"
           animate={{
-            y: isDragging ? 4 : 0,
+            y: isDragging ? 3 : 0,
           }}
         >
           <div
-            className={`
-              text-xs font-medium truncate px-1 py-0.5 rounded
-              ${node.selected ? 'text-white' : 'text-stone-700'}
-            `}
+            className="text-[11px] font-medium truncate px-1 py-0.5 rounded"
             style={{
               backgroundColor: node.selected ? config.color : 'transparent',
+              color: node.selected ? 'white' : 'var(--text-primary)',
             }}
             title={node.name}
           >
@@ -363,7 +367,7 @@ export function DesktopFileIcon({
           </div>
 
           {/* File meta */}
-          <div className="text-[10px] text-stone-400 mt-0.5">
+          <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
             {node.rowCount ? (
               <span>{node.rowCount.toLocaleString()} rows</span>
             ) : (
@@ -374,11 +378,12 @@ export function DesktopFileIcon({
 
         {/* Hover hint */}
         <motion.div
-          className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 whitespace-nowrap"
-          initial={{ opacity: 0, y: -4 }}
+          className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[8px] whitespace-nowrap"
+          style={{ color: 'var(--text-tertiary)' }}
+          initial={{ opacity: 0, y: -3 }}
           animate={{
             opacity: isHovered && !isDragging && !isDragTarget ? 1 : 0,
-            y: isHovered && !isDragging ? 0 : -4,
+            y: isHovered && !isDragging ? 0 : -3,
           }}
         >
           double-click to open
@@ -386,16 +391,34 @@ export function DesktopFileIcon({
 
         {/* Drop to create folder hint */}
         <motion.div
-          className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-indigo-500 font-medium whitespace-nowrap"
-          initial={{ opacity: 0, y: -4 }}
+          className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[8px] text-indigo-500 font-medium whitespace-nowrap"
+          initial={{ opacity: 0, y: -3 }}
           animate={{
             opacity: isDragTarget ? 1 : 0,
-            y: isDragTarget ? 0 : -4,
+            y: isDragTarget ? 0 : -3,
           }}
         >
           drop to create folder
         </motion.div>
       </motion.div>
+
+      {/* Context menu */}
+      <FileContextMenu
+        isOpen={contextMenuOpen}
+        onClose={() => setContextMenuOpen(false)}
+        position={contextMenuPosition}
+        file={{
+          id: node.id,
+          name: node.name,
+          type: node.type,
+          size: node.size,
+          rowCount: node.rowCount,
+          columnCount: node.columnCount,
+        }}
+        onOpen={() => onDoubleClick?.(node.id)}
+        onRename={(newName) => onRename?.(node.id, newName)}
+        onDelete={onDelete ? () => onDelete(node.id) : undefined}
+      />
     </motion.div>
   );
 }

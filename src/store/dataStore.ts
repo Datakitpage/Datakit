@@ -31,9 +31,9 @@ interface DataState {
 
   initialize: () => Promise<boolean>;
   importFile: (file: File) => Promise<DataSource | null>;
-  executeQuery: (sql: string) => Promise<any[] | null>;
+  executeQuery: (sql: string) => Promise<Record<string, unknown>[] | null>;
   getTableSchema: (tableName: string) => Promise<TableSchema[] | null>;
-  getSampleData: (tableName: string, limit?: number) => Promise<any[] | null>;
+  getSampleData: (tableName: string, limit?: number) => Promise<Record<string, unknown>[] | null>;
   cleanupDB: () => Promise<void>;
 }
 
@@ -59,20 +59,20 @@ export const useDataStore = create<DataState>((set, get) => ({
   initialize: async () => {
     const state = get();
     if (state.isInitialized) {
-      console.log("[Board/Data] Already initialized");
+      console.log("[OpenSheet/Data] Already initialized");
       return true;
     }
     if (state.isInitializing) {
-      console.log("[Board/Data] Already initializing...");
+      console.log("[OpenSheet/Data] Already initializing...");
       return false;
     }
 
-    console.log("[Board/Data] Starting DuckDB initialization...");
+    console.log("[OpenSheet/Data] Starting DuckDB initialization...");
     set({ isInitializing: true, error: null });
 
     try {
       const { db, conn } = await initializeDuckDB();
-      console.log("[Board/Data] DuckDB initialized successfully");
+      console.log("[OpenSheet/Data] DuckDB initialized successfully");
       set({
         db,
         connection: conn,
@@ -81,7 +81,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       });
       return true;
     } catch (err) {
-      console.error("[Board/Data] DuckDB initialization failed:", err);
+      console.error("[OpenSheet/Data] DuckDB initialization failed:", err);
       set({
         error: err instanceof Error ? err.message : "Failed to initialize",
         isInitializing: false,
@@ -91,14 +91,14 @@ export const useDataStore = create<DataState>((set, get) => ({
   },
 
   importFile: async (file: File) => {
-    console.log("[Board/Data] Starting import for:", file.name, "Size:", file.size, "Type:", file.type);
+    console.log("[OpenSheet/Data] Starting import for:", file.name, "Size:", file.size, "Type:", file.type);
     
     const state = get();
     if (!state.connection) {
-      console.log("[Board/Data] No connection, initializing...");
+      console.log("[OpenSheet/Data] No connection, initializing...");
       const success = await get().initialize();
       if (!success) {
-        console.error("[Board/Data] Failed to initialize DuckDB");
+        console.error("[OpenSheet/Data] Failed to initialize DuckDB");
         return null;
       }
     }
@@ -107,7 +107,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     const db = get().db;
     if (!conn || !db) {
       const errorMsg = "Database not initialized";
-      console.error("[Board/Data]", errorMsg);
+      console.error("[OpenSheet/Data]", errorMsg);
       set({ error: errorMsg });
       return null;
     }
@@ -117,21 +117,21 @@ export const useDataStore = create<DataState>((set, get) => ({
     try {
       const tableName = sanitizeTableName(file.name);
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
-      console.log("[Board/Data] Table name:", tableName, "Extension:", fileExtension);
+      console.log("[OpenSheet/Data] Table name:", tableName, "Extension:", fileExtension);
 
       set({ importProgress: 20 });
 
       // Read file content
-      console.log("[Board/Data] Reading file content...");
+      console.log("[OpenSheet/Data] Reading file content...");
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      console.log("[Board/Data] File content length:", content.length, "chars");
+      console.log("[OpenSheet/Data] File content length:", content.length, "chars");
       set({ importProgress: 40 });
 
       // Register file with DuckDB
-      console.log("[Board/Data] Registering file with DuckDB...");
+      console.log("[OpenSheet/Data] Registering file with DuckDB...");
       await db.registerFileText(file.name, content);
-      console.log("[Board/Data] File registered");
+      console.log("[OpenSheet/Data] File registered");
       set({ importProgress: 60 });
 
       // Create table from file
@@ -146,20 +146,20 @@ export const useDataStore = create<DataState>((set, get) => ({
         throw new Error("Unsupported file type: " + fileExtension);
       }
 
-      console.log("[Board/Data] Creating table with SQL:", createSQL.substring(0, 100) + "...");
+      console.log("[OpenSheet/Data] Creating table with SQL:", createSQL.substring(0, 100) + "...");
       await conn.query(createSQL);
-      console.log("[Board/Data] Table created successfully");
+      console.log("[OpenSheet/Data] Table created successfully");
       set({ importProgress: 80 });
 
       // Get schema and row count
-      console.log("[Board/Data] Getting schema...");
+      console.log("[OpenSheet/Data] Getting schema...");
       const schema = await get().getTableSchema(tableName);
-      console.log("[Board/Data] Schema:", schema);
+      console.log("[OpenSheet/Data] Schema:", schema);
       
       const countResult = await conn.query("SELECT COUNT(*) as count FROM " + tableName);
       const countArray = countResult.toArray();
       const rowCount = Number(countArray[0]?.count || 0);
-      console.log("[Board/Data] Row count:", rowCount);
+      console.log("[OpenSheet/Data] Row count:", rowCount);
 
       set({ importProgress: 100 });
 
@@ -172,7 +172,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         createdAt: new Date().toISOString(),
       };
 
-      console.log("[Board/Data] Import complete:", dataSource);
+      console.log("[OpenSheet/Data] Import complete:", dataSource);
 
       set((state) => ({
         dataSources: [...state.dataSources, dataSource],
@@ -183,7 +183,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 
       return dataSource;
     } catch (err) {
-      console.error("[Board/Data] Import error:", err);
+      console.error("[OpenSheet/Data] Import error:", err);
       set({
         error: err instanceof Error ? err.message : "Import failed",
         isImporting: false,
@@ -196,18 +196,18 @@ export const useDataStore = create<DataState>((set, get) => ({
   executeQuery: async (sql: string) => {
     const conn = get().connection;
     if (!conn) {
-      console.error("[Board/Data] No connection for query");
+      console.error("[OpenSheet/Data] No connection for query");
       return null;
     }
 
     try {
-      console.log("[Board/Data] Executing query:", sql.substring(0, 100));
+      console.log("[OpenSheet/Data] Executing query:", sql.substring(0, 100));
       const result = await conn.query(sql);
       const rows = result.toArray().map((row) => ({ ...row }));
-      console.log("[Board/Data] Query returned", rows.length, "rows");
+      console.log("[OpenSheet/Data] Query returned", rows.length, "rows");
       return rows;
     } catch (err) {
-      console.error("[Board/Data] Query error:", err);
+      console.error("[OpenSheet/Data] Query error:", err);
       set({ error: err instanceof Error ? err.message : "Query failed" });
       return null;
     }
@@ -219,12 +219,13 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     try {
       const result = await conn.query("DESCRIBE " + tableName);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB result row type
       return result.toArray().map((row: any) => ({
         name: row.column_name,
         type: row.column_type,
       }));
     } catch (err) {
-      console.error("[Board/Data] Schema error:", err);
+      console.error("[OpenSheet/Data] Schema error:", err);
       return null;
     }
   },
@@ -237,7 +238,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       const result = await conn.query("SELECT * FROM " + tableName + " LIMIT " + limit);
       return result.toArray().map((row) => ({ ...row }));
     } catch (err) {
-      console.error("[Board/Data] Sample data error:", err);
+      console.error("[OpenSheet/Data] Sample data error:", err);
       return null;
     }
   },

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   WarmCanvas,
@@ -12,10 +12,12 @@ import {
 import type { WarmCanvasRef } from '@/components/flow/WarmCanvas';
 import { useBoardStore } from '@/store/boardStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useDuckDBViewStore } from '@/store/duckDBViewStore';
 import { useKeyboard } from '@/hooks/useKeyboard';
 import { DownloadButton } from '@/components/DownloadButton';
+import { streamGlobalAssistant, type GlobalSearchContext } from '@/lib/ai';
 
-export function Board() {
+export function OpenSheet() {
   const {
     files,
     folders,
@@ -25,6 +27,8 @@ export function Board() {
     dragOverFileId,
     addFile,
     updateFilePosition,
+    renameFile,
+    deleteFile,
     selectItem,
     focusFile,
     unfocusFile,
@@ -39,12 +43,6 @@ export function Board() {
     stopRenamingFolder,
     setDragOverFile,
   } = useBoardStore();
-
-  // Get the currently focused file
-  const focusedFile = useMemo(
-    () => files.find(f => f.id === focusedFileId),
-    [files, focusedFileId]
-  );
 
   // Get open files for tabs (in order they were opened)
   const openFiles = useMemo(
@@ -63,6 +61,12 @@ export function Board() {
     [files, filesInFolders]
   );
 
+  // Check if only sample files exist (no user-dropped files)
+  const onlySampleFiles = useMemo(
+    () => files.length > 0 && files.every(f => f.id.startsWith('sample-')) && folders.length === 0,
+    [files, folders]
+  );
+
   // Canvas ref for controlling zoom/pan
   const canvasRef = useRef<WarmCanvasRef>(null);
 
@@ -72,7 +76,16 @@ export function Board() {
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
 
   // Settings (theme is applied automatically via settingsStore's onRehydrateStorage)
-  const { theme, toggleTheme } = useSettingsStore();
+  const { theme, toggleTheme, anthropicApiKey } = useSettingsStore();
+
+  // Preload DuckDB on app startup for instant data operations
+  const initializeDuckDB = useDuckDBViewStore(state => state.initialize);
+  useEffect(() => {
+    console.log('[OpenSheet] Preloading DuckDB on app startup...');
+    initializeDuckDB().then(success => {
+      console.log('[OpenSheet] DuckDB preload complete:', success);
+    });
+  }, [initializeDuckDB]);
 
   // Sync zoom from canvas
   const handleZoomChange = useCallback((newZoom: number) => {
@@ -85,7 +98,7 @@ export function Board() {
     canvasRef.current?.setZoom(newZoom);
   }, []);
 
-  // Keyboard navigation
+  // Keyboard navigation (disabled when a file is focused - FocusedFileView has its own handlers)
   useKeyboard({
     onToggleCommandPalette: () => setCommandBarOpen(prev => !prev),
     onToggleAI: () => setAIPanelOpen(prev => !prev),
@@ -99,6 +112,22 @@ export function Board() {
         unfocusFile();
       } else {
         selectItem(null);
+      }
+    },
+    onEnter: () => {
+      // Open (focus) the selected file or folder
+      if (selectedId && !focusedFileId) {
+        const isFile = files.some(f => f.id === selectedId);
+        const isFolder = folders.some(f => f.id === selectedId);
+        if (isFile) {
+          focusFile(selectedId);
+        } else if (isFolder) {
+          const folder = folders.find(f => f.id === selectedId);
+          if (folder && folder.fileIds.length > 0) {
+            openFolder(selectedId);
+            focusFile(folder.fileIds[0]);
+          }
+        }
       }
     },
     onDelete: () => {
@@ -139,7 +168,7 @@ export function Board() {
         }
       },
     })),
-    enabled: !commandBarOpen,
+    enabled: !commandBarOpen && !focusedFileId,
   });
 
   // Command items - files, view controls, and settings
@@ -258,6 +287,7 @@ export function Board() {
 
   // Handle drag end - create folder if dropped on another file
   const handleFileDragEnd = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- position parameter available for future drag-and-drop logic
     (draggedId: string, position: { x: number; y: number }) => {
       if (dragOverFileId && dragOverFileId !== draggedId) {
         const targetFile = files.find(f => f.id === dragOverFileId);
@@ -327,9 +357,9 @@ export function Board() {
     [stopRenamingFolder]
   );
 
-  // Desktop icon dimensions
-  const DESKTOP_ICON_WIDTH = 88;
-  const DESKTOP_ICON_HEIGHT = 100;
+  // Desktop icon dimensions (smaller icons)
+  const DESKTOP_ICON_WIDTH = 72;
+  const DESKTOP_ICON_HEIGHT = 85;
 
   // Zoom to fit all content
   const handleZoomToFit = useCallback(() => {
@@ -359,57 +389,88 @@ export function Board() {
     }
   }, [files, folders]);
 
-  // AI query handler
-  const handleAIQuery = async (query: string): Promise<string> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return `I analyzed your query: "${query}"\n\nHere's what I found:\n• You have ${files.length} files loaded\n• ${folders.length} folders\n\nOpen a file to explore and transform your data!`;
-  };
+  // AI query handler with streaming and file context
+  const handleAIQueryStream = useCallback((
+    query: string,
+    onChunk: (text: string) => void,
+    onComplete: (fullText: string) => void,
+    onError: (error: Error) => void
+  ) => {
+    if (!anthropicApiKey) {
+      // Simulate streaming for the no-API-key message
+      const message = `To use AI features, please add your Anthropic API key in Settings (⌘K → "Settings").
+
+Your workspace has ${files.length} files and ${folders.length} folders.`;
+      onChunk(message);
+      onComplete(message);
+      return;
+    }
+
+    // Build context from files and folders
+    const context: GlobalSearchContext = {
+      files: files.map(f => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        rowCount: f.rowCount,
+        columnCount: f.columnCount,
+        columns: f.columns,
+      })),
+      folders: folders.map(f => ({
+        name: f.name,
+        fileCount: f.fileIds.length,
+      })),
+    };
+
+    streamGlobalAssistant(anthropicApiKey, query, context, onChunk, onComplete, onError);
+  }, [anthropicApiKey, files, folders]);
 
   return (
     <div className="w-screen h-screen overflow-hidden">
-      {/* Minimal header */}
-      <motion.header
-        className="fixed top-0 left-0 right-0 z-40 h-12 flex items-center justify-between px-4"
+      {/* Minimal header - clean, non-animated */}
+      <header
+        className="fixed top-0 left-0 right-0 z-40 h-10 flex items-center justify-between px-4"
         style={{
-          backgroundColor: 'var(--glass-bg)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--border-default)',
+          backgroundColor: 'var(--surface-primary)',
+          borderBottom: '1px solid var(--border-subtle)',
         }}
-        initial={{ y: -48 }}
-        animate={{ y: 0 }}
-        transition={{ delay: 0.2 }}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-lg font-light" style={{ color: 'var(--text-primary)' }}>Board</span>
-          <motion.button
-            className="text-xs px-2 py-1 rounded-md transition-colors"
+        {/* Left: Logo + quick search */}
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            OpenSheet
+          </span>
+          <button
+            className="flex items-center gap-2 h-6 px-2 rounded text-xs transition-colors hover:bg-[var(--surface-secondary)]"
             style={{ color: 'var(--text-tertiary)' }}
             onClick={() => setCommandBarOpen(true)}
           >
-            ⌘K
-          </motion.button>
+            <span style={{ opacity: 0.6 }}>⌘K</span>
+            <span className="hidden sm:inline">Search</span>
+          </button>
         </div>
 
-        <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {files.length > 0 && (
-            <span>{files.length} file{files.length !== 1 ? 's' : ''}</span>
-          )}
-          {folders.length > 0 && (
-            <span>{folders.length} folder{folders.length !== 1 ? 's' : ''}</span>
+        {/* Right: Minimal actions */}
+        <div className="flex items-center gap-2">
+          {/* File count - subtle indicator */}
+          {(files.length > 0 || folders.length > 0) && (
+            <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-disabled)' }}>
+              {files.length + folders.length}
+            </span>
           )}
           <DownloadButton />
-          <motion.button
-            className="px-2 py-1 rounded-md transition-colors"
+          <button
+            className="flex items-center gap-1 h-6 px-2 rounded text-xs transition-colors"
             style={{
               backgroundColor: aiPanelOpen ? 'var(--primary-subtle)' : 'transparent',
-              color: aiPanelOpen ? 'var(--primary)' : 'var(--text-secondary)',
+              color: aiPanelOpen ? 'var(--primary)' : 'var(--text-tertiary)',
             }}
             onClick={() => setAIPanelOpen(!aiPanelOpen)}
           >
-            ✦ AI
-          </motion.button>
+            ✦
+          </button>
         </div>
-      </motion.header>
+      </header>
 
       {/* Canvas with built-in zoom/pan */}
       <WarmCanvas
@@ -426,6 +487,8 @@ export function Board() {
             zoom={zoom}
             onSelect={handleFileSelect}
             onDoubleClick={focusFile}
+            onRename={renameFile}
+            onDelete={deleteFile}
             onDrag={updateFilePosition}
             onDragMove={handleFileDragMove}
             onDragEnd={handleFileDragEnd}
@@ -456,54 +519,41 @@ export function Board() {
           );
         })}
 
-        {/* Empty state - only show when no files and no focus */}
-        {!focusedFileId && files.length === 0 && folders.length === 0 && (
+        {/* Empty state - shows when canvas is empty or only has sample files */}
+        {!focusedFileId && (files.length === 0 || onlySampleFiles) && (
           <motion.div
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.3 }}
           >
-            <div className="text-center max-w-md">
+            <div className="text-center">
               <motion.div
                 className="text-6xl mb-6"
                 style={{ color: 'var(--text-tertiary)' }}
               >
                 ◎
               </motion.div>
-              <p className="text-xl font-light mb-3" style={{ color: 'var(--text-secondary)' }}>
-                Drop a file to see it
+              <p className="text-lg font-light mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Drop a file to explore
               </p>
-              <p className="text-sm mb-6" style={{ color: 'var(--text-tertiary)' }}>
-                CSV, JSON, images — your data becomes visible
+              <p className="text-sm mb-8" style={{ color: 'var(--text-tertiary)' }}>
+                CSV, JSON, Excel, Parquet - your data becomes visible
               </p>
-              <div className="text-xs space-y-1" style={{ color: 'var(--text-tertiary)' }}>
-                <p>
-                  <kbd
-                    className="px-1.5 py-0.5 rounded text-[10px] font-mono"
-                    style={{ backgroundColor: 'var(--surface-secondary)' }}
-                  >
-                    ⌘K
-                  </kbd>{' '}
-                  commands
-                </p>
-                <p>
-                  <kbd
-                    className="px-1.5 py-0.5 rounded text-[10px] font-mono"
-                    style={{ backgroundColor: 'var(--surface-secondary)' }}
-                  >
-                    Pinch
-                  </kbd>{' '}
-                  zoom
-                  {' · '}
-                  <kbd
-                    className="px-1.5 py-0.5 rounded text-[10px] font-mono"
-                    style={{ backgroundColor: 'var(--surface-secondary)' }}
-                  >
-                    Scroll
-                  </kbd>{' '}
-                  pan
-                </p>
+              {/* Keyboard hints */}
+              <div className="flex items-center justify-center gap-6 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                <span className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px]" style={{ backgroundColor: 'var(--surface-secondary)', color: 'var(--text-tertiary)' }}>⌘K</kbd>
+                  <span>Search</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px]" style={{ backgroundColor: 'var(--surface-secondary)', color: 'var(--text-tertiary)' }}>Tab</kbd>
+                  <span>Navigate</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px]" style={{ backgroundColor: 'var(--surface-secondary)', color: 'var(--text-tertiary)' }}>Enter</kbd>
+                  <span>Open</span>
+                </span>
               </div>
             </div>
           </motion.div>
@@ -527,7 +577,7 @@ export function Board() {
         isOpen={commandBarOpen}
         onClose={() => setCommandBarOpen(false)}
         commands={commands}
-        onAIQuery={handleAIQuery}
+        onAIQueryStream={handleAIQueryStream}
         placeholder="Search files and folders..."
       />
 
@@ -554,4 +604,4 @@ export function Board() {
   );
 }
 
-export default Board;
+export default OpenSheet;

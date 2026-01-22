@@ -237,8 +237,10 @@ function ZoomIndicator({ zoom }: { zoom: number }) {
 
   useEffect(() => {
     if (Math.abs(zoom - prevZoom.current) > 0.01) {
+      /* eslint-disable react-hooks/set-state-in-effect -- Intentional state update on zoom change */
       setDisplayZoom(zoom);
       setVisible(true);
+      /* eslint-enable react-hooks/set-state-in-effect */
 
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);

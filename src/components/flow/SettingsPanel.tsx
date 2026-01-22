@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IconX, IconCheck } from '@tabler/icons-react';
+import { IconX, IconCheck, IconLoader2 } from '@tabler/icons-react';
 import { clsx } from 'clsx';
 import { useSettingsStore, ACCENT_PRESETS } from '@/store/settingsStore';
+import { validateApiKey } from '@/lib/ai';
 import anthropicIcon from '@/assets/anthropic.webp';
 
 interface SettingsPanelProps {
@@ -23,18 +24,39 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [apiKeyInput, setApiKeyInput] = useState(anthropicApiKey);
   const [activeTab, setActiveTab] = useState<'appearance' | 'ai'>('ai');
   const [saved, setSaved] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
+      /* eslint-disable react-hooks/set-state-in-effect -- Intentional state reset when modal opens */
       setApiKeyInput(anthropicApiKey);
       setSaved(false);
+      setValidationError(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [isOpen, anthropicApiKey]);
 
-  const handleSaveApiKey = useCallback(() => {
-    setAnthropicApiKey(apiKeyInput);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+  const handleSaveApiKey = useCallback(async () => {
+    if (!apiKeyInput.trim()) {
+      setValidationError('API key is required');
+      return;
+    }
+
+    setIsValidating(true);
+    setValidationError(null);
+
+    const result = await validateApiKey(apiKeyInput);
+
+    setIsValidating(false);
+
+    if (result.valid) {
+      setAnthropicApiKey(apiKeyInput);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } else {
+      setValidationError(result.error || 'Invalid API key');
+    }
   }, [apiKeyInput, setAnthropicApiKey]);
 
   useEffect(() => {
@@ -161,20 +183,22 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         <div className="flex gap-2">
                           <button
                             onClick={handleSaveApiKey}
-                            disabled={apiKeyInput === anthropicApiKey}
-                            className="flex-1 px-4 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-40"
+                            disabled={apiKeyInput === anthropicApiKey || isValidating}
+                            className="flex-1 px-4 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
                             style={{
                               backgroundColor: saved ? 'var(--success)' : 'var(--primary)',
                               color: 'white',
                             }}
                           >
-                            {saved ? 'Saved' : 'Save'}
+                            {isValidating && <IconLoader2 size={14} className="animate-spin" />}
+                            {saved ? 'Saved' : isValidating ? 'Validating...' : 'Save'}
                           </button>
                           {anthropicApiKey && (
                             <button
                               onClick={() => {
                                 setApiKeyInput('');
                                 setAnthropicApiKey('');
+                                setValidationError(null);
                               }}
                               className="px-4 py-2 text-xs rounded-lg transition-colors"
                               style={{
@@ -186,6 +210,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                             </button>
                           )}
                         </div>
+                        {validationError && (
+                          <p className="text-[11px]" style={{ color: 'var(--destructive, #ef4444)' }}>
+                            {validationError}
+                          </p>
+                        )}
                         <p className="text-[11px]" style={{ color: 'var(--text-disabled)' }}>
                           Stored locally only
                         </p>

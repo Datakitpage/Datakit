@@ -3,6 +3,80 @@ import { v4 as uuid } from 'uuid';
 import type { ContentNodeData, ContentType } from '@/components/flow/ContentNode';
 import Papa from 'papaparse';
 
+// ============================================
+// Sample data for initial state
+// ============================================
+
+const SAMPLE_SALES_DATA = [
+  { _rowid: 0, product: 'Laptop Pro', category: 'Electronics', price: 1299, quantity: 45, revenue: 58455, region: 'North' },
+  { _rowid: 1, product: 'Wireless Mouse', category: 'Electronics', price: 29, quantity: 234, revenue: 6786, region: 'East' },
+  { _rowid: 2, product: 'Office Chair', category: 'Furniture', price: 399, quantity: 67, revenue: 26733, region: 'West' },
+  { _rowid: 3, product: 'Standing Desk', category: 'Furniture', price: 599, quantity: 32, revenue: 19168, region: 'North' },
+  { _rowid: 4, product: 'Monitor 27"', category: 'Electronics', price: 449, quantity: 89, revenue: 39961, region: 'South' },
+  { _rowid: 5, product: 'Keyboard RGB', category: 'Electronics', price: 149, quantity: 156, revenue: 23244, region: 'East' },
+  { _rowid: 6, product: 'Webcam HD', category: 'Electronics', price: 79, quantity: 203, revenue: 16037, region: 'West' },
+  { _rowid: 7, product: 'Desk Lamp', category: 'Furniture', price: 49, quantity: 312, revenue: 15288, region: 'South' },
+  { _rowid: 8, product: 'USB Hub', category: 'Electronics', price: 39, quantity: 445, revenue: 17355, region: 'North' },
+  { _rowid: 9, product: 'Cable Kit', category: 'Accessories', price: 19, quantity: 567, revenue: 10773, region: 'East' },
+];
+
+const SAMPLE_USERS_DATA = [
+  { _rowid: 0, user_id: 'U001', name: 'Alice Chen', email: 'alice@example.com', signups: '2024-01-15', country: 'USA', plan: 'Pro', active: true },
+  { _rowid: 1, user_id: 'U002', name: 'Bob Smith', email: 'bob@example.com', signups: '2024-02-20', country: 'UK', plan: 'Free', active: true },
+  { _rowid: 2, user_id: 'U003', name: 'Carol Davis', email: 'carol@example.com', signups: '2024-03-10', country: 'Canada', plan: 'Pro', active: false },
+  { _rowid: 3, user_id: 'U004', name: 'David Lee', email: 'david@example.com', signups: '2024-03-25', country: 'Australia', plan: 'Team', active: true },
+  { _rowid: 4, user_id: 'U005', name: 'Eva Martinez', email: 'eva@example.com', signups: '2024-04-01', country: 'Spain', plan: 'Pro', active: true },
+  { _rowid: 5, user_id: 'U006', name: 'Frank Wilson', email: 'frank@example.com', signups: '2024-04-15', country: 'Germany', plan: 'Free', active: true },
+  { _rowid: 6, user_id: 'U007', name: 'Grace Kim', email: 'grace@example.com', signups: '2024-05-01', country: 'Japan', plan: 'Team', active: true },
+  { _rowid: 7, user_id: 'U008', name: 'Henry Brown', email: 'henry@example.com', signups: '2024-05-20', country: 'France', plan: 'Pro', active: false },
+];
+
+const SAMPLE_API_DATA = [
+  { _rowid: 0, id: 1, status: 'success', method: 'GET', endpoint: '/api/users', latency_ms: 45, timestamp: '2024-06-01T10:30:00Z' },
+  { _rowid: 1, id: 2, status: 'success', method: 'POST', endpoint: '/api/orders', latency_ms: 128, timestamp: '2024-06-01T10:31:15Z' },
+  { _rowid: 2, id: 3, status: 'error', method: 'GET', endpoint: '/api/products', latency_ms: 5032, timestamp: '2024-06-01T10:32:00Z' },
+  { _rowid: 3, id: 4, status: 'success', method: 'PUT', endpoint: '/api/users/123', latency_ms: 67, timestamp: '2024-06-01T10:33:45Z' },
+  { _rowid: 4, id: 5, status: 'success', method: 'DELETE', endpoint: '/api/cache', latency_ms: 23, timestamp: '2024-06-01T10:34:30Z' },
+  { _rowid: 5, id: 6, status: 'warning', method: 'GET', endpoint: '/api/reports', latency_ms: 890, timestamp: '2024-06-01T10:35:00Z' },
+];
+
+// Initial sample files - shown from the beginning, positioned vertically from top-left
+const INITIAL_SAMPLE_FILES: ContentNodeData[] = [
+  {
+    id: 'sample-sales',
+    name: 'sales.csv',
+    type: 'csv',
+    size: 2048,
+    position: { x: 50, y: 70 },
+    data: SAMPLE_SALES_DATA,
+    columns: ['product', 'category', 'price', 'quantity', 'revenue', 'region'],
+    rowCount: SAMPLE_SALES_DATA.length,
+    columnCount: 6,
+  },
+  {
+    id: 'sample-users',
+    name: 'sample.csv',
+    type: 'csv',
+    size: 1536,
+    position: { x: 50, y: 190 },
+    data: SAMPLE_USERS_DATA,
+    columns: ['user_id', 'name', 'email', 'signups', 'country', 'plan', 'active'],
+    rowCount: SAMPLE_USERS_DATA.length,
+    columnCount: 7,
+  },
+  {
+    id: 'sample-api',
+    name: 'api_logs.json',
+    type: 'json',
+    size: 1024,
+    position: { x: 50, y: 310 },
+    data: SAMPLE_API_DATA,
+    columns: ['id', 'status', 'method', 'endpoint', 'latency_ms', 'timestamp'],
+    rowCount: SAMPLE_API_DATA.length,
+    columnCount: 6,
+  },
+];
+
 export interface Folder {
   id: string;
   name: string;
@@ -29,6 +103,7 @@ interface BoardState {
   // Actions - Files
   addFile: (file: File, position: { x: number; y: number }) => Promise<void>;
   updateFilePosition: (id: string, position: { x: number; y: number }) => void;
+  renameFile: (id: string, name: string) => void;
   deleteFile: (id: string) => void;
   selectItem: (id: string | null) => void;
   focusFile: (id: string) => void;
@@ -50,10 +125,11 @@ interface BoardState {
   setDragOverFile: (fileId: string | null) => void;
   setPendingFolderFiles: (fileIds: string[] | null) => void;
   getFilesInFolder: (folderId: string) => ContentNodeData[];
+  addSampleFiles: () => void;
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
-  files: [],
+  files: INITIAL_SAMPLE_FILES,
   folders: [],
   selectedId: null,
   focusedFileId: null,
@@ -103,24 +179,32 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       let columns: string[] = [];
 
       if (fileType === 'csv') {
+        // MINIMAL PARSE: Just get headers and estimate row count
+        // DuckDB will do the real parsing (much faster native C++ parser)
         const text = await file.text();
-        const result = Papa.parse(text, { header: true, skipEmptyLines: true });
-        data = result.data;
-        columns = result.meta.fields || [];
-        rowCount = data.length;
+        const headerResult = Papa.parse(text, { header: true, preview: 1 });
+        columns = headerResult.meta.fields || [];
         columnCount = columns.length;
+        // Estimate row count from newlines (fast, avoids full parse)
+        rowCount = (text.match(/\n/g) || []).length;
+        // Don't store parsed data - DuckDB will handle it
+        data = [];
       } else if (fileType === 'json') {
+        // MINIMAL PARSE: Just get structure from first object
+        // DuckDB will do the real parsing
         const text = await file.text();
         const parsed = JSON.parse(text);
-        data = Array.isArray(parsed) ? parsed : [parsed];
-        rowCount = data.length;
-        if (data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
-          columns = Object.keys(data[0] as object);
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+        rowCount = arr.length;
+        if (arr.length > 0 && typeof arr[0] === 'object' && arr[0] !== null) {
+          columns = Object.keys(arr[0] as object);
           columnCount = columns.length;
         }
+        // Don't store parsed data for large files - DuckDB will handle it
+        // Only keep data for small files (fallback for DOM table)
+        data = arr.length < 10000 ? arr : [];
       } else if (fileType === 'parquet') {
-        // Parquet files are binary and require DuckDB to parse
-        // Mark as empty data - FocusedFileView will use DuckDB's createViewFromFile
+        // Parquet is binary - DuckDB will parse and provide schema
         data = [];
         columns = [];
         rowCount = 0;
@@ -144,8 +228,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
                 rowCount,
                 columnCount,
                 processing: false,
-                // Keep file reference for binary formats that need DuckDB
-                ...(fileType === 'parquet' ? { file } : {}),
+                // Keep file reference for DuckDB (much faster than re-serializing parsed data)
+                ...(['csv', 'json', 'parquet'].includes(fileType) ? { file } : {}),
               }
             : f
         ),
@@ -165,6 +249,12 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   updateFilePosition: (id, position) => {
     set(state => ({
       files: state.files.map(f => (f.id === id ? { ...f, position } : f)),
+    }));
+  },
+
+  renameFile: (id, name) => {
+    set(state => ({
+      files: state.files.map(f => (f.id === id ? { ...f, name } : f)),
     }));
   },
 
@@ -354,5 +444,16 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const folder = folders.find(f => f.id === folderId);
     if (!folder) return [];
     return files.filter(f => folder.fileIds.includes(f.id));
+  },
+
+  // Reset to sample files (used when canvas is cleared)
+  addSampleFiles: () => {
+    // Only add if no sample files exist
+    const hasSamples = get().files.some(f => f.id.startsWith('sample-'));
+    if (!hasSamples) {
+      set(state => ({
+        files: [...state.files, ...INITIAL_SAMPLE_FILES],
+      }));
+    }
   },
 }));

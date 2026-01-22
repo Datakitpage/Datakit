@@ -61,6 +61,7 @@ export function FileObject({ file, onSelect, onDrag, onConnect, isConnecting }: 
       }, 800);
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional reset when not processing
     setBreathe(1);
   }, [file.processing]);
 

@@ -111,7 +111,11 @@ export function ColumnInspector({
       initial={{ x: 288, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 288, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      transition={{
+        type: 'tween',
+        duration: 0.15,
+        ease: 'easeOut',
+      }}
     >
       {/* Header */}
       <div

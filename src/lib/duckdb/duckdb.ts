@@ -35,7 +35,9 @@ export async function initDuckDB(): Promise<boolean> {
     const worker = new Worker(bundle.mainWorker!);
     const logger = new duckdb.ConsoleLogger();
     db = new duckdb.AsyncDuckDB(logger, worker);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
     await (db as any).instantiate(bundle.mainModule, bundle.pthreadWorker);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
     conn = await (db as any).connect();
 
     initialized = true;
@@ -82,10 +84,12 @@ export async function registerTable(
   });
 
   // Drop table if exists
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
   await (conn as any).query(`DROP TABLE IF EXISTS "${name}"`);
 
   // Create table
   const columnDefs = columns.map((col, i) => `"${col}" ${types[i]}`).join(', ');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
   await (conn as any).query(`CREATE TABLE "${name}" (${columnDefs})`);
 
   // Insert data
@@ -98,6 +102,7 @@ export async function registerTable(
         return String(val);
       })
       .join(', ');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
     await (conn as any).query(`INSERT INTO "${name}" VALUES (${values})`);
   }
 }
@@ -112,8 +117,11 @@ export async function runQuery(
     throw new Error('DuckDB not initialized');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
   const result = await (conn as any).query(sql);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM result schema field type
   const columns = result.schema.fields.map((f: any) => f.name);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM result row type
   const rows = result.toArray().map((row: any) => {
     const obj: Record<string, unknown> = {};
     columns.forEach((col: string, i: number) => {
@@ -130,10 +138,12 @@ export async function runQuery(
  */
 export async function closeDuckDB(): Promise<void> {
   if (conn) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
     await (conn as any).close();
     conn = null;
   }
   if (db) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB WASM types are incomplete
     await (db as any).terminate();
     db = null;
   }

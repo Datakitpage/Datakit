@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Board",
+  "productName": "OpenSheet",
   "version": "0.1.0",
-  "identifier": "com.board.app",
+  "identifier": "com.opensheet.app",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:5180",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Board",
+        "title": "OpenSheet",
         "width": 1400,
         "height": 900,
         "minWidth": 800,

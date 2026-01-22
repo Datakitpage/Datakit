@@ -15,6 +15,8 @@ interface AICommandInputProps {
   onAICommand: (command: AIDataCommand) => void;
   /** Called when user wants to apply the previewed command */
   onApplyCommand: (command: AIDataCommand) => void;
+  /** Optional function to fetch preview data for before/after diff */
+  onFetchPreview?: (sql: string) => Promise<Record<string, unknown>[] | null>;
   /** Placeholder text */
   placeholder?: string;
   /** File type color for theming */
@@ -23,11 +25,6 @@ interface AICommandInputProps {
 
 type ParseState = 'idle' | 'typing' | 'parsed' | 'searching';
 
-interface ParseResult {
-  command: AIDataCommand | null;
-  isSearch: boolean;
-  searchQuery: string;
-}
 
 // Debounce hook for parsing
 function useDebounce<T>(value: T, delay: number): T {
@@ -48,6 +45,7 @@ export function AICommandInput({
   onChange,
   onAICommand,
   onApplyCommand,
+  onFetchPreview,
   placeholder = 'Search or ask AI anything...',
   accentColor = '#8B5CF6',
 }: AICommandInputProps) {
@@ -55,6 +53,8 @@ export function AICommandInput({
   const [parseState, setParseState] = useState<ParseState>('idle');
   const [parsedCommand, setParsedCommand] = useState<AIDataCommand | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewRows, setPreviewRows] = useState<Record<string, unknown>[]>([]);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Debounce the input for parsing
@@ -63,9 +63,12 @@ export function AICommandInput({
   // Parse input when it changes
   useEffect(() => {
     if (!debouncedValue.trim()) {
+      /* eslint-disable react-hooks/set-state-in-effect -- Intentional state reset on empty input */
       setParseState('idle');
       setParsedCommand(null);
       setShowPreview(false);
+      setPreviewRows([]);
+      /* eslint-enable react-hooks/set-state-in-effect */
       return;
     }
 
@@ -83,19 +86,47 @@ export function AICommandInput({
         setParseState('parsed');
         setShowPreview(true);
         onAICommand(command);
+
+        // Fetch preview rows if we have the capability
+        if (onFetchPreview) {
+          setIsLoadingPreview(true);
+          // Build preview SQL based on command type
+          let previewSQL = command.generatedSQL;
+
+          if (command.type === 'update' || command.type === 'delete') {
+            // Extract WHERE clause and table for preview
+            const whereMatch = command.generatedSQL.match(/WHERE\s+(.+)$/i);
+            const whereClause = whereMatch ? ` WHERE ${whereMatch[1]}` : '';
+            previewSQL = `SELECT * FROM "${aiContext.viewName}"${whereClause} LIMIT 5`;
+          } else if (command.type === 'filter' || command.type === 'sort') {
+            previewSQL = command.generatedSQL.replace(/;?\s*$/, ' LIMIT 5');
+          }
+
+          onFetchPreview(previewSQL)
+            .then(rows => {
+              setPreviewRows(rows || []);
+              setIsLoadingPreview(false);
+            })
+            .catch(() => {
+              setPreviewRows([]);
+              setIsLoadingPreview(false);
+            });
+        }
       } else {
         // Couldn't parse, treat as search
         setParseState('searching');
         setParsedCommand(null);
         setShowPreview(false);
+        setPreviewRows([]);
       }
     } else {
       // Treat as regular search
       setParseState('searching');
       setParsedCommand(null);
       setShowPreview(false);
+      setPreviewRows([]);
     }
-  }, [debouncedValue, aiContext, isDuckDBReady, onAICommand]);
+  }, [debouncedValue, aiContext, isDuckDBReady, onAICommand, onFetchPreview]);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -227,14 +258,17 @@ export function AICommandInput({
             className="absolute top-full left-0 right-0 mt-2 rounded-xl overflow-hidden z-50"
             style={{
               backgroundColor: 'var(--surface-primary)',
-              border: '1px solid var(--border-default)',
+              border: `1px solid ${parsedCommand.type === 'delete' ? '#EF4444' : 'var(--border-default)'}`,
               boxShadow: 'var(--shadow-lg)',
             }}
           >
             {/* Command header */}
             <div
               className="flex items-center justify-between px-4 py-3"
-              style={{ borderBottom: '1px solid var(--border-subtle)' }}
+              style={{
+                borderBottom: '1px solid var(--border-subtle)',
+                backgroundColor: parsedCommand.type === 'delete' ? 'rgba(239, 68, 68, 0.05)' : 'transparent',
+              }}
             >
               <div className="flex items-center gap-3">
                 <span
@@ -247,7 +281,7 @@ export function AICommandInput({
                   {getCommandTypeBadge(parsedCommand.type).label}
                 </span>
                 <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                  {parsedCommand.affectedRowsEstimate.toLocaleString()} rows
+                  ~{parsedCommand.affectedRowsEstimate.toLocaleString()} rows affected
                 </span>
                 {parsedCommand.confidence < 0.8 && (
                   <span
@@ -260,55 +294,195 @@ export function AICommandInput({
               </div>
               <div className="flex items-center gap-2">
                 <motion.button
-                  className="text-xs px-2.5 py-1 rounded-md transition-colors"
+                  className="text-xs px-2.5 py-1.5 rounded-md transition-colors"
                   style={{ color: 'var(--text-tertiary)' }}
-                  onClick={() => setShowPreview(false)}
+                  onClick={() => {
+                    setShowPreview(false);
+                    setPreviewRows([]);
+                  }}
                   whileHover={{ backgroundColor: 'var(--surface-secondary)' }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  Dismiss
+                  Cancel
                 </motion.button>
                 <motion.button
-                  className="text-xs px-3 py-1 rounded-md font-medium"
-                  style={{ backgroundColor: accentColor, color: 'white' }}
+                  className="text-xs px-3 py-1.5 rounded-md font-medium"
+                  style={{
+                    backgroundColor: parsedCommand.type === 'delete' ? '#EF4444' : accentColor,
+                    color: 'white',
+                  }}
                   onClick={() => {
                     onApplyCommand(parsedCommand);
                     onChange('');
                     setShowPreview(false);
                     setParsedCommand(null);
+                    setPreviewRows([]);
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Apply
+                  {parsedCommand.type === 'delete' ? 'Delete Rows' : 'Apply'}
                 </motion.button>
               </div>
             </div>
 
-            {/* SQL Preview */}
-            <div className="px-4 py-3">
-              <div className="text-[10px] uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-                Generated SQL
+            {/* Before/After Preview for destructive operations */}
+            {(parsedCommand.type === 'update' || parsedCommand.type === 'delete' || parsedCommand.type === 'transform') && (
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-tertiary)' }}>
+                    {parsedCommand.type === 'delete' ? 'Rows to be deleted' : 'Preview of affected rows'}
+                  </div>
+                  {isLoadingPreview && (
+                    <motion.div
+                      className="w-3 h-3 border border-t-transparent rounded-full"
+                      style={{ borderColor: 'var(--text-tertiary)', borderTopColor: 'transparent' }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                    />
+                  )}
+                </div>
+
+                {previewRows.length > 0 ? (
+                  <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr style={{ backgroundColor: 'var(--surface-secondary)' }}>
+                          {Object.keys(previewRows[0]).filter(k => k !== '_rowid' && k !== '_hasChanges').slice(0, 4).map(key => (
+                            <th
+                              key={key}
+                              className="px-3 py-2 text-left font-medium truncate"
+                              style={{ color: 'var(--text-secondary)', maxWidth: 120 }}
+                            >
+                              {key}
+                            </th>
+                          ))}
+                          {Object.keys(previewRows[0]).filter(k => k !== '_rowid' && k !== '_hasChanges').length > 4 && (
+                            <th className="px-3 py-2 text-left font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                              +{Object.keys(previewRows[0]).filter(k => k !== '_rowid' && k !== '_hasChanges').length - 4} more
+                            </th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewRows.slice(0, 3).map((row, i) => (
+                          <tr
+                            key={i}
+                            style={{
+                              backgroundColor: parsedCommand.type === 'delete' ? 'rgba(239, 68, 68, 0.05)' : 'transparent',
+                              borderTop: '1px solid var(--border-subtle)',
+                            }}
+                          >
+                            {Object.entries(row).filter(([k]) => k !== '_rowid' && k !== '_hasChanges').slice(0, 4).map(([key, val]) => (
+                              <td
+                                key={key}
+                                className="px-3 py-2 truncate"
+                                style={{
+                                  color: parsedCommand.type === 'delete' ? '#EF4444' : 'var(--text-primary)',
+                                  maxWidth: 120,
+                                  textDecoration: parsedCommand.type === 'delete' ? 'line-through' : 'none',
+                                  opacity: parsedCommand.type === 'delete' ? 0.7 : 1,
+                                }}
+                              >
+                                {val === null ? <span style={{ color: 'var(--text-disabled)', fontStyle: 'italic' }}>null</span> : String(val)}
+                              </td>
+                            ))}
+                            {Object.keys(row).filter(k => k !== '_rowid' && k !== '_hasChanges').length > 4 && (
+                              <td className="px-3 py-2" style={{ color: 'var(--text-tertiary)' }}>...</td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {previewRows.length > 3 && (
+                      <div
+                        className="px-3 py-1.5 text-[10px] text-center"
+                        style={{ backgroundColor: 'var(--surface-secondary)', color: 'var(--text-tertiary)' }}
+                      >
+                        +{previewRows.length - 3} more rows shown, ~{parsedCommand.affectedRowsEstimate - 3} total affected
+                      </div>
+                    )}
+                  </div>
+                ) : !isLoadingPreview && (
+                  <div
+                    className="px-3 py-4 text-xs text-center rounded-lg"
+                    style={{ backgroundColor: 'var(--surface-secondary)', color: 'var(--text-tertiary)' }}
+                  >
+                    No preview available
+                  </div>
+                )}
               </div>
-              <code
-                className="block text-xs font-mono p-2 rounded-lg overflow-x-auto"
-                style={{
-                  backgroundColor: 'var(--surface-secondary)',
-                  color: 'var(--text-secondary)',
-                }}
+            )}
+
+            {/* Sample output for sort/filter */}
+            {(parsedCommand.type === 'sort' || parsedCommand.type === 'filter') && previewRows.length > 0 && (
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <div className="text-[10px] uppercase tracking-wide mb-2" style={{ color: 'var(--text-tertiary)' }}>
+                  {parsedCommand.type === 'sort' ? 'Result preview (first 3 rows)' : 'Matching rows preview'}
+                </div>
+                <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr style={{ backgroundColor: 'var(--surface-secondary)' }}>
+                        {Object.keys(previewRows[0]).filter(k => k !== '_rowid' && k !== '_hasChanges').slice(0, 4).map(key => (
+                          <th
+                            key={key}
+                            className="px-3 py-2 text-left font-medium truncate"
+                            style={{ color: 'var(--text-secondary)', maxWidth: 120 }}
+                          >
+                            {key}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewRows.slice(0, 3).map((row, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                          {Object.entries(row).filter(([k]) => k !== '_rowid' && k !== '_hasChanges').slice(0, 4).map(([key, val]) => (
+                            <td key={key} className="px-3 py-2 truncate" style={{ color: 'var(--text-primary)', maxWidth: 120 }}>
+                              {val === null ? <span style={{ color: 'var(--text-disabled)', fontStyle: 'italic' }}>null</span> : String(val)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* SQL Preview - collapsible for better UX */}
+            <details className="group">
+              <summary
+                className="px-4 py-2 text-[10px] uppercase tracking-wide cursor-pointer select-none flex items-center gap-2"
+                style={{ color: 'var(--text-tertiary)', backgroundColor: 'var(--surface-secondary)' }}
               >
-                {parsedCommand.generatedSQL}
-              </code>
-            </div>
+                <span className="transition-transform group-open:rotate-90">▶</span>
+                Generated SQL
+              </summary>
+              <div className="px-4 py-3">
+                <code
+                  className="block text-xs font-mono p-2 rounded-lg overflow-x-auto whitespace-pre-wrap"
+                  style={{
+                    backgroundColor: 'var(--surface-secondary)',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  {parsedCommand.generatedSQL}
+                </code>
+              </div>
+            </details>
 
             {/* Warnings */}
             {parsedCommand.warnings.length > 0 && (
               <div
                 className="px-4 py-2 flex items-start gap-2"
-                style={{ backgroundColor: 'rgba(245, 158, 11, 0.08)' }}
+                style={{
+                  backgroundColor: parsedCommand.type === 'delete' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                }}
               >
-                <span className="text-xs" style={{ color: '#F59E0B' }}>⚠</span>
-                <div className="text-xs" style={{ color: '#F59E0B' }}>
+                <span className="text-xs" style={{ color: parsedCommand.type === 'delete' ? '#EF4444' : '#F59E0B' }}>⚠</span>
+                <div className="text-xs" style={{ color: parsedCommand.type === 'delete' ? '#EF4444' : '#F59E0B' }}>
                   {parsedCommand.warnings.join(' · ')}
                 </div>
               </div>
@@ -326,7 +500,7 @@ export function AICommandInput({
                 <kbd className="px-1 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--surface-tertiary)' }}>↵</kbd> apply
               </span>
               <span>
-                <kbd className="px-1 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--surface-tertiary)' }}>esc</kbd> dismiss
+                <kbd className="px-1 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--surface-tertiary)' }}>esc</kbd> cancel
               </span>
             </div>
           </motion.div>
