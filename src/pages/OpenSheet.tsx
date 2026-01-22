@@ -15,10 +15,14 @@ import { useBoardStore } from '@/store/boardStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useDuckDBViewStore } from '@/store/duckDBViewStore';
 import { useKeyboard } from '@/hooks/useKeyboard';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { DownloadButton } from '@/components/DownloadButton';
+import { MobileBoardView } from '@/components/MobileBoardView';
 import { streamGlobalAssistant, type GlobalSearchContext } from '@/lib/ai';
 
 export function OpenSheet() {
+  const isMobile = useIsMobile();
+
   const {
     files,
     folders,
@@ -423,6 +427,30 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
 
     streamGlobalAssistant(anthropicApiKey, query, context, onChunk, onComplete, onError);
   }, [anthropicApiKey, files, folders]);
+
+  // Mobile view - show simplified board with messages
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile board view */}
+        {!focusedFileId && <MobileBoardView />}
+
+        {/* Focused file view (works on mobile too) */}
+        <AnimatePresence>
+          {focusedFileId && openFiles.length > 0 && (
+            <FocusedFileView
+              files={openFiles}
+              activeFileId={focusedFileId}
+              onClose={unfocusFile}
+              onFileChange={focusFile}
+              onFileClose={closeFileTab}
+              onTabReorder={reorderTabs}
+            />
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
   return (
     <div className="w-screen h-screen overflow-hidden">
