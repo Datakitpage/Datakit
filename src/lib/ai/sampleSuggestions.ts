@@ -9,8 +9,8 @@
  * through the Cloudflare Worker proxy.
  */
 
-// Get proxy URL from environment
-const SAMPLE_AI_PROXY_URL = import.meta.env.VITE_SAMPLE_AI_PROXY_URL as string | undefined;
+// Hardcoded proxy URL for sample files (allows users without API key to try AI features)
+const SAMPLE_AI_PROXY_URL = 'https://api.opensheet.app';
 
 // Sample file IDs (must match the Cloudflare Worker)
 export const SAMPLE_FILE_IDS = ['sample-sales', 'sample-users', 'sample-api'] as const;
