@@ -217,13 +217,6 @@ export function HeaderStatusBar({
           </div>
         )}
 
-        {/* AI status when no changes */}
-        {!hasPendingChanges && !error && isDuckDBReady && (
-          <div className="flex items-center gap-1.5 text-xs" style={{ color: accentColor }}>
-            <span>✦</span>
-            <span>AI-powered editing enabled</span>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -29,7 +29,6 @@ interface MinimalHeaderProps {
   onCommit?: () => void;
   onUndo?: () => void;
   onExport?: (format: 'csv' | 'json' | 'parquet') => void;
-  onShareViaEmail?: () => void;
   hasCommittedChanges?: boolean;
   // Whether there's a custom query result (AI query) that can be exported
   hasQueryResult?: boolean;
@@ -73,7 +72,6 @@ export function MinimalHeader({
   onCommit,
   onUndo,
   onExport,
-  onShareViaEmail,
   hasCommittedChanges,
   hasQueryResult,
   canViewUndo,
@@ -382,7 +380,6 @@ export function MinimalHeader({
             <ShareMenu
               fileName={fileName}
               onExport={onExport}
-              onShareViaEmail={onShareViaEmail}
               accentColor={accentColor}
               disabled={hasPendingChanges}
             />

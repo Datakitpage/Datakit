@@ -8,8 +8,6 @@ interface ControlPanelProps {
   onCenterCanvas: () => void;
   nodeCount: number;
   connectionCount: number;
-  onToggleAI: () => void;
-  aiActive?: boolean;
 }
 
 export function ControlPanel({
@@ -19,8 +17,6 @@ export function ControlPanel({
   onCenterCanvas,
   nodeCount,
   connectionCount,
-  onToggleAI,
-  aiActive,
 }: ControlPanelProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -104,22 +100,6 @@ export function ControlPanel({
             <span className="text-xs">◎</span>
           </motion.button>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-stone-200 mx-1" />
-
-          {/* AI Toggle */}
-          <motion.button
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              aiActive ? 'bg-violet-100 text-violet-600' : 'text-stone-500 hover:bg-stone-100'
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onToggleAI}
-            title="AI Assistant (⌘J)"
-          >
-            <span className="text-sm">✦</span>
-          </motion.button>
-
           {/* Expand */}
           <motion.button
             className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:bg-stone-100"
@@ -166,10 +146,6 @@ export function ControlPanel({
                   <div className="flex justify-between text-xs">
                     <span className="text-stone-400">Command palette</span>
                     <kbd className="px-1.5 py-0.5 bg-stone-100 rounded text-[10px] text-stone-500">⌘K</kbd>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-stone-400">AI assistant</span>
-                    <kbd className="px-1.5 py-0.5 bg-stone-100 rounded text-[10px] text-stone-500">⌘J</kbd>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-stone-400">Delete selected</span>

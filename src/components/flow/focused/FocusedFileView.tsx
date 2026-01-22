@@ -1164,21 +1164,6 @@ export function FocusedFileView({
           const baseName = activeFile?.name?.replace(/\.[^/.]+$/, '') || 'export';
           exportData(format, `${baseName}_export.${format}`);
         }}
-        onShareViaEmail={() => {
-          const rowCountText = customQueryResult ? customQueryResult.data.length : effectiveTotalRows;
-          const colCountText = customQueryResult ? customQueryResult.schema.length : effectiveColumns.length;
-          const subject = encodeURIComponent(`Sharing: ${activeFile.name}`);
-          const body = encodeURIComponent(
-            `Hi,\n\nI'm sharing a data file with you:\n\n` +
-            `File: ${activeFile.name}\n` +
-            `Rows: ${rowCountText.toLocaleString()}\n` +
-            `Columns: ${colCountText}\n\n` +
-            `Please find the attached data file.\n\n` +
-            `---\nSent via Datakit`
-          );
-          // Open Gmail compose (or default email client)
-          window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
-        }}
         hasCommittedChanges={hasCommittedChanges}
         hasQueryResult={customQueryResult !== null}
         canViewUndo={viewHistory.canUndo || canUndoVersion}
