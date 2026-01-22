@@ -5,6 +5,10 @@ import { useSettingsStore } from '@/store/settingsStore';
 import {
   streamCommandAssistant,
   generateSmartSuggestions,
+  generateSampleSuggestions,
+  isSampleFile,
+  isSampleProxyConfigured,
+  callSampleAIProxy,
   parseAICommand,
   isWriteOperation,
   validateApiKey,
@@ -26,6 +30,7 @@ interface FloatingAICommandProps {
   accentColor: string;
   viewName?: string;
   recentCommands?: string[];
+  fileId?: string; // File ID for sample file detection
 }
 
 // Re-export the AICommand type for backwards compatibility
@@ -78,6 +83,7 @@ export function FloatingAICommand({
   totalRows,
   accentColor,
   viewName = 'data',
+  fileId,
 }: FloatingAICommandProps) {
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -135,8 +141,26 @@ export function FloatingAICommand({
   }, [isOpen, mode]);
 
   // Fetch smart suggestions when modal opens (only once per session)
+  // For sample files: use proxy or fallback to pre-computed
+  // For other files: require API key
   useEffect(() => {
-    if (isOpen && anthropicApiKey && schema.length > 0 && !suggestionsLoadedRef.current) {
+    if (!isOpen || suggestionsLoadedRef.current || schema.length === 0) return;
+
+    // For sample files, use the sample suggestions generator (proxy + fallback)
+    if (fileId && isSampleFile(fileId)) {
+      suggestionsLoadedRef.current = true;
+      setIsLoadingSuggestions(true);
+      generateSampleSuggestions(fileId, { schema, totalRows, tableName: viewName })
+        .then(suggestions => {
+          setSmartSuggestions(suggestions);
+          setIsLoadingSuggestions(false);
+        })
+        .catch(() => setIsLoadingSuggestions(false));
+      return;
+    }
+
+    // For non-sample files, require API key
+    if (anthropicApiKey) {
       suggestionsLoadedRef.current = true;
       setIsLoadingSuggestions(true);
       generateSmartSuggestions(anthropicApiKey, { schema, totalRows, tableName: viewName })
@@ -146,7 +170,7 @@ export function FloatingAICommand({
         })
         .catch(() => setIsLoadingSuggestions(false));
     }
-  }, [isOpen, anthropicApiKey, schema, totalRows, viewName]);
+  }, [isOpen, anthropicApiKey, schema, totalRows, viewName, fileId]);
 
   // Track if suggested command is SQL
   const [isSuggestedSQL, setIsSuggestedSQL] = useState(false);
@@ -240,8 +264,11 @@ export function FloatingAICommand({
   }, [validateSQL, anthropicApiKey, schema, totalRows, viewName, onCommand, onClose]);
 
   // Call AI - this is the PRIMARY handler for all user input
+  // For sample files, can use proxy even without user API key
   const askAI = useCallback(async (query: string) => {
-    if (!anthropicApiKey) {
+    const canUseSampleProxy = fileId && isSampleFile(fileId) && isSampleProxyConfigured();
+
+    if (!anthropicApiKey && !canUseSampleProxy) {
       setAiResponse('API key not configured. Go to Settings to add your Anthropic API key.');
       return;
     }
@@ -260,41 +287,74 @@ export function FloatingAICommand({
       tableName: viewName,
     };
 
+    // Process AI response (same for both proxy and direct)
+    const processAIResponse = async (fullText: string) => {
+      // Check for SQL code block first (```sql)
+      const sqlMatch = fullText.match(/```sql\n?([\s\S]*?)```/);
+      if (sqlMatch) {
+        const sql = sqlMatch[1].trim();
+        setSuggestedCommand(sql);
+        setIsSuggestedSQL(true);
+
+        // Auto-execute the SQL if validation is available
+        if (validateSQL) {
+          await autoExecuteSQL(sql, 0);
+        } else {
+          setIsAILoading(false);
+        }
+        return;
+      }
+      // Then check for regular command code block
+      const cmdMatch = fullText.match(/```\n?([\s\S]*?)```/);
+      if (cmdMatch) {
+        setSuggestedCommand(cmdMatch[1].trim());
+        setIsSuggestedSQL(false);
+      }
+      setIsAILoading(false);
+    };
+
+    // Use sample proxy for sample files (doesn't require user API key)
+    if (canUseSampleProxy && !anthropicApiKey) {
+      try {
+        const schemaStr = schema
+          .filter(c => c.name !== '_rowid')
+          .map(c => `${c.name} (${c.type})`)
+          .join(', ');
+
+        const systemPrompt = `You are a data assistant. The user is viewing a table called "${viewName}" with schema: ${schemaStr}
+Total rows: ${totalRows.toLocaleString()}
+
+Help the user explore and analyze their data. When suggesting SQL queries, use standard SQL syntax and wrap them in \`\`\`sql code blocks.`;
+
+        const response = await callSampleAIProxy(fileId!, {
+          system: systemPrompt,
+          messages: [{ role: 'user', content: query }],
+          max_tokens: 1024,
+        });
+
+        const fullText = response.content[0]?.text || '';
+        setAiResponse(fullText);
+        await processAIResponse(fullText);
+      } catch (error) {
+        setIsAILoading(false);
+        setAiResponse(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      return;
+    }
+
+    // Use direct Anthropic API with streaming for users with API key
     await streamCommandAssistant(
       anthropicApiKey,
       query,
       context,
       (chunk) => setAiResponse(prev => prev + chunk),
-      async (fullText) => {
-        // Check for SQL code block first (```sql)
-        const sqlMatch = fullText.match(/```sql\n?([\s\S]*?)```/);
-        if (sqlMatch) {
-          const sql = sqlMatch[1].trim();
-          setSuggestedCommand(sql);
-          setIsSuggestedSQL(true);
-
-          // Auto-execute the SQL if validation is available
-          if (validateSQL) {
-            await autoExecuteSQL(sql, 0);
-          } else {
-            setIsAILoading(false);
-          }
-          return;
-        }
-        // Then check for regular command code block
-        const cmdMatch = fullText.match(/```\n?([\s\S]*?)```/);
-        if (cmdMatch) {
-          setSuggestedCommand(cmdMatch[1].trim());
-          setIsSuggestedSQL(false);
-        }
-        setIsAILoading(false);
-      },
+      processAIResponse,
       (error) => {
         setIsAILoading(false);
         setAiResponse(`Error: ${error.message}`);
       }
     );
-  }, [anthropicApiKey, schema, totalRows, viewName, validateSQL, autoExecuteSQL]);
+  }, [anthropicApiKey, fileId, schema, totalRows, viewName, validateSQL, autoExecuteSQL]);
 
   // Parse the current input to show preview
   const parseResult: ParseResult = useMemo(() => {

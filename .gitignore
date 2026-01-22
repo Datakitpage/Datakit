@@ -31,8 +31,7 @@ src-tauri/Cargo.lock
 
 # Environment variables
 .env
-.env.*
-!.env.example
+.env
 
 # Bun cache (in case of path expansion issues)
 ~

@@ -1,0 +1,14 @@
+name = "opensheet-sample-ai"
+main = "sample-ai.ts"
+compatibility_date = "2024-01-01"
+
+# Custom domain route (requires domain to be added to Cloudflare)
+# After deploying, go to Cloudflare Dashboard > Workers > opensheet-sample-ai > Triggers
+# Add route: api.opensheet.app/*
+routes = [
+  { pattern = "api.opensheet.app", custom_domain = true }
+]
+
+[vars]
+# Non-sensitive variables can go here
+# ANTHROPIC_API_KEY should be set via `wrangler secret put ANTHROPIC_API_KEY`
