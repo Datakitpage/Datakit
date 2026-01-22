@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDuckDBViewStore, type QueryParams, type ChangeRecord, type ColumnSchema, type PaginatedResult, type FilterCondition } from '@/store/duckDBViewStore';
 
 interface UseDuckDBViewOptions {
@@ -15,11 +15,6 @@ interface ViewState {
   isReady: boolean;
 }
 
-interface CellPosition {
-  rowId: number;
-  column: string;
-}
-
 export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   const { initialPageSize = 50, autoQuery = true } = options;
 
@@ -29,9 +24,13 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     createViewFromData,
     dropView,
     queryView,
+    executeSQL,
+    validateSQL,
+    exportView,
+    refreshViewSchema,
+    addColumnWithVersion: storeAddColumnWithVersion,
     views,
     activeViewName,
-    setActiveView,
     isLoading: storeLoading,
     error: storeError,
     pendingChanges: storePendingChanges,
@@ -41,6 +40,13 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     commitChanges,
     getPendingChanges,
     resetError,
+    undoVersion: storeUndoVersion,
+    redoVersion: storeRedoVersion,
+    canUndoVersion: storeCanUndoVersion,
+    canRedoVersion: storeCanRedoVersion,
+    getVersionInfo: storeGetVersionInfo,
+    committedVersions: storeCommittedVersions,
+    currentVersionIndex: storeCurrentVersionIndex,
   } = useDuckDBViewStore();
 
   // Local state
@@ -69,6 +75,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   const pendingChanges = useMemo(() => {
     if (!activeViewName) return [];
     return getPendingChanges(activeViewName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storePendingChanges triggers re-computation when store changes
   }, [activeViewName, storePendingChanges, getPendingChanges]);
 
   // Initialize DuckDB on mount
@@ -76,24 +83,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     initialize();
   }, [initialize]);
 
-  // Query data when params change
-  useEffect(() => {
-    if (!activeViewName || !autoQuery) return;
-
-    const fetchData = async () => {
-      const result = await queryView(activeViewName, queryParams);
-      if (result) {
-        setQueryResult(result);
-        // Merge with pending changes for optimistic display
-        const mergedData = mergeDataWithChanges(result.data, pendingChanges);
-        setData(mergedData);
-      }
-    };
-
-    fetchData();
-  }, [activeViewName, queryParams, queryView, autoQuery]);
-
-  // Merge data with pending changes for display
+  // Merge data with pending changes for display - defined before useEffect that uses it
   const mergeDataWithChanges = useCallback((
     originalData: Record<string, unknown>[],
     changes: ChangeRecord[]
@@ -119,6 +109,24 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
       return !changes.some(c => c.rowId === rowId && c.changeType === 'delete');
     });
   }, []);
+
+  // Query data when params change
+  useEffect(() => {
+    if (!activeViewName || !autoQuery) return;
+
+    const fetchData = async () => {
+      const result = await queryView(activeViewName, queryParams);
+      if (result) {
+        setQueryResult(result);
+        // Merge with pending changes for optimistic display
+        const mergedData = mergeDataWithChanges(result.data, pendingChanges);
+        setData(mergedData);
+      }
+    };
+
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mergeDataWithChanges and pendingChanges intentionally excluded
+  }, [activeViewName, queryParams, queryView, autoQuery]);
 
   // Load file and create view
   const loadFile = useCallback(async (file: File, viewName?: string) => {
@@ -150,10 +158,13 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     const result = await queryView(activeViewName, queryParams);
     if (result) {
       setQueryResult(result);
-      const mergedData = mergeDataWithChanges(result.data, pendingChanges);
+      // Get fresh pending changes from store to avoid stale closure
+      // (important when called from undo() where store has updated but React hasn't re-rendered)
+      const freshPendingChanges = getPendingChanges(activeViewName);
+      const mergedData = mergeDataWithChanges(result.data, freshPendingChanges);
       setData(mergedData);
     }
-  }, [activeViewName, queryParams, queryView, pendingChanges, mergeDataWithChanges]);
+  }, [activeViewName, queryParams, queryView, getPendingChanges, mergeDataWithChanges]);
 
   // Pagination
   const setPage = useCallback((page: number) => {
@@ -327,6 +338,84 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     resetError();
   }, [resetError]);
 
+  // Export data to file and trigger download
+  const exportData = useCallback(async (format: 'csv' | 'json' | 'parquet', fileName?: string) => {
+    if (!activeViewName) return false;
+
+    const blob = await exportView(activeViewName, format, fileName);
+    if (!blob) return false;
+
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || `${activeViewName}_export.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    return true;
+  }, [activeViewName, exportView]);
+
+  // Version navigation - undo a committed version
+  const undoCommittedVersion = useCallback(async () => {
+    if (!activeViewName) return false;
+    const success = await storeUndoVersion(activeViewName);
+    if (success) {
+      refresh();
+    }
+    return success;
+  }, [activeViewName, storeUndoVersion, refresh]);
+
+  // Version navigation - redo a committed version
+  const redoCommittedVersion = useCallback(async () => {
+    if (!activeViewName) return false;
+    const success = await storeRedoVersion(activeViewName);
+    if (success) {
+      refresh();
+    }
+    return success;
+  }, [activeViewName, storeRedoVersion, refresh]);
+
+  // Check if can undo version
+  const canUndoVersion = useMemo(() => {
+    if (!activeViewName) return false;
+    return storeCanUndoVersion(activeViewName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storeCommittedVersions and storeCurrentVersionIndex trigger re-computation when store changes
+  }, [activeViewName, storeCanUndoVersion, storeCommittedVersions, storeCurrentVersionIndex]);
+
+  // Check if can redo version
+  const canRedoVersion = useMemo(() => {
+    if (!activeViewName) return false;
+    return storeCanRedoVersion(activeViewName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storeCommittedVersions and storeCurrentVersionIndex trigger re-computation when store changes
+  }, [activeViewName, storeCanRedoVersion, storeCommittedVersions, storeCurrentVersionIndex]);
+
+  // Get version info
+  const versionInfo = useMemo(() => {
+    if (!activeViewName) return { current: 0, total: 0, description: null };
+    return storeGetVersionInfo(activeViewName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storeCommittedVersions and storeCurrentVersionIndex trigger re-computation when store changes
+  }, [activeViewName, storeGetVersionInfo, storeCommittedVersions, storeCurrentVersionIndex]);
+
+  // Refresh schema (useful after ALTER TABLE)
+  const refreshSchema = useCallback(async () => {
+    if (!activeViewName) return false;
+    return refreshViewSchema(activeViewName);
+  }, [activeViewName, refreshViewSchema]);
+
+  // Add column with version tracking
+  const addColumn = useCallback(async (columnName: string, columnType: string) => {
+    if (!activeViewName) return false;
+    const success = await storeAddColumnWithVersion(activeViewName, columnName, columnType);
+    if (success) {
+      // Refresh data after adding column
+      await refresh();
+    }
+    return success;
+  }, [activeViewName, storeAddColumnWithVersion, refresh]);
+
   return {
     // State
     viewState,
@@ -367,8 +456,24 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     discard,
     commit,
 
+    // Version navigation (committed changes)
+    undoCommittedVersion,
+    redoCommittedVersion,
+    canUndoVersion,
+    canRedoVersion,
+    versionInfo,
+
+    // Schema operations
+    addColumn,
+    refreshSchema,
+
     // Utilities
     clearError,
+    executeSQL,
+    validateSQL,
+
+    // Export
+    exportData,
   };
 }
 

@@ -46,7 +46,7 @@ const whisperStyles: Record<string, { color: string; bgColor: string; glowColor:
   },
 };
 
-export function AmbientWhisper({ whisper, onDismiss, onAction }: AmbientWhisperProps) {
+export function AmbientWhisper({ whisper, onDismiss }: AmbientWhisperProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showFull, setShowFull] = useState(false);
   const style = whisperStyles[whisper.type] || whisperStyles.insight;
@@ -318,6 +318,7 @@ export function useAmbientAI(files: Array<{ id: string; data?: unknown[]; positi
         }
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- whispers intentionally excluded to prevent infinite loops
   }, [files]);
 
   return { whispers, addWhisper, dismissWhisper };

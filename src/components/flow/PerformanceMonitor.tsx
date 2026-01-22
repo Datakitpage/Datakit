@@ -64,7 +64,7 @@ export function PerformanceMonitor({
     const measureMemory = () => {
       // @ts-expect-error - Memory API not in all browsers
       if (performance.memory) {
-        // @ts-expect-error
+        // @ts-expect-error - Memory API property access not typed
         const usedMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
         setStats(prev => ({ ...prev, memory: usedMB }));
       }

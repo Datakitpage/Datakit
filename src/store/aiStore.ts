@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { chat, generateAutoDashboard, DashboardSuggestion, AIResponse } from "@/lib/ai/anthropic";
 import { TableSchema } from "./dataStore";
+import { useSettingsStore } from "./settingsStore";
 
 export interface Message {
   id: string;
@@ -11,62 +12,49 @@ export interface Message {
 }
 
 interface AIState {
-  apiKey: string | null;
-  isConfigured: boolean;
-  
   messages: Message[];
   isLoading: boolean;
   error: string | null;
-  
+
   lastSuggestion: DashboardSuggestion | null;
 
-  setApiKey: (key: string) => void;
-  clearApiKey: () => void;
-  
   // Simplified sendMessage that takes a context string
   sendMessage: (content: string, context?: string) => Promise<void>;
-  
+
   // Schema-based sendMessage for structured queries
   sendMessageWithSchema: (
     content: string,
     schema: TableSchema[],
     tableName: string,
-    sampleData?: any[]
+    sampleData?: Record<string, unknown>[]
   ) => Promise<AIResponse | null>;
-  
+
   generateDashboard: (
     schema: TableSchema[],
     tableName: string,
-    sampleData: any[]
+    sampleData: Record<string, unknown>[]
   ) => Promise<DashboardSuggestion | null>;
-  
+
   clearMessages: () => void;
   clearError: () => void;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+// Helper to get API key from settings store
+const getApiKey = () => useSettingsStore.getState().anthropicApiKey;
+
 export const useAIStore = create<AIState>()(
   persist(
     (set, get) => ({
-      apiKey: null,
-      isConfigured: false,
       messages: [],
       isLoading: false,
       error: null,
       lastSuggestion: null,
 
-      setApiKey: (key: string) => {
-        set({ apiKey: key, isConfigured: true });
-      },
-
-      clearApiKey: () => {
-        set({ apiKey: null, isConfigured: false });
-      },
-
       sendMessage: async (content: string, context?: string) => {
-        const state = get();
-        if (!state.apiKey) {
+        const apiKey = getApiKey();
+        if (!apiKey) {
           set({ error: "API key not configured" });
           return;
         }
@@ -77,8 +65,8 @@ export const useAIStore = create<AIState>()(
           content,
           timestamp: Date.now(),
         };
-        
-        const newMessages = [...state.messages, userMessage];
+
+        const newMessages = [...get().messages, userMessage];
         set({ messages: newMessages, isLoading: true, error: null });
 
         try {
@@ -86,14 +74,14 @@ export const useAIStore = create<AIState>()(
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": state.apiKey,
+              "x-api-key": apiKey,
               "anthropic-version": "2023-06-01",
               "anthropic-dangerous-direct-browser-access": "true",
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-20250514",
               max_tokens: 2048,
-              system: "You are an AI assistant for Board, a data dashboard application. Help users understand and visualize their data. Be concise and helpful. " + (context || ""),
+              system: "You are an AI assistant for OpenSheet, a data exploration application. Help users understand and visualize their data. Be concise and helpful. " + (context || ""),
               messages: newMessages.map((m) => ({
                 role: m.role,
                 content: m.content,
@@ -115,7 +103,7 @@ export const useAIStore = create<AIState>()(
             content: assistantContent,
             timestamp: Date.now(),
           };
-          
+
           set({
             messages: [...newMessages, assistantMessage],
             isLoading: false,
@@ -129,8 +117,8 @@ export const useAIStore = create<AIState>()(
       },
 
       sendMessageWithSchema: async (content, schema, tableName, sampleData) => {
-        const state = get();
-        if (!state.apiKey) {
+        const apiKey = getApiKey();
+        if (!apiKey) {
           set({ error: "API key not configured" });
           return null;
         }
@@ -141,13 +129,13 @@ export const useAIStore = create<AIState>()(
           content,
           timestamp: Date.now(),
         };
-        const newMessages = [...state.messages, userMessage];
-        
+        const newMessages = [...get().messages, userMessage];
+
         set({ messages: newMessages, isLoading: true, error: null });
 
         try {
           const response = await chat(
-            state.apiKey,
+            apiKey,
             newMessages.map(m => ({ role: m.role, content: m.content })),
             schema,
             tableName,
@@ -160,7 +148,7 @@ export const useAIStore = create<AIState>()(
             content: response.text,
             timestamp: Date.now(),
           };
-          
+
           set({
             messages: [...newMessages, assistantMessage],
             isLoading: false,
@@ -178,8 +166,8 @@ export const useAIStore = create<AIState>()(
       },
 
       generateDashboard: async (schema, tableName, sampleData) => {
-        const state = get();
-        if (!state.apiKey) {
+        const apiKey = getApiKey();
+        if (!apiKey) {
           set({ error: "API key not configured" });
           return null;
         }
@@ -188,7 +176,7 @@ export const useAIStore = create<AIState>()(
 
         try {
           const suggestion = await generateAutoDashboard(
-            state.apiKey,
+            apiKey,
             schema,
             tableName,
             sampleData
@@ -215,7 +203,7 @@ export const useAIStore = create<AIState>()(
     }),
     {
       name: "board-ai-storage",
-      partialize: (state) => ({ apiKey: state.apiKey, isConfigured: state.isConfigured }),
+      partialize: (state) => ({ messages: state.messages }),
     }
   )
 );

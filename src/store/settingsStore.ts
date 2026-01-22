@@ -1,5 +1,37 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import { get, set, del } from 'idb-keyval';
+
+// Custom IndexedDB storage adapter for better persistence
+const indexedDBStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    try {
+      const value = await get(name);
+      return value ?? null;
+    } catch (error) {
+      console.error('[SettingsStore] IndexedDB getItem error:', error);
+      // Fallback to localStorage
+      return localStorage.getItem(name);
+    }
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    try {
+      await set(name, value);
+    } catch (error) {
+      console.error('[SettingsStore] IndexedDB setItem error:', error);
+      // Fallback to localStorage
+      localStorage.setItem(name, value);
+    }
+  },
+  removeItem: async (name: string): Promise<void> => {
+    try {
+      await del(name);
+    } catch (error) {
+      console.error('[SettingsStore] IndexedDB removeItem error:', error);
+      localStorage.removeItem(name);
+    }
+  },
+};
 
 // Preset accent colors
 export const ACCENT_PRESETS = [
@@ -88,7 +120,8 @@ export const useSettingsStore = create<SettingsState>()(
       clearAnthropicApiKey: () => set({ anthropicApiKey: '' }),
     }),
     {
-      name: 'flow-settings',
+      name: 'board-settings',
+      storage: createJSONStorage(() => indexedDBStorage),
       partialize: (state) => ({
         theme: state.theme,
         accentColor: state.accentColor,
@@ -96,6 +129,11 @@ export const useSettingsStore = create<SettingsState>()(
       }),
       onRehydrateStorage: () => (state) => {
         // Apply stored settings on app load
+        console.log('[SettingsStore] Rehydrating settings:', {
+          hasState: !!state,
+          hasApiKey: !!state?.anthropicApiKey,
+          theme: state?.theme,
+        });
         if (state) {
           applyTheme(state.theme);
           applyAccentColor(state.accentColor);

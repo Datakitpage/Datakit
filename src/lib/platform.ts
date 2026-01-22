@@ -76,9 +76,11 @@ export interface ChangeRecord {
   column: string;
   oldValue: unknown;
   newValue: unknown;
-  changeType: 'update' | 'delete' | 'insert';
+  changeType: 'update' | 'delete' | 'insert' | 'add_column';
   timestamp: number;
   source: 'user' | 'ai';
+  // For schema changes
+  columnType?: string;
 }
 
 // ============================================================================
@@ -311,7 +313,7 @@ async function createTauriEngine(): Promise<DataEngine> {
       }
 
       // For File objects, we need to get the path (only works if dropped from Finder)
-      // @ts-ignore - Tauri adds path property to dropped files
+      // @ts-expect-error - Tauri adds path property to dropped files
       const filePath = file.path;
       if (!filePath) {
         throw new Error('Cannot get file path. Drag file from Finder or use file picker.');

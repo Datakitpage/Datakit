@@ -285,6 +285,7 @@ export function FileNode({
       }, 600);
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional reset when not processing
     setBreatheScale(1);
   }, [file.processing]);
 

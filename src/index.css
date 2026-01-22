@@ -216,6 +216,44 @@
     height: 100%;
   }
 
+  /* Portal for glide-data-grid overlays */
+  #portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  #portal > * {
+    pointer-events: auto;
+  }
+
+  /* Ensure glide-data-grid overlay editors are visible */
+  .gdg-style {
+    --gdg-bg-cell: var(--surface-primary) !important;
+    --gdg-bg-header: var(--surface-secondary) !important;
+    --gdg-text-dark: var(--text-primary) !important;
+    --gdg-text-medium: var(--text-secondary) !important;
+    --gdg-text-light: var(--text-tertiary) !important;
+  }
+
+  /* Overlay editor styling */
+  .gdg-growing-entry {
+    background: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-focus) !important;
+    border-radius: 4px !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  .gdg-growing-entry input,
+  .gdg-growing-entry textarea {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+  }
+
   * {
     border-color: var(--border);
   }

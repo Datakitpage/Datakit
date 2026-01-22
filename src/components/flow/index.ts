@@ -5,6 +5,7 @@ export { FileNode, type FileNodeData, type FileType } from './FileNode';
 export { ContentNode, type ContentNodeData, type ContentType } from './ContentNode';
 export { DesktopFileIcon, type DesktopFileIconData } from './DesktopFileIcon';
 export { DesktopFolderIcon } from './DesktopFolderIcon';
+export { FileContextMenu } from './FileContextMenu';
 export { DataStream, ConnectionPreview } from './DataStream';
 export { AmbientWhisper, WhisperContainer, useAmbientAI, type Whisper } from './AmbientWhisper';
 export { TransformNode, TransformPalette, type TransformNodeData, type TransformType } from './TransformNode';
@@ -18,4 +19,4 @@ export { FocusedFileView as LegacyFocusedFileView } from './FocusedFileView';
 export { MinimizedFileIcon, FileIconRail } from './MinimizedFileIcon';
 export { SettingsPanel } from './SettingsPanel';
 // New enhanced focused view components
-export { FocusedFileView, FileTabs, ColumnInspector, FocusedCommandPalette, type FileTab } from './focused';
+export { FocusedFileView, FileTabs, ColumnInspector, type FileTab } from './focused';

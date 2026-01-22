@@ -139,6 +139,7 @@ export function DesktopFolderIcon({
     if (isRenaming && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional state sync for rename mode
       setEditingName(folder.name);
     }
   }, [isRenaming, folder.name]);

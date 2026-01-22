@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { IconX, IconKey, IconSparkles, IconExternalLink } from "@tabler/icons-react";
-import { useAIStore } from "@/store/aiStore";
+import { IconX, IconKey, IconSparkles, IconExternalLink, IconLoader2 } from "@tabler/icons-react";
+import { useSettingsStore } from "@/store/settingsStore";
+import { validateApiKey } from "@/lib/ai";
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -9,29 +10,42 @@ interface ApiKeyModalProps {
 }
 
 export function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
-  const { setApiKey, isConfigured, clearApiKey } = useAIStore();
+  const { anthropicApiKey, setAnthropicApiKey, clearAnthropicApiKey } = useSettingsStore();
+  const isConfigured = !!anthropicApiKey;
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!inputValue.trim()) {
       setError("Please enter an API key");
       return;
     }
-    
-    if (!inputValue.startsWith("sk-")) {
-      setError("Invalid API key format");
+
+    if (!inputValue.startsWith("sk-ant-")) {
+      setError("API key should start with 'sk-ant-'");
       return;
     }
 
-    setApiKey(inputValue.trim());
-    setInputValue("");
+    setIsValidating(true);
     setError(null);
-    onClose();
+
+    const result = await validateApiKey(inputValue.trim());
+
+    setIsValidating(false);
+
+    if (result.valid) {
+      setAnthropicApiKey(inputValue.trim());
+      setInputValue("");
+      setError(null);
+      onClose();
+    } else {
+      setError(result.error || "Invalid API key");
+    }
   };
 
   const handleRemove = () => {
-    clearApiKey();
+    clearAnthropicApiKey();
     setInputValue("");
     onClose();
   };
@@ -146,11 +160,13 @@ export function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
                   </motion.button>
                   <motion.button
                     onClick={handleSave}
-                    className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover"
+                    disabled={isValidating}
+                    className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover disabled:opacity-50 flex items-center gap-2"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {isConfigured ? "Update" : "Save"}
+                    {isValidating && <IconLoader2 size={14} className="animate-spin" />}
+                    {isValidating ? "Validating..." : isConfigured ? "Update" : "Save"}
                   </motion.button>
                 </div>
               </div>

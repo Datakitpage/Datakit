@@ -25,6 +25,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [localTheme, setLocalTheme] = useState(theme);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional prop-to-state sync when modal opens
     setLocalTheme(theme);
   }, [theme, isOpen]);
 

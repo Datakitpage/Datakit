@@ -68,6 +68,7 @@ export function DataStream({
   // Spawn and animate particles
   useEffect(() => {
     if (!isActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional particle cleanup when inactive
       setParticles([]);
       return;
     }
@@ -107,11 +108,11 @@ export function DataStream({
     };
   }, [isActive, maxParticles]);
 
-  // Calculate bounding box for SVG
-  const minX = Math.min(from.x, to.x) - 50;
-  const minY = Math.min(from.y, to.y) - 50;
-  const width = Math.abs(to.x - from.x) + 100;
-  const height = Math.abs(to.y - from.y) + 100;
+  // Note: SVG viewBox calculation available if needed:
+  // const minX = Math.min(from.x, to.x) - 50;
+  // const minY = Math.min(from.y, to.y) - 50;
+  // const width = Math.abs(to.x - from.x) + 100;
+  // const height = Math.abs(to.y - from.y) + 100;
 
   return (
     <svg

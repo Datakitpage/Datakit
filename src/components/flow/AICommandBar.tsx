@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import anthropicIcon from '@/assets/anthropic.webp';
 
@@ -23,6 +23,12 @@ interface AICommandBarProps {
   commands: CommandItem[];
   recentCommands?: string[];
   onAIQuery?: (query: string) => Promise<string>;
+  onAIQueryStream?: (
+    query: string,
+    onChunk: (text: string) => void,
+    onComplete: (fullText: string) => void,
+    onError: (error: Error) => void
+  ) => void;
   placeholder?: string;
 }
 
@@ -93,15 +99,16 @@ export function AICommandBar({
   isOpen,
   onClose,
   commands,
-  recentCommands = [],
   onAIQuery,
+  onAIQueryStream,
   placeholder = 'Search commands, ask AI, or type a query...',
 }: AICommandBarProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mode, setMode] = useState<'search' | 'ai'>('search');
-  const [aiResponse, setAIResponse] = useState<string | null>(null);
+  const [aiResponse, setAIResponse] = useState<string>('');
   const [aiLoading, setAILoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Filter commands
@@ -115,18 +122,60 @@ export function AICommandBar({
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
+      /* eslint-disable react-hooks/set-state-in-effect -- Intentional state reset when modal opens */
       setQuery('');
       setSelectedIndex(0);
       setMode('search');
-      setAIResponse(null);
+      setAIResponse('');
+      setIsStreaming(false);
+      /* eslint-enable react-hooks/set-state-in-effect */
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
   // Reset selection when results change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional reset when filtered results change
     setSelectedIndex(0);
   }, [filteredCommands]);
+
+  // Handle AI query - defined before the useEffect that uses it
+  const handleAIQuery = useCallback(async () => {
+    const trimmedQuery = query.replace(/^[/?]/, '').trim();
+    if (!trimmedQuery) return;
+
+    setAILoading(true);
+    setIsStreaming(true);
+    setAIResponse('');
+    setMode('ai');
+
+    // Prefer streaming if available
+    if (onAIQueryStream) {
+      onAIQueryStream(
+        trimmedQuery,
+        (chunk) => setAIResponse(prev => prev + chunk),
+        () => {
+          setAILoading(false);
+          setIsStreaming(false);
+        },
+        (err) => {
+          setAILoading(false);
+          setIsStreaming(false);
+          setAIResponse(`Sorry, I encountered an error: ${err.message}`);
+        }
+      );
+    } else if (onAIQuery) {
+      // Fallback to non-streaming
+      try {
+        const response = await onAIQuery(trimmedQuery);
+        setAIResponse(response);
+      } catch {
+        setAIResponse('Sorry, I encountered an error. Please try again.');
+      }
+      setAILoading(false);
+      setIsStreaming(false);
+    }
+  }, [query, onAIQuery, onAIQueryStream]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -144,7 +193,8 @@ export function AICommandBar({
           break;
         case 'Enter':
           e.preventDefault();
-          if (isAIQuery && onAIQuery) {
+          // Trigger AI if: in AI mode, or query has AI prefix (/?) or is long
+          if ((mode === 'ai' || isAIQuery) && (onAIQuery || onAIQueryStream) && query.trim()) {
             handleAIQuery();
           } else if (filteredCommands[selectedIndex]) {
             filteredCommands[selectedIndex].action();
@@ -164,21 +214,7 @@ export function AICommandBar({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filteredCommands, selectedIndex, isAIQuery, onAIQuery, onClose]);
-
-  const handleAIQuery = async () => {
-    if (!onAIQuery || !query.trim()) return;
-
-    setAILoading(true);
-    setMode('ai');
-    try {
-      const response = await onAIQuery(query.replace(/^[/?]/, '').trim());
-      setAIResponse(response);
-    } catch (error) {
-      setAIResponse('Sorry, I encountered an error. Please try again.');
-    }
-    setAILoading(false);
-  };
+  }, [isOpen, filteredCommands, selectedIndex, isAIQuery, onAIQuery, onAIQueryStream, onClose, mode, query, handleAIQuery]);
 
   const typeColors: Record<string, string> = {
     action: '#10B981',
@@ -286,42 +322,57 @@ export function AICommandBar({
               <div className="max-h-80 overflow-y-auto">
                 {mode === 'ai' ? (
                   <div className="p-4">
-                    {aiLoading ? (
-                      <div className="flex items-center gap-3" style={{ color: 'var(--text-tertiary)' }}>
-                        <motion.img
-                          src={anthropicIcon}
-                          alt=""
-                          className="w-4 h-4 opacity-70 invert dark:invert-0"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    {/* Loading state - before any response */}
+                    {aiLoading && !aiResponse && (
+                      <div className="flex items-center gap-2">
+                        <motion.div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: 'var(--primary)' }}
+                          animate={{ opacity: [0.3, 1, 0.3] }}
+                          transition={{ duration: 1, repeat: Infinity }}
                         />
-                        <span>Thinking...</span>
+                        <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                          Thinking...
+                        </span>
                       </div>
-                    ) : aiResponse ? (
+                    )}
+                    {/* Streaming/complete response */}
+                    {aiResponse && (
                       <div className="space-y-3">
                         <div className="text-xs font-medium flex items-center gap-1.5" style={{ color: 'var(--primary)' }}>
                           <img src={anthropicIcon} alt="" className="w-3 h-3 opacity-70 invert dark:invert-0" />
-                          AI Response
+                          AI
                         </div>
                         <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--text-primary)' }}>
                           {aiResponse}
+                          {/* Streaming cursor */}
+                          {isStreaming && (
+                            <motion.span
+                              className="inline-block w-1.5 h-4 ml-0.5 align-middle"
+                              style={{ backgroundColor: 'var(--primary)' }}
+                              animate={{ opacity: [1, 0] }}
+                              transition={{ duration: 0.5, repeat: Infinity }}
+                            />
+                          )}
                         </div>
                       </div>
-                    ) : (
+                    )}
+                    {/* Empty state - show suggestions */}
+                    {!aiLoading && !aiResponse && (
                       <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                        <p className="mb-3">Ask me anything about your data:</p>
+                        <p className="mb-3">Ask me anything about your files:</p>
                         <ul className="space-y-2 text-xs">
                           <li className="flex gap-2">
                             <span style={{ color: 'var(--primary)' }}>?</span>
-                            <span>"What columns have missing values?"</span>
+                            <span>"What files do I have?"</span>
                           </li>
                           <li className="flex gap-2">
                             <span style={{ color: 'var(--primary)' }}>?</span>
-                            <span>"Show me the top 10 by revenue"</span>
+                            <span>"Which file has sales data?"</span>
                           </li>
                           <li className="flex gap-2">
                             <span style={{ color: 'var(--primary)' }}>?</span>
-                            <span>"Create a filter for dates after 2024"</span>
+                            <span>"How can I filter my data?"</span>
                           </li>
                         </ul>
                       </div>

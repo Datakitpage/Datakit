@@ -28,3 +28,8 @@ src-tauri/Cargo.lock
 
 # Context directory (Conductor)
 .context/
+
+# Environment variables
+.env
+.env.*
+!.env.example

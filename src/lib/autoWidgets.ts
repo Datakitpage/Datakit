@@ -60,8 +60,7 @@ function formatTitle(str: string): string {
 
 export function generateAutoWidgets(
   schema: TableSchema[],
-  tableName: string,
-  rowCount: number
+  tableName: string
 ): WidgetSuggestion[] {
   const suggestions: WidgetSuggestion[] = [];
 
