@@ -362,14 +362,14 @@ export function CanvasDataTable({
     }
 
     if (kind === GridCellKind.Boolean) {
-      // Use text cell for boolean to show colored ✓/✗ like original
+      // Use native checkbox for boolean - single-click toggle
+      const boolValue = value === true || value === 'true' || value === 1;
       return {
-        kind: GridCellKind.Text,
-        data: formatted.display,
-        displayData: formatted.display,
-        allowOverlay: true,
+        kind: GridCellKind.Boolean,
+        data: value === null || value === undefined ? null : boolValue,
+        allowOverlay: false,
         readonly: false,
-        themeOverride: buildThemeOverride(formatted.color),
+        themeOverride: hasChange ? { bgCell: 'rgba(245, 158, 11, 0.1)' } : undefined,
       };
     }
 
