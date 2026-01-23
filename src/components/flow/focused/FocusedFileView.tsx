@@ -9,6 +9,7 @@ import { FloatingAICommand, type AICommand } from './FloatingAICommand';
 import { OperationFeedback } from './OperationFeedback';
 import { useDuckDBView } from '@/hooks/useDuckDBView';
 import { useDuckDBViewStore } from '@/store/duckDBViewStore';
+import { useOnboardingStore } from '@/store/onboardingStore';
 import { useViewStateHistory, generateChangeDescription } from '@/hooks/useViewStateHistory';
 import { useOperationFeedback } from '@/hooks/useOperationFeedback';
 
@@ -66,6 +67,14 @@ export function FocusedFileView({
   const [recentCommands, setRecentCommands] = useState<string[]>([]);
   const [hasCommittedChanges, setHasCommittedChanges] = useState(false);
   const loadedViewsRef = useRef<Set<string>>(new Set());
+
+  // Track AI command usage for onboarding (CMD+K or / key)
+  const markCommandBarUsed = useOnboardingStore(state => state.markCommandBarUsed);
+  useEffect(() => {
+    if (aiCommandOpen) {
+      markCommandBarUsed();
+    }
+  }, [aiCommandOpen, markCommandBarUsed]);
 
   // Custom query result state - when user runs a SELECT query via AI
   const [customQueryResult, setCustomQueryResult] = useState<{
