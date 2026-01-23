@@ -9,6 +9,7 @@ import { FloatingAICommand, type AICommand } from './FloatingAICommand';
 import { OperationFeedback } from './OperationFeedback';
 import { useDuckDBView } from '@/hooks/useDuckDBView';
 import { useDuckDBViewStore, type ChangeRecord } from '@/store/duckDBViewStore';
+import { useOnboardingStore } from '@/store/onboardingStore';
 import { useViewStateHistory, generateChangeDescription } from '@/hooks/useViewStateHistory';
 import { useOperationFeedback } from '@/hooks/useOperationFeedback';
 
@@ -69,6 +70,14 @@ export function FocusedFileView({
   // This persists even after all rows are deleted
   const [duckDBHasLoaded, setDuckDBHasLoaded] = useState(false);
   const loadedViewsRef = useRef<Set<string>>(new Set());
+
+  // Track AI command usage for onboarding (CMD+K or / key)
+  const markCommandBarUsed = useOnboardingStore(state => state.markCommandBarUsed);
+  useEffect(() => {
+    if (aiCommandOpen) {
+      markCommandBarUsed();
+    }
+  }, [aiCommandOpen, markCommandBarUsed]);
 
   // Custom query result state - when user runs a SELECT query via AI
   const [customQueryResult, setCustomQueryResult] = useState<{

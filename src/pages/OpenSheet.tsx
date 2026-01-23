@@ -18,6 +18,7 @@ import { useKeyboard } from '@/hooks/useKeyboard';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DownloadButton } from '@/components/DownloadButton';
 import { MobileBoardView } from '@/components/MobileBoardView';
+import { OnboardingOverlay } from '@/components/onboarding';
 import { streamGlobalAssistant, type GlobalSearchContext } from '@/lib/ai';
 
 export function OpenSheet() {
@@ -174,6 +175,8 @@ export function OpenSheet() {
       },
     })),
     enabled: !commandBarOpen && !focusedFileId,
+    // When file is focused, FocusedFileView has its own CMD+K handler for local AI command
+    skipGlobalCmdK: !!focusedFileId,
   });
 
   // Command items - files, view controls, and settings
@@ -668,6 +671,13 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
       <SettingsPanel
         isOpen={settingsPanelOpen}
         onClose={() => setSettingsPanelOpen(false)}
+      />
+
+      {/* Onboarding overlay for first-time users */}
+      <OnboardingOverlay
+        onlySampleFiles={onlySampleFiles}
+        hasOpenFile={!!focusedFileId}
+        commandBarOpen={commandBarOpen}
       />
     </div>
   );

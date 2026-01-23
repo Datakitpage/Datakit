@@ -51,6 +51,8 @@ interface KeyboardConfig {
   enableVimMode?: boolean;
   preventDefault?: boolean;
   enabled?: boolean;
+  /** When true, CMD+K won't trigger global command palette (for when a focused component has its own handler) */
+  skipGlobalCmdK?: boolean;
 }
 
 export function useKeyboard(config: KeyboardConfig) {
@@ -61,8 +63,25 @@ export function useKeyboard(config: KeyboardConfig) {
     configRef.current = config;
   });
 
+  // Separate handler for CMD+K in capture phase - ensures it ALWAYS works
+  // even when other components capture keyboard events
+  const handleCmdK = useCallback((e: KeyboardEvent) => {
+    const cfg = configRef.current;
+    const isMeta = e.metaKey || e.ctrlKey;
+
+    if (isMeta && e.key === 'k') {
+      // Skip global command palette when a focused component has its own CMD+K handler
+      if (cfg.skipGlobalCmdK) return;
+
+      e.preventDefault();
+      cfg.onToggleCommandPalette?.();
+    }
+  }, []);
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const cfg = configRef.current;
+
+    // Exit early if hook is disabled
     if (!cfg.enabled && cfg.enabled !== undefined) return;
 
     // Don't capture when typing in inputs
@@ -81,13 +100,6 @@ export function useKeyboard(config: KeyboardConfig) {
 
     const isMeta = e.metaKey || e.ctrlKey;
     const isShift = e.shiftKey;
-
-    // Command palette
-    if (isMeta && e.key === 'k') {
-      if (cfg.preventDefault !== false) e.preventDefault();
-      cfg.onToggleCommandPalette?.();
-      return;
-    }
 
     // AI panel
     if (isMeta && e.key === 'j') {
@@ -252,9 +264,15 @@ export function useKeyboard(config: KeyboardConfig) {
   }, []);
 
   useEffect(() => {
+    // CMD+K uses capture phase to fire BEFORE any component handlers
+    // This ensures the command palette is always accessible
+    window.addEventListener('keydown', handleCmdK, true);
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+    return () => {
+      window.removeEventListener('keydown', handleCmdK, true);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleCmdK, handleKeyDown]);
 }
 
 /**
