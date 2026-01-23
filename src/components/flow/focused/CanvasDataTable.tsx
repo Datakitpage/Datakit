@@ -91,6 +91,7 @@ interface CanvasDataTableProps {
   // Callbacks
   onColumnClick?: (column: string) => void;
   onCellEdit?: (rowId: number, column: string, value: unknown) => void;
+  onCellEditError?: (message: string, details?: string) => void;
   onCellClick?: (rowId: number, column: string, value: unknown) => void;
   onRowDelete?: (rowId: number) => void;
   onPageChange?: (page: number) => void;
@@ -197,6 +198,7 @@ export function CanvasDataTable({
   accentColor = '#8B5CF6',
   onColumnClick,
   onCellEdit,
+  onCellEditError,
   onCellClick,
   onPageChange,
   onPageSizeChange,
@@ -417,6 +419,45 @@ export function CanvasDataTable({
     };
   }, [data, orderedColumns, getPendingChange]);
 
+  // Validate a date string and return parsed date or null
+  const validateDateString = useCallback((dateStr: string): Date | null => {
+    if (!dateStr || !dateStr.trim()) return null;
+
+    const trimmed = dateStr.trim();
+
+    // Try parsing as ISO format first (YYYY-MM-DD or full ISO)
+    let date = new Date(trimmed);
+
+    // Check if the date is valid
+    if (!isNaN(date.getTime())) {
+      // Additional check: the parsed date should produce a reasonable result
+      // This catches cases like "asdf" which might parse to Invalid Date on some browsers
+      const year = date.getFullYear();
+      if (year >= 1000 && year <= 9999) {
+        return date;
+      }
+    }
+
+    // Try parsing common date formats
+    // MM/DD/YYYY
+    const usFormat = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (usFormat) {
+      const [, month, day, year] = usFormat;
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    // DD/MM/YYYY (European format)
+    const euFormat = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (euFormat) {
+      const [, day, month, year] = euFormat;
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    return null;
+  }, []);
+
   // Handle cell edit
   const onCellEdited = useCallback((cell: Item, newValue: EditableGridCell) => {
     const [colIdx, rowIdx] = cell;
@@ -437,14 +478,18 @@ export function CanvasDataTable({
       if (normalizedType.includes('DATE') || normalizedType.includes('TIMESTAMP')) {
         const dateStr = newValue.data;
         if (dateStr && dateStr.trim()) {
-          // Parse the ISO date and format it for DuckDB (YYYY-MM-DD format)
-          const date = new Date(dateStr);
-          if (!isNaN(date.getTime())) {
+          // Validate and parse the date
+          const validDate = validateDateString(dateStr);
+          if (validDate) {
             // DuckDB expects dates in YYYY-MM-DD format
-            parsedValue = date.toISOString().slice(0, 10);
+            parsedValue = validDate.toISOString().slice(0, 10);
           } else {
-            // If parsing fails, use original string
-            parsedValue = dateStr;
+            // Invalid date - show error and reject the edit
+            onCellEditError?.(
+              'Invalid date format',
+              `"${dateStr}" is not a valid date. Use formats like YYYY-MM-DD, MM/DD/YYYY, or DD.MM.YYYY`
+            );
+            return; // Don't proceed with the edit
           }
         } else {
           parsedValue = null;
@@ -464,7 +509,7 @@ export function CanvasDataTable({
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-  }, [data, orderedColumns, onCellEdit]);
+  }, [data, orderedColumns, onCellEdit, onCellEditError, validateDateString]);
 
   // Handle cell click for toolbar
   const onCellActivated = useCallback((cell: Item) => {
