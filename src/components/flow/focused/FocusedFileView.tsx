@@ -8,7 +8,7 @@ import { MinimalHeader } from './MinimalHeader';
 import { FloatingAICommand, type AICommand } from './FloatingAICommand';
 import { OperationFeedback } from './OperationFeedback';
 import { useDuckDBView } from '@/hooks/useDuckDBView';
-import { useDuckDBViewStore } from '@/store/duckDBViewStore';
+import { useDuckDBViewStore, type ChangeRecord } from '@/store/duckDBViewStore';
 import { useOnboardingStore } from '@/store/onboardingStore';
 import { useViewStateHistory, generateChangeDescription } from '@/hooks/useViewStateHistory';
 import { useOperationFeedback } from '@/hooks/useOperationFeedback';
@@ -66,6 +66,9 @@ export function FocusedFileView({
   const [aiCommandOpen, setAiCommandOpen] = useState(false);
   const [recentCommands, setRecentCommands] = useState<string[]>([]);
   const [hasCommittedChanges, setHasCommittedChanges] = useState(false);
+  // Track if DuckDB has ever successfully loaded data for current file
+  // This persists even after all rows are deleted
+  const [duckDBHasLoaded, setDuckDBHasLoaded] = useState(false);
   const loadedViewsRef = useRef<Set<string>>(new Set());
 
   // Track AI command usage for onboarding (CMD+K or / key)
@@ -141,6 +144,7 @@ export function FocusedFileView({
     setInspectorOpen(false);
     setHasCommittedChanges(false);
     setCustomQueryResult(null);
+    setDuckDBHasLoaded(false);
     queryResultCacheRef.current.clear();
   }, [activeFileId]);
 
@@ -238,8 +242,23 @@ export function FocusedFileView({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Specific properties intentionally used instead of activeFile object
   }, [activeFile?.id, activeFile?.data, activeFile?.columns, activeFile?.file, loadData, loadFile]);
 
+  // Mark DuckDB as loaded once data first arrives
+  // This ensures we stay in DuckDB mode even after all rows are deleted
+  useEffect(() => {
+    if (useDuckDB && viewState.isReady && duckData.length > 0 && !duckDBHasLoaded) {
+      setDuckDBHasLoaded(true);
+    }
+  }, [useDuckDB, viewState.isReady, duckData.length, duckDBHasLoaded]);
+
+  // Count deleted rows from pending changes
+  const deletedRowsCount = useMemo(() =>
+    pendingChanges.filter((c: ChangeRecord) => c.changeType === 'delete').length,
+    [pendingChanges]
+  );
+
   // Determine if DuckDB mode is active and ready
-  const isDuckDBReady = useDuckDB && viewState.isReady && duckData.length > 0;
+  // Use duckDBHasLoaded to persist DuckDB mode even when all rows are deleted
+  const isDuckDBReady = useDuckDB && viewState.isReady && (duckDBHasLoaded || duckData.length > 0);
 
   // Debug log for DuckDB state
   useEffect(() => {
@@ -247,6 +266,7 @@ export function FocusedFileView({
       useDuckDB,
       viewStateIsReady: viewState.isReady,
       duckDataLength: duckData.length,
+      duckDBHasLoaded,
       isDuckDBReady,
       viewState: {
         viewName: viewState.viewName,
@@ -255,11 +275,14 @@ export function FocusedFileView({
         error: viewState.error,
       },
     });
-  }, [useDuckDB, viewState.isReady, duckData.length, isDuckDBReady, viewState]);
+  }, [useDuckDB, viewState.isReady, duckData.length, duckDBHasLoaded, isDuckDBReady, viewState]);
 
   // Get the effective data source
   const effectiveData = isDuckDBReady ? duckData : (activeFile?.data as Record<string, unknown>[]) || [];
-  const effectiveTotalRows = isDuckDBReady ? viewState.totalRows : (activeFile?.rowCount ?? effectiveData.length);
+  // Subtract deleted rows from total to show accurate count
+  const effectiveTotalRows = isDuckDBReady
+    ? Math.max(0, viewState.totalRows - deletedRowsCount)
+    : (activeFile?.rowCount ?? effectiveData.length);
   const effectiveColumns = isDuckDBReady ? viewState.schema.map(s => s.name) : (activeFile?.columns || []);
 
   // Filter and sort data
@@ -1254,6 +1277,7 @@ export function FocusedFileView({
                   onCellEdit={customQueryResult
                     ? (customQueryResult.isEditable ? handleQueryResultCellEdit : undefined)
                     : handleCellEdit}
+                  onCellEditError={(message, details) => feedback.showError(message, details)}
                   onRowDelete={customQueryResult ? undefined : handleRowDelete}
                   onPageChange={customQueryResult ? undefined : setPage}
                   onPageSizeChange={customQueryResult ? undefined : setPageSize}
