@@ -89,6 +89,24 @@ export function SQLEditor({
   const monacoRef = useRef<typeof import('monaco-editor') | null>(null);
   const completionDisposable = useRef<IDisposable | null>(null);
 
+  // Use refs to avoid stale closures in Monaco command handlers
+  const onExecuteRef = useRef(onExecute);
+  const onCloseRef = useRef(onClose);
+  const onSwitchModeRef = useRef(onSwitchMode);
+
+  // Keep refs updated
+  useEffect(() => {
+    onExecuteRef.current = onExecute;
+  }, [onExecute]);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    onSwitchModeRef.current = onSwitchMode;
+  }, [onSwitchMode]);
+
   // Create column suggestions from schema
   const columnSuggestions = useMemo(() => {
     return schema
@@ -167,24 +185,24 @@ export function SQLEditor({
     // Focus the editor
     editor.focus();
 
-    // Add keyboard shortcuts
+    // Add keyboard shortcuts - use refs to avoid stale closures
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      onExecute();
+      onExecuteRef.current();
     });
 
     // Escape switches to AI mode (if handler provided), otherwise closes
     editor.addCommand(monaco.KeyCode.Escape, () => {
-      if (onSwitchMode) {
-        onSwitchMode();
+      if (onSwitchModeRef.current) {
+        onSwitchModeRef.current();
       } else {
-        onClose();
+        onCloseRef.current();
       }
     });
 
     // Shift+Tab also switches mode (alternative to Tab which is used for indentation)
     editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Tab, () => {
-      if (onSwitchMode) {
-        onSwitchMode();
+      if (onSwitchModeRef.current) {
+        onSwitchModeRef.current();
       }
     });
 
@@ -253,7 +271,7 @@ export function SQLEditor({
 
     editor.onDidContentSizeChange(updateHeight);
     updateHeight();
-  }, [onExecute, onClose, onSwitchMode, viewName, columnSuggestions, minHeight, maxHeight]);
+  }, [viewName, columnSuggestions, minHeight, maxHeight]);
 
   // Clean up completion provider on unmount
   useEffect(() => {
@@ -322,6 +340,9 @@ export function SQLEditor({
             bracketPairColorization: { enabled: true },
             guides: { bracketPairs: true },
             contextmenu: false,
+            // Fix: render widgets (autocomplete, etc) as fixed position in body
+            // so they can overflow the editor container
+            fixedOverflowWidgets: true,
             // Customize suggest widget
             suggest: {
               showKeywords: true,
