@@ -26,6 +26,7 @@ export interface ContentNodeData {
   selected?: boolean;
   collapsed?: boolean;
   file?: File; // Original file for binary formats like parquet that need DuckDB
+  fileHandle?: FileSystemFileHandle; // Persisted handle for file restoration across sessions
 }
 
 interface ContentNodeProps {

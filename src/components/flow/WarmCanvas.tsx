@@ -9,7 +9,7 @@ const MAX_FILE_SIZE = 450 * 1024 * 1024;
 interface WarmCanvasProps {
   children: React.ReactNode;
   onCanvasClick?: (position: { x: number; y: number }) => void;
-  onFileDrop?: (file: File, position: { x: number; y: number }) => void;
+  onFileDrop?: (file: File, position: { x: number; y: number }, handle?: FileSystemFileHandle) => void;
   onZoomChange?: (zoom: number) => void;
   onPanChange?: (pan: { x: number; y: number }) => void;
   initialZoom?: number;
@@ -116,23 +116,41 @@ export const WarmCanvas = forwardRef<WarmCanvasRef, WarmCanvasProps>(({
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
 
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0 && onFileDrop) {
-      const canvasPos = canvas.screenToCanvas(e.clientX, e.clientY);
+    if (!onFileDrop) return;
+
+    const canvasPos = canvas.screenToCanvas(e.clientX, e.clientY);
+    const items = Array.from(e.dataTransfer.items);
+
+    for (const item of items) {
+      if (item.kind !== 'file') continue;
+
+      const file = item.getAsFile();
+      if (!file) continue;
 
       // Check for large files
-      for (const file of files) {
-        if (file.size > MAX_FILE_SIZE) {
-          setLargeFileWarning({ fileName: file.name, fileSize: file.size });
-          return;
-        }
+      if (file.size > MAX_FILE_SIZE) {
+        setLargeFileWarning({ fileName: file.name, fileSize: file.size });
+        return;
       }
 
-      files.forEach(file => onFileDrop(file, canvasPos));
+      // Try to get FileSystemFileHandle for persistence (Chrome/Edge only)
+      let handle: FileSystemFileHandle | undefined;
+      try {
+        if ('getAsFileSystemHandle' in item) {
+          const fsHandle = await (item as DataTransferItem & { getAsFileSystemHandle(): Promise<FileSystemHandle | null> }).getAsFileSystemHandle();
+          if (fsHandle?.kind === 'file') {
+            handle = fsHandle as FileSystemFileHandle;
+          }
+        }
+      } catch {
+        // File System Access API not supported or failed, continue without handle
+      }
+
+      onFileDrop(file, canvasPos, handle);
     }
   };
 

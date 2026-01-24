@@ -2,6 +2,16 @@ import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import type { ContentNodeData, ContentType } from '@/components/flow/ContentNode';
 import Papa from 'papaparse';
+import { saveFileHandle, removeFileHandle } from '@/store/fileHandleStore';
+import {
+  saveFolder as persistFolder,
+  removeFolder as unpersistFolder,
+  updateFolderFileIds,
+  updateFolderPosition as persistFolderPosition,
+  updateFolderName,
+  updateFolderColor,
+  type PersistedFolder,
+} from '@/store/folderPersistence';
 
 // ============================================
 // Sample data for initial state
@@ -102,7 +112,8 @@ interface BoardState {
   pendingFolderFiles: string[] | null;
 
   // Actions - Files
-  addFile: (file: File, position: { x: number; y: number }) => Promise<void>;
+  addFile: (file: File, position: { x: number; y: number }, handle?: FileSystemFileHandle) => Promise<void>;
+  restoreFile: (id: string, file: File, metadata: { name: string; type: ContentType; size: number; position: { x: number; y: number } }, handle?: FileSystemFileHandle) => Promise<void>;
   updateFilePosition: (id: string, position: { x: number; y: number }) => void;
   renameFile: (id: string, name: string) => void;
   deleteFile: (id: string) => void;
@@ -114,10 +125,12 @@ interface BoardState {
 
   // Actions - Folders
   createFolder: (fileIds: string[], position: { x: number; y: number }) => string;
+  restoreFolder: (folder: PersistedFolder) => void;
   addFileToFolder: (folderId: string, fileId: string) => void;
   removeFileFromFolder: (folderId: string, fileId: string) => void;
   deleteFolder: (folderId: string, keepFiles?: boolean) => void;
   renameFolder: (folderId: string, name: string) => void;
+  setFolderColor: (folderId: string, color: string) => void;
   updateFolderPosition: (folderId: string, position: { x: number; y: number }) => void;
   openFolder: (folderId: string) => void;
   closeFolder: (folderId: string) => void;
@@ -140,7 +153,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   dragOverFolderId: null,
   pendingFolderFiles: null,
 
-  addFile: async (file: File, position: { x: number; y: number }) => {
+  addFile: async (file: File, position: { x: number; y: number }, handle?: FileSystemFileHandle) => {
     const id = uuid();
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
 
@@ -155,6 +168,18 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) fileType = 'image';
     else if (ext === 'pdf') fileType = 'pdf';
 
+    // Save file handle to IndexedDB for persistence (if available)
+    if (handle) {
+      saveFileHandle(id, handle, {
+        id,
+        name: file.name,
+        type: fileType,
+        size: file.size,
+        position,
+        lastModified: file.lastModified,
+      });
+    }
+
     // Add file immediately with processing state and auto-focus it
     set(state => ({
       files: [
@@ -166,6 +191,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           size: file.size,
           position,
           processing: true,
+          fileHandle: handle,
         },
       ],
       focusedFileId: id,
@@ -249,6 +275,99 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }
   },
 
+  // Restore a file from a persisted handle (used on app reload)
+  restoreFile: async (id: string, file: File, metadata: { name: string; type: ContentType; size: number; position: { x: number; y: number } }, handle?: FileSystemFileHandle) => {
+    const { files } = get();
+
+    // Don't restore if already exists
+    if (files.some(f => f.id === id)) {
+      return;
+    }
+
+    const fileType = metadata.type;
+
+    // Add file immediately with processing state (don't auto-focus restored files)
+    set(state => ({
+      files: [
+        ...state.files,
+        {
+          id,
+          name: metadata.name,
+          type: fileType,
+          size: metadata.size,
+          position: metadata.position,
+          processing: true,
+          fileHandle: handle,
+        },
+      ],
+    }));
+
+    // Parse file contents (same logic as addFile)
+    try {
+      let data: unknown[] = [];
+      let rawContent: string | undefined;
+      let imageUrl: string | undefined;
+      let rowCount = 0;
+      let columnCount = 0;
+      let columns: string[] = [];
+
+      if (fileType === 'csv') {
+        const text = await file.text();
+        const headerResult = Papa.parse(text, { header: true, preview: 1 });
+        columns = headerResult.meta.fields || [];
+        columnCount = columns.length;
+        rowCount = (text.match(/\n/g) || []).length;
+        data = [];
+      } else if (fileType === 'json') {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+        rowCount = arr.length;
+        if (arr.length > 0 && typeof arr[0] === 'object' && arr[0] !== null) {
+          columns = Object.keys(arr[0] as object);
+          columnCount = columns.length;
+        }
+        data = arr.length < 10000 ? arr : [];
+      } else if (fileType === 'parquet') {
+        data = [];
+        columns = [];
+        rowCount = 0;
+        columnCount = 0;
+      } else if (fileType === 'txt' || fileType === 'md') {
+        rawContent = await file.text();
+      } else if (fileType === 'image') {
+        imageUrl = URL.createObjectURL(file);
+      }
+
+      set(state => ({
+        files: state.files.map(f =>
+          f.id === id
+            ? {
+                ...f,
+                data,
+                columns,
+                rawContent,
+                imageUrl,
+                rowCount,
+                columnCount,
+                processing: false,
+                ...(['csv', 'json', 'parquet'].includes(fileType) ? { file } : {}),
+              }
+            : f
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to parse restored file:', error);
+      set(state => ({
+        files: state.files.map(f =>
+          f.id === id
+            ? { ...f, processing: false, error: 'Failed to parse file' }
+            : f
+        ),
+      }));
+    }
+  },
+
   updateFilePosition: (id, position) => {
     set(state => ({
       files: state.files.map(f => (f.id === id ? { ...f, position } : f)),
@@ -262,6 +381,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   deleteFile: (id) => {
+    // Remove file handle from IndexedDB
+    removeFileHandle(id);
+
     set(state => ({
       files: state.files.filter(f => f.id !== id),
       openFileIds: state.openFileIds.filter(fid => fid !== id),
@@ -332,6 +454,11 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         ? `${fileNames.join(' & ')}`
         : `${fileNames[0]} + ${fileIds.length - 1}`;
 
+    const color = '#6366F1';
+
+    // Persist folder to IndexedDB
+    persistFolder({ id, name, position, fileIds, color });
+
     set(state => ({
       folders: [
         ...state.folders,
@@ -340,7 +467,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           name,
           position,
           fileIds,
-          color: '#6366F1',
+          color,
         },
       ],
       pendingFolderFiles: null,
@@ -350,7 +477,37 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     return id;
   },
 
+  // Restore a folder from IndexedDB (used on app reload)
+  restoreFolder: (folder: PersistedFolder) => {
+    const { folders } = get();
+
+    // Don't restore if already exists
+    if (folders.some(f => f.id === folder.id)) {
+      return;
+    }
+
+    set(state => ({
+      folders: [
+        ...state.folders,
+        {
+          id: folder.id,
+          name: folder.name,
+          position: folder.position,
+          fileIds: folder.fileIds,
+          color: folder.color,
+        },
+      ],
+    }));
+  },
+
   addFileToFolder: (folderId, fileId) => {
+    const folder = get().folders.find(f => f.id === folderId);
+    if (folder && !folder.fileIds.includes(fileId)) {
+      const newFileIds = [...folder.fileIds, fileId];
+      // Persist to IndexedDB
+      updateFolderFileIds(folderId, newFileIds);
+    }
+
     set(state => ({
       folders: state.folders.map(f =>
         f.id === folderId && !f.fileIds.includes(fileId)
@@ -361,6 +518,13 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   removeFileFromFolder: (folderId, fileId) => {
+    const folder = get().folders.find(f => f.id === folderId);
+    if (folder) {
+      const newFileIds = folder.fileIds.filter(id => id !== fileId);
+      // Persist to IndexedDB
+      updateFolderFileIds(folderId, newFileIds);
+    }
+
     set(state => ({
       folders: state.folders.map(f =>
         f.id === folderId
@@ -373,6 +537,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   deleteFolder: (folderId, keepFiles = true) => {
     const folder = get().folders.find(f => f.id === folderId);
     if (!folder) return;
+
+    // Remove from IndexedDB
+    unpersistFolder(folderId);
 
     set(state => {
       const newFiles = keepFiles
@@ -387,6 +554,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   renameFolder: (folderId, name) => {
+    // Persist to IndexedDB
+    updateFolderName(folderId, name);
+
     set(state => ({
       folders: state.folders.map(f =>
         f.id === folderId ? { ...f, name, isRenaming: false } : f
@@ -394,7 +564,21 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }));
   },
 
+  setFolderColor: (folderId, color) => {
+    // Persist to IndexedDB
+    updateFolderColor(folderId, color);
+
+    set(state => ({
+      folders: state.folders.map(f =>
+        f.id === folderId ? { ...f, color } : f
+      ),
+    }));
+  },
+
   updateFolderPosition: (folderId, position) => {
+    // Persist to IndexedDB
+    persistFolderPosition(folderId, position);
+
     set(state => ({
       folders: state.folders.map(f =>
         f.id === folderId ? { ...f, position } : f

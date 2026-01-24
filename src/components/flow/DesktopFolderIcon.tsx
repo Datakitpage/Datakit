@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import type { Folder } from '@/store/boardStore';
 import type { ContentType } from './ContentNode';
+import { FolderContextMenu } from './FolderContextMenu';
 
 // ============================================================================
 // Props
@@ -18,6 +19,8 @@ interface DesktopFolderIconProps {
   onRename?: (folderId: string, newName: string) => void;
   onRenameStart?: (folderId: string) => void;
   onRenameCancel?: (folderId: string) => void;
+  onChangeColor?: (folderId: string, color: string) => void;
+  onDelete?: (folderId: string) => void;
   isDragTarget?: boolean; // True when a file is being dragged over this folder
 }
 
@@ -38,57 +41,6 @@ const typeColors: Record<ContentType, string> = {
 };
 
 // ============================================================================
-// Context Menu Component
-// ============================================================================
-
-function ContextMenu({
-  x,
-  y,
-  onRename,
-  onClose,
-}: {
-  x: number;
-  y: number;
-  onRename: () => void;
-  onClose: () => void;
-}) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
-
-  return (
-    <motion.div
-      ref={menuRef}
-      className="fixed z-50 min-w-[140px] py-1 bg-white rounded-lg shadow-lg border border-stone-200"
-      style={{ left: x, top: y }}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.1 }}
-    >
-      <button
-        className="w-full px-3 py-1.5 text-left text-sm text-stone-700 hover:bg-stone-100 flex items-center gap-2"
-        onClick={() => {
-          onRename();
-          onClose();
-        }}
-      >
-        <span className="text-stone-400">✎</span>
-        Rename
-      </button>
-    </motion.div>
-  );
-}
-
-// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -103,20 +55,21 @@ export function DesktopFolderIcon({
   onRename,
   onRenameStart,
   onRenameCancel,
+  onChangeColor,
+  onDelete,
   isDragTarget = false,
 }: DesktopFolderIconProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
   const [editingName, setEditingName] = useState(folder.name);
-  const [showComingSoonTooltip, setShowComingSoonTooltip] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastClickTime = useRef(0);
   const clickCount = useRef(0);
   const clickTimer = useRef<NodeJS.Timeout | null>(null);
-  const tooltipTimer = useRef<NodeJS.Timeout | null>(null);
   const dragState = useRef<{
     startMouseX: number;
     startMouseY: number;
@@ -150,15 +103,6 @@ export function DesktopFolderIcon({
       setEditingName(folder.name);
     }
   }, [isRenaming, folder.name]);
-
-  // Clean up tooltip timer on unmount
-  useEffect(() => {
-    return () => {
-      if (tooltipTimer.current) {
-        clearTimeout(tooltipTimer.current);
-      }
-    };
-  }, []);
 
   // Manual drag handling with zoom awareness
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -256,14 +200,8 @@ export function DesktopFolderIcon({
     e.preventDefault();
     e.stopPropagation();
 
-    // Show "coming soon" tooltip on right-click instead of context menu
-    setShowComingSoonTooltip(true);
-    if (tooltipTimer.current) {
-      clearTimeout(tooltipTimer.current);
-    }
-    tooltipTimer.current = setTimeout(() => {
-      setShowComingSoonTooltip(false);
-    }, 3000);
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setContextMenuOpen(true);
   };
 
   const handleRenameSubmit = () => {
@@ -507,47 +445,23 @@ export function DesktopFolderIcon({
             drop to add to folder
           </motion.div>
 
-          {/* Coming soon tooltip */}
-          <AnimatePresence>
-            {showComingSoonTooltip && (
-              <motion.div
-                className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 rounded-lg text-xs whitespace-nowrap z-50"
-                style={{
-                  backgroundColor: 'var(--surface-elevated, #27272a)',
-                  color: 'var(--text-secondary, #a1a1aa)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  border: '1px solid var(--border-subtle, #3f3f46)',
-                }}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-              >
-                Soon, you'll be able to have more features on folders
-                <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 rotate-45"
-                  style={{
-                    backgroundColor: 'var(--surface-elevated, #27272a)',
-                    borderRight: '1px solid var(--border-subtle, #3f3f46)',
-                    borderBottom: '1px solid var(--border-subtle, #3f3f46)',
-                  }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
       </motion.div>
 
       {/* Context menu */}
-      <AnimatePresence>
-        {contextMenu && (
-          <ContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
-            onRename={() => onRenameStart?.(folder.id)}
-            onClose={() => setContextMenu(null)}
-          />
-        )}
-      </AnimatePresence>
+      {contextMenuPosition && (
+        <FolderContextMenu
+          isOpen={contextMenuOpen}
+          onClose={() => setContextMenuOpen(false)}
+          position={contextMenuPosition}
+          folder={folder}
+          fileCount={folder.fileIds.length}
+          onOpen={() => onDoubleClick?.(folder.id)}
+          onRename={(newName) => onRename?.(folder.id, newName)}
+          onChangeColor={(color) => onChangeColor?.(folder.id, color)}
+          onDelete={() => onDelete?.(folder.id)}
+        />
+      )}
     </>
   );
 }

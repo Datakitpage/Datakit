@@ -21,6 +21,10 @@ interface FocusedFileViewProps {
   onFileClose: (id: string) => void;
   onTabReorder: (newOrder: string[]) => void;
   onAction?: (action: string, params?: Record<string, unknown>) => void;
+  // Folder context - when viewing files from a folder
+  currentFolderId?: string | null;
+  folderFileIds?: string[];
+  onRemoveFromFolder?: (fileId: string) => void;
 }
 
 // Type configurations with gradients
@@ -52,6 +56,9 @@ export function FocusedFileView({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Props available for future use
   onTabReorder,
   onAction,
+  currentFolderId,
+  folderFileIds,
+  onRemoveFromFolder,
 }: FocusedFileViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- State maintained for pagination but value not used in current implementation
@@ -1200,6 +1207,9 @@ export function FocusedFileView({
         hasQueryResult={customQueryResult !== null}
         canViewUndo={viewHistory.canUndo || canUndoVersion}
         canViewRedo={viewHistory.canRedo || canRedoVersion}
+        currentFolderId={currentFolderId}
+        folderFileIds={folderFileIds}
+        onRemoveFromFolder={onRemoveFromFolder}
         onViewUndo={() => {
           // Priority: data versions first (more important), then view history
           // This ensures committed data changes are undone before view changes
