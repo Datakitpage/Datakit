@@ -43,7 +43,8 @@ export function HeaderStatusBar({
   onUndo,
   onDiscard,
   isCommitting,
-  accentColor = '#8B5CF6',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Available for future theming
+  accentColor: _accentColor = '#8B5CF6',
   error,
   onClearError,
 }: HeaderStatusBarProps) {

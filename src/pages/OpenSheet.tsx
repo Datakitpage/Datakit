@@ -463,7 +463,7 @@ export function OpenSheet() {
   // Handle drag end - create folder if dropped on another file, or add to folder
   const handleFileDragEnd = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- position parameter available for future drag-and-drop logic
-    (draggedId: string, position: { x: number; y: number }) => {
+    (draggedId: string, _position: { x: number; y: number }) => {
       // If dropped on a folder, add the file to that folder
       if (dragOverFolderId) {
         addFileToFolder(dragOverFolderId, draggedId);

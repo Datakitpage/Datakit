@@ -52,9 +52,9 @@ export function FocusedFileView({
   onClose,
   onFileChange,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Props available for future use
-  onFileClose,
+  onFileClose: _onFileClose,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Props available for future use
-  onTabReorder,
+  onTabReorder: _onTabReorder,
   onAction,
   currentFolderId,
   folderFileIds,
@@ -62,7 +62,7 @@ export function FocusedFileView({
 }: FocusedFileViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- State maintained for pagination but value not used in current implementation
-  const [currentPage, setCurrentPage] = useState(0);
+  const [_currentPage, setCurrentPage] = useState(0);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
@@ -113,7 +113,8 @@ export function FocusedFileView({
     hasPendingChanges,
     loadData,
     loadFile,
-    refresh,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Available for future use
+    refresh: _refresh,
     addColumn,
     setPage,
     setPageSize,
@@ -1294,7 +1295,7 @@ export function FocusedFileView({
                   onColumnClick={handleColumnClick}
                   onSort={customQueryResult ? undefined : toggleSort}
                   onSortWithDirection={customQueryResult ? undefined : setSort}
-                  onFilterByValue={customQueryResult ? undefined : (column, value) => {
+                  onFilterByValue={customQueryResult ? undefined : (_column, value) => {
                     // Use search to filter by the value
                     if (value !== null && value !== undefined) {
                       setSearchQuery(String(value));
