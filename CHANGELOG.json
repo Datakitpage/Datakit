@@ -1,0 +1,43 @@
+{
+  "version": "0.1.0",
+  "tagline": "",
+  "upcoming": [
+    {
+      "id": "excel-v0",
+      "title": "Excel Integration",
+      "description": ".xlsx read/write support with formula preservation",
+      "status": "in-progress",
+      "eta": "Soon"
+    },
+    {
+      "id": "desktop-mode",
+      "title": "Desktop Mode",
+      "description": "Native app experience powered by Tauri",
+      "status": "planned",
+      "eta": "Q2"
+    }
+  ],
+  "recent": [
+    {
+      "id": "folder-persistence",
+      "title": "Folder Persistence",
+      "description": "Folders and their contents now persist across browser sessions",
+      "date": "2026-01-24",
+      "type": "new"
+    },
+    {
+      "id": "floating-ai-command",
+      "title": "AI Command Bar",
+      "description": "Natural language queries for sorting, filtering, and data exploration",
+      "date": "2026-01-22",
+      "type": "feature"
+    },
+    {
+      "id": "launched",
+      "title": "Launched",
+      "description": "",
+      "date": "2026-01-19",
+      "type": "feature"
+    }
+  ]
+}

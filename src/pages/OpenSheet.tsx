@@ -9,6 +9,7 @@ import {
   AICommandBar,
   FocusedFileView,
   SettingsPanel,
+  AppChangelog,
 } from '@/components/flow';
 import type { WarmCanvasRef } from '@/components/flow/WarmCanvas';
 import { useBoardStore } from '@/store/boardStore';
@@ -104,6 +105,8 @@ export function OpenSheet() {
   const [zoom, setZoom] = useState(1);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const [changelogMinimized, setChangelogMinimized] = useState(false);
+  const [changelogAutoExpand, setChangelogAutoExpand] = useState(false);
 
   // Settings (theme is applied automatically via settingsStore's onRehydrateStorage)
   const { theme, toggleTheme, anthropicApiKey } = useSettingsStore();
@@ -725,6 +728,57 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
               </Tooltip.Portal>
             </Tooltip.Root>
           </Tooltip.Provider>
+
+          {/* Changelog button - shown when changelog widget is minimized */}
+          <AnimatePresence mode="wait">
+            {changelogMinimized && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <Tooltip.Provider delayDuration={100}>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <button
+                        onClick={() => {
+                          setChangelogMinimized(false);
+                          setChangelogAutoExpand(true);
+                        }}
+                        className="relative flex items-center justify-center w-7 h-7 rounded-lg transition-colors hover:bg-[var(--surface-secondary)]"
+                        style={{ color: 'var(--text-tertiary)' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                          <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                      </button>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        side="bottom"
+                        sideOffset={8}
+                        className="px-3 py-2 rounded-lg text-xs z-50"
+                        style={{
+                          backgroundColor: 'var(--surface-elevated)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border-default)',
+                          boxShadow: 'var(--shadow-lg)',
+                        }}
+                      >
+                        What's new
+                        <Tooltip.Arrow style={{ fill: 'var(--surface-elevated)' }} />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <DownloadButton />
         </div>
       </header>
@@ -798,7 +852,7 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
                 Drop your files here to explore
               </p>
               <p className="text-sm mb-8" style={{ color: 'var(--text-tertiary)' }}>
-                CSV, JSON, Excel, Parquet - your files becomes visible
+                CSV, JSON, Parquet - your files becomes visible
               </p>
               {/* Keyboard hints */}
               <div className="flex items-center justify-center gap-6 text-xs" style={{ color: 'var(--text-tertiary)' }}>
@@ -829,6 +883,18 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
         nodeCount={files.length + folders.length}
         connectionCount={0}
       />
+
+      {/* App Changelog Widget - hidden when file is focused */}
+      {!focusedFileId && (
+        <AppChangelog
+          isMinimized={changelogMinimized}
+          onMinimize={() => {
+            setChangelogMinimized(true);
+            setChangelogAutoExpand(false);
+          }}
+          autoExpand={changelogAutoExpand}
+        />
+      )}
 
       {/* AI Command Bar */}
       <AICommandBar
