@@ -1,7 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IconX, IconCheck, IconLoader2 } from '@tabler/icons-react';
 import { clsx } from 'clsx';
+
+// Inline SVG icons to avoid @tabler/icons-react dependency issues
+const IconX = ({ size = 24, stroke = 2 }: { size?: number; stroke?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const IconCheck = ({ size = 24, stroke = 2, className }: { size?: number; stroke?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="20,6 9,17 4,12" />
+  </svg>
+);
+
+const IconLoader2 = ({ size = 24, className }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 3a9 9 0 1 0 9 9" />
+  </svg>
+);
 import { useSettingsStore, ACCENT_PRESETS } from '@/store/settingsStore';
 import { validateApiKey } from '@/lib/ai';
 import anthropicIcon from '@/assets/anthropic.webp';
