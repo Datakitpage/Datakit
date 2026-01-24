@@ -39,6 +39,10 @@ interface MinimalHeaderProps {
   onViewRedo?: () => void;
   // Version info (committed data versions)
   versionInfo?: { current: number; total: number; description: string | null };
+  // Folder context - when viewing files from a folder
+  currentFolderId?: string | null;
+  folderFileIds?: string[];
+  onRemoveFromFolder?: (fileId: string) => void;
 }
 
 // Type configurations
@@ -79,6 +83,9 @@ export function MinimalHeader({
   onViewUndo,
   onViewRedo,
   versionInfo,
+  currentFolderId,
+  folderFileIds,
+  onRemoveFromFolder,
 }: MinimalHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -202,54 +209,74 @@ export function MinimalHeader({
                 {allFiles.map((file) => {
                   const fileConfig = typeConfigs[file.type] || typeConfigs.unknown;
                   const isActive = file.id === fileId;
+                  const isInFolder = folderFileIds?.includes(file.id);
 
                   return (
-                    <button
-                      key={file.id}
-                      onClick={() => handleFileSelect(file.id)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--surface-secondary)]"
-                      style={{
-                        backgroundColor: isActive ? 'var(--surface-secondary)' : 'transparent',
-                      }}
-                    >
-                      <span
-                        className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-[10px]"
+                    <div key={file.id} className="group/file">
+                      <button
+                        onClick={() => handleFileSelect(file.id)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--surface-secondary)]"
                         style={{
-                          backgroundColor: `${fileConfig.color}15`,
-                          color: fileConfig.color,
+                          backgroundColor: isActive ? 'var(--surface-secondary)' : 'transparent',
                         }}
                       >
-                        {fileConfig.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div
-                          className="text-sm truncate"
+                        <span
+                          className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-[10px]"
                           style={{
-                            color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            fontWeight: isActive ? 500 : 400,
+                            backgroundColor: `${fileConfig.color}15`,
+                            color: fileConfig.color,
                           }}
                         >
-                          {file.name}
-                        </div>
-                        {file.rowCount !== undefined && (
-                          <div
-                            className="text-[10px]"
-                            style={{ color: 'var(--text-tertiary)' }}
-                          >
-                            {file.rowCount.toLocaleString()} rows
-                            {file.columnCount !== undefined && ` · ${file.columnCount} cols`}
-                          </div>
-                        )}
-                      </div>
-                      {isActive && (
-                        <span
-                          className="text-xs"
-                          style={{ color: accentColor }}
-                        >
-                          ●
+                          {fileConfig.icon}
                         </span>
-                      )}
-                    </button>
+                        <div className="flex-1 min-w-0 max-w-[200px]">
+                          <div
+                            className="text-sm truncate"
+                            style={{
+                              color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                              fontWeight: isActive ? 500 : 400,
+                            }}
+                            title={file.name}
+                          >
+                            {file.name}
+                          </div>
+                          {file.rowCount !== undefined && (
+                            <div
+                              className="text-[10px]"
+                              style={{ color: 'var(--text-tertiary)' }}
+                            >
+                              {file.rowCount.toLocaleString()} rows
+                              {file.columnCount !== undefined && ` · ${file.columnCount} cols`}
+                            </div>
+                          )}
+                        </div>
+                        {isActive && (
+                          <span
+                            className="text-xs"
+                            style={{ color: accentColor }}
+                          >
+                            ●
+                          </span>
+                        )}
+                        {/* Remove from folder button - shown on hover when file is in folder */}
+                        {isInFolder && onRemoveFromFolder && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRemoveFromFolder(file.id);
+                              setDropdownOpen(false);
+                            }}
+                            className="opacity-0 group-hover/file:opacity-100 p-1 rounded transition-all hover:bg-red-100"
+                            style={{ color: '#EF4444' }}
+                            title="Remove from folder"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </button>
+                    </div>
                   );
                 })}
               </div>

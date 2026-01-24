@@ -14,6 +14,16 @@ import type { WarmCanvasRef } from '@/components/flow/WarmCanvas';
 import { useBoardStore } from '@/store/boardStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useDuckDBViewStore } from '@/store/duckDBViewStore';
+import {
+  getAllFileHandles,
+  checkHandlePermission,
+  requestHandlePermission,
+  getFileFromHandle,
+  removeFileHandle,
+  isFileSystemAccessSupported,
+} from '@/store/fileHandleStore';
+import { getAllFolders } from '@/store/folderPersistence';
+import type { ContentType } from '@/components/flow/ContentNode';
 import { useKeyboard } from '@/hooks/useKeyboard';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DownloadButton } from '@/components/DownloadButton';
@@ -33,6 +43,7 @@ export function OpenSheet() {
     dragOverFileId,
     dragOverFolderId,
     addFile,
+    restoreFile,
     updateFilePosition,
     renameFile,
     deleteFile,
@@ -42,15 +53,27 @@ export function OpenSheet() {
     closeFileTab,
     reorderTabs,
     createFolder,
+    restoreFolder,
     addFileToFolder,
+    removeFileFromFolder,
     updateFolderPosition,
     openFolder,
     renameFolder,
+    setFolderColor,
+    deleteFolder,
     startRenamingFolder,
     stopRenamingFolder,
     setDragOverFile,
     setDragOverFolder,
   } = useBoardStore();
+
+  // File restoration state
+  const [pendingRestoreCount, setPendingRestoreCount] = useState(0);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const pendingHandlesRef = useRef<Map<string, { handle: FileSystemFileHandle; metadata: { id: string; name: string; type: string; size: number; position: { x: number; y: number } } }>>(new Map());
+
+  // Track which folder is currently "open" (when user opens files from a folder)
+  const [openFolderId, setOpenFolderId] = useState<string | null>(null);
 
   // Get open files for tabs (in order they were opened)
   const openFiles = useMemo(
@@ -93,6 +116,135 @@ export function OpenSheet() {
       console.log('[OpenSheet] DuckDB preload complete:', success);
     });
   }, [initializeDuckDB]);
+
+  // Check for stored file handles on app load and restore files with granted permissions
+  useEffect(() => {
+    if (!isFileSystemAccessSupported()) {
+      console.log('[OpenSheet] File System Access API not supported');
+      return;
+    }
+
+    async function checkStoredHandles() {
+      console.log('[OpenSheet] Checking for stored file handles...');
+      const storedHandles = await getAllFileHandles();
+
+      if (storedHandles.size === 0) {
+        console.log('[OpenSheet] No stored file handles found');
+        return;
+      }
+
+      console.log(`[OpenSheet] Found ${storedHandles.size} stored file handles`);
+      const pendingHandles = new Map<string, { handle: FileSystemFileHandle; metadata: { id: string; name: string; type: string; size: number; position: { x: number; y: number } } }>();
+
+      for (const [fileId, { handle, metadata }] of storedHandles) {
+        // Skip if file already exists in the store
+        if (files.some(f => f.id === fileId)) {
+          console.log(`[OpenSheet] File ${fileId} already exists, skipping`);
+          continue;
+        }
+
+        const permission = await checkHandlePermission(handle);
+        console.log(`[OpenSheet] Handle ${metadata.name}: permission = ${permission}`);
+
+        if (permission === 'granted') {
+          // Permission already granted, restore immediately
+          try {
+            const file = await getFileFromHandle(handle);
+            if (file) {
+              restoreFile(fileId, file, {
+                name: metadata.name,
+                type: metadata.type as ContentType,
+                size: metadata.size,
+                position: metadata.position,
+              }, handle);
+              console.log(`[OpenSheet] Restored file: ${metadata.name}`);
+            }
+          } catch (error) {
+            console.error(`[OpenSheet] Failed to restore file ${metadata.name}:`, error);
+            // Handle may be stale, remove it
+            await removeFileHandle(fileId);
+          }
+        } else if (permission === 'prompt') {
+          // Need user gesture to request permission
+          pendingHandles.set(fileId, { handle, metadata });
+        } else {
+          // Permission denied, remove the handle
+          console.log(`[OpenSheet] Permission denied for ${metadata.name}, removing handle`);
+          await removeFileHandle(fileId);
+        }
+      }
+
+      if (pendingHandles.size > 0) {
+        pendingHandlesRef.current = pendingHandles;
+        setPendingRestoreCount(pendingHandles.size);
+      }
+    }
+
+    checkStoredHandles();
+  }, []); // Only run once on mount
+
+  // Restore folders from IndexedDB on app load
+  useEffect(() => {
+    async function restoreStoredFolders() {
+      console.log('[OpenSheet] Checking for stored folders...');
+      const storedFolders = await getAllFolders();
+
+      if (storedFolders.length === 0) {
+        console.log('[OpenSheet] No stored folders found');
+        return;
+      }
+
+      console.log(`[OpenSheet] Found ${storedFolders.length} stored folders`);
+
+      for (const folder of storedFolders) {
+        // Filter out fileIds that don't exist (files may have been deleted)
+        // Note: At this point, files may still be restoring, so we keep all fileIds
+        // The folder will simply show fewer files if some couldn't be restored
+        restoreFolder(folder);
+        console.log(`[OpenSheet] Restored folder: ${folder.name}`);
+      }
+    }
+
+    restoreStoredFolders();
+  }, []); // Only run once on mount
+
+  // Handler to restore files that need permission (requires user gesture)
+  const handleRestoreFiles = useCallback(async () => {
+    if (pendingHandlesRef.current.size === 0) return;
+
+    setIsRestoring(true);
+    let restoredCount = 0;
+
+    for (const [fileId, { handle, metadata }] of pendingHandlesRef.current) {
+      try {
+        const granted = await requestHandlePermission(handle);
+        if (granted) {
+          const file = await getFileFromHandle(handle);
+          if (file) {
+            restoreFile(fileId, file, {
+              name: metadata.name,
+              type: metadata.type as ContentType,
+              size: metadata.size,
+              position: metadata.position,
+            }, handle);
+            restoredCount++;
+          }
+        } else {
+          // Permission denied, remove the handle
+          await removeFileHandle(fileId);
+        }
+      } catch (error) {
+        console.error(`[OpenSheet] Failed to restore file ${metadata.name}:`, error);
+        await removeFileHandle(fileId);
+      }
+    }
+
+    pendingHandlesRef.current.clear();
+    setPendingRestoreCount(0);
+    setIsRestoring(false);
+
+    console.log(`[OpenSheet] Restored ${restoredCount} files`);
+  }, [restoreFile]);
 
   // Sync zoom from canvas
   const handleZoomChange = useCallback((newZoom: number) => {
@@ -263,8 +415,8 @@ export function OpenSheet() {
   }, [selectItem]);
 
   const handleFileDrop = useCallback(
-    (file: File, position: { x: number; y: number }) => {
-      addFile(file, position);
+    (file: File, position: { x: number; y: number }, handle?: FileSystemFileHandle) => {
+      addFile(file, position, handle);
     },
     [addFile]
   );
@@ -347,6 +499,7 @@ export function OpenSheet() {
       const folder = folders.find(f => f.id === folderId);
       if (!folder || folder.fileIds.length === 0) return;
 
+      setOpenFolderId(folderId);
       openFolder(folderId);
       focusFile(folder.fileIds[0]);
 
@@ -389,6 +542,34 @@ export function OpenSheet() {
     },
     [stopRenamingFolder]
   );
+
+  // Handle removing a file from a folder (from focused view)
+  const handleRemoveFileFromFolder = useCallback(
+    (fileId: string) => {
+      if (!openFolderId) return;
+
+      const folder = folders.find(f => f.id === openFolderId);
+      if (!folder) return;
+
+      removeFileFromFolder(openFolderId, fileId);
+
+      // If this was the last file in the folder, close the focused view and clear the folder
+      const remainingFiles = folder.fileIds.filter(id => id !== fileId);
+      if (remainingFiles.length === 0) {
+        unfocusFile();
+        setOpenFolderId(null);
+        // Optionally delete the empty folder
+        deleteFolder(openFolderId, true);
+      }
+    },
+    [openFolderId, folders, removeFileFromFolder, unfocusFile, deleteFolder]
+  );
+
+  // Handle closing the focused view
+  const handleCloseFocusedView = useCallback(() => {
+    unfocusFile();
+    setOpenFolderId(null);
+  }, [unfocusFile]);
 
   // Desktop icon dimensions (smaller icons)
   const DESKTOP_ICON_WIDTH = 72;
@@ -471,10 +652,13 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
             <FocusedFileView
               files={openFiles}
               activeFileId={focusedFileId}
-              onClose={unfocusFile}
+              onClose={handleCloseFocusedView}
               onFileChange={focusFile}
               onFileClose={closeFileTab}
               onTabReorder={reorderTabs}
+              currentFolderId={openFolderId}
+              folderFileIds={openFolderId ? folders.find(f => f.id === openFolderId)?.fileIds : undefined}
+              onRemoveFromFolder={openFolderId ? handleRemoveFileFromFolder : undefined}
             />
           )}
         </AnimatePresence>
@@ -588,6 +772,8 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
               onRename={handleFolderRename}
               onRenameStart={handleFolderRenameStart}
               onRenameCancel={handleFolderRenameCancel}
+              onChangeColor={setFolderColor}
+              onDelete={(folderId) => deleteFolder(folderId, true)}
               isDragTarget={dragOverFolderId === folder.id}
             />
           );
@@ -659,10 +845,13 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
           <FocusedFileView
             files={openFiles}
             activeFileId={focusedFileId}
-            onClose={unfocusFile}
+            onClose={handleCloseFocusedView}
             onFileChange={focusFile}
             onFileClose={closeFileTab}
             onTabReorder={reorderTabs}
+            currentFolderId={openFolderId}
+            folderFileIds={openFolderId ? folders.find(f => f.id === openFolderId)?.fileIds : undefined}
+            onRemoveFromFolder={openFolderId ? handleRemoveFileFromFolder : undefined}
           />
         )}
       </AnimatePresence>
@@ -679,6 +868,57 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
         hasOpenFile={!!focusedFileId}
         commandBarOpen={commandBarOpen}
       />
+
+      {/* File restoration toast */}
+      <AnimatePresence>
+        {pendingRestoreCount > 0 && !focusedFileId && (
+          <motion.div
+            className="fixed bottom-20 left-1/2 z-50"
+            initial={{ opacity: 0, y: 20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
+          >
+            <div
+              className="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg"
+              style={{
+                backgroundColor: 'var(--surface-elevated)',
+                border: '1px solid var(--border-default)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📁</span>
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                  {pendingRestoreCount} file{pendingRestoreCount > 1 ? 's' : ''} from last session
+                </span>
+              </div>
+              <button
+                onClick={handleRestoreFiles}
+                disabled={isRestoring}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:opacity-90 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--primary)',
+                  color: 'white',
+                }}
+              >
+                {isRestoring ? 'Restoring...' : 'Restore'}
+              </button>
+              <button
+                onClick={() => {
+                  pendingHandlesRef.current.clear();
+                  setPendingRestoreCount(0);
+                }}
+                className="p-1 rounded hover:bg-[var(--surface-secondary)] transition-colors"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

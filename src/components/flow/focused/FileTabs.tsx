@@ -17,6 +17,8 @@ interface FileTabsProps {
   onTabClose: (id: string) => void;
   onTabReorder: (newOrder: string[]) => void;
   onExit: () => void;
+  onRemoveFromFolder?: (fileId: string) => void;
+  isInFolder?: boolean;
 }
 
 // Type configurations
@@ -39,8 +41,12 @@ export function FileTabs({
   onTabClose,
   onTabReorder,
   onExit,
+  onRemoveFromFolder,
+  isInFolder = false,
 }: FileTabsProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [draggingFileId, setDraggingFileId] = useState<string | null>(null);
+  const [isOverEjectZone, setIsOverEjectZone] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; fileId: string } | null>(null);
 
   const handleReorder = (newFiles: FileTab[]) => {
@@ -90,8 +96,19 @@ export function FileTabs({
               <Reorder.Item
                 key={file.id}
                 value={file}
-                onDragStart={() => setIsDragging(true)}
-                onDragEnd={() => setIsDragging(false)}
+                onDragStart={() => {
+                  setIsDragging(true);
+                  setDraggingFileId(file.id);
+                }}
+                onDragEnd={() => {
+                  setIsDragging(false);
+                  // Check if dropped over eject zone
+                  if (isOverEjectZone && draggingFileId && onRemoveFromFolder) {
+                    onRemoveFromFolder(draggingFileId);
+                  }
+                  setDraggingFileId(null);
+                  setIsOverEjectZone(false);
+                }}
                 whileDrag={{
                   scale: 1.02,
                   boxShadow: 'var(--shadow-lg)',
@@ -185,6 +202,38 @@ export function FileTabs({
         </div>
       </div>
 
+      {/* Eject zone - appears when dragging a tab while in folder view */}
+      <AnimatePresence>
+        {isDragging && isInFolder && onRemoveFromFolder && (
+          <motion.div
+            className="fixed left-0 top-0 w-20 h-full z-[99] flex items-center justify-center"
+            style={{
+              background: isOverEjectZone
+                ? 'linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.05) 100%)'
+                : 'linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%)',
+              borderRight: isOverEjectZone ? '2px solid rgba(239, 68, 68, 0.6)' : '2px dashed rgba(239, 68, 68, 0.3)',
+            }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            onMouseEnter={() => setIsOverEjectZone(true)}
+            onMouseLeave={() => setIsOverEjectZone(false)}
+          >
+            <motion.div
+              className="flex flex-col items-center gap-1 text-center"
+              animate={{ scale: isOverEjectZone ? 1.1 : 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
+              <span className="text-lg" style={{ color: 'rgba(239, 68, 68, 0.8)' }}>←</span>
+              <span className="text-[10px] font-medium" style={{ color: 'rgba(239, 68, 68, 0.8)' }}>
+                Remove from folder
+              </span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Context menu */}
       <AnimatePresence>
         {contextMenu && (
@@ -243,6 +292,19 @@ export function FileTabs({
               >
                 Copy Name
               </ContextMenuItem>
+              {isInFolder && onRemoveFromFolder && (
+                <>
+                  <div className="h-px my-1" style={{ backgroundColor: 'var(--border-subtle)' }} />
+                  <ContextMenuItem
+                    onClick={() => {
+                      onRemoveFromFolder(contextMenu.fileId);
+                      closeContextMenu();
+                    }}
+                  >
+                    Remove from Folder
+                  </ContextMenuItem>
+                </>
+              )}
             </motion.div>
           </>
         )}
