@@ -592,3 +592,278 @@ describe('parseFormula - Special Column Names', () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe('parseFormula - Logical Operators (AND/OR)', () => {
+  it('should parse simple AND condition', () => {
+    const result = parseFormula('=price > 100 AND quantity > 5', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.root.type).toBe('logical');
+      expect((result.ast.root as any).operator).toBe('AND');
+    }
+  });
+
+  it('should parse simple OR condition', () => {
+    const result = parseFormula("=category = 'electronics' OR category = 'appliances'", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.root.type).toBe('logical');
+      expect((result.ast.root as any).operator).toBe('OR');
+    }
+  });
+
+  it('should parse IF with AND condition', () => {
+    const result = parseFormula("=IF(price > 100 AND quantity > 10, 'bulk discount', 'regular')", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.root.type).toBe('function');
+      expect((result.ast.root as any).name).toBe('IF');
+      // First argument should be logical AND
+      const condition = (result.ast.root as any).args[0];
+      expect(condition.type).toBe('logical');
+      expect(condition.operator).toBe('AND');
+    }
+  });
+
+  it('should parse IF with OR condition', () => {
+    const result = parseFormula("=IF(category = 'sale' OR discount > 0.5, 'promo', 'regular')", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const condition = (result.ast.root as any).args[0];
+      expect(condition.type).toBe('logical');
+      expect(condition.operator).toBe('OR');
+    }
+  });
+
+  it('should handle AND and OR together with correct precedence', () => {
+    // AND has higher precedence than OR: a OR b AND c = a OR (b AND c)
+    const result = parseFormula('=price > 100 OR quantity > 5 AND discount > 0', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      // Root should be OR
+      expect(result.ast.root.type).toBe('logical');
+      expect((result.ast.root as any).operator).toBe('OR');
+      // Right child should be AND
+      expect((result.ast.root as any).right.type).toBe('logical');
+      expect((result.ast.root as any).right.operator).toBe('AND');
+    }
+  });
+
+  it('should handle multiple AND operators', () => {
+    const result = parseFormula('=price > 0 AND quantity > 0 AND total > 0', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.root.type).toBe('logical');
+    }
+  });
+
+  it('should handle multiple OR operators', () => {
+    const result = parseFormula("=category = 'a' OR category = 'b' OR category = 'c'", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.root.type).toBe('logical');
+    }
+  });
+
+  it('should handle parentheses to override precedence', () => {
+    const result = parseFormula('=(price > 100 OR quantity > 5) AND discount > 0', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      // Root should be AND (due to parentheses)
+      expect(result.ast.root.type).toBe('logical');
+      expect((result.ast.root as any).operator).toBe('AND');
+      // Left child should be OR
+      expect((result.ast.root as any).left.type).toBe('logical');
+      expect((result.ast.root as any).left.operator).toBe('OR');
+    }
+  });
+
+  it('should be case-insensitive for AND/OR', () => {
+    const result1 = parseFormula('=price > 100 and quantity > 5', testSchema);
+    const result2 = parseFormula('=price > 100 And quantity > 5', testSchema);
+    const result3 = parseFormula('=price > 100 AND quantity > 5', testSchema);
+    expect(result1.success).toBe(true);
+    expect(result2.success).toBe(true);
+    expect(result3.success).toBe(true);
+  });
+
+  it('should parse complex IF with nested logical operators', () => {
+    const result = parseFormula(
+      "=IF((price > 100 AND quantity > 10) OR is_active = 1, 'premium', 'standard')",
+      testSchema
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const condition = (result.ast.root as any).args[0];
+      expect(condition.type).toBe('logical');
+      expect(condition.operator).toBe('OR');
+    }
+  });
+});
+
+describe('parseFormula - Date Functions', () => {
+  it('should parse YEAR function', () => {
+    const result = parseFormula('=YEAR(created_at)', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('YEAR');
+    }
+  });
+
+  it('should parse MONTH function', () => {
+    const result = parseFormula('=MONTH(created_at)', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('MONTH');
+    }
+  });
+
+  it('should parse DAY function', () => {
+    const result = parseFormula('=DAY(created_at)', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('DAY');
+    }
+  });
+
+  it('should parse NOW function (no args)', () => {
+    const result = parseFormula('=NOW()', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('NOW');
+      expect((result.ast.root as any).args.length).toBe(0);
+    }
+  });
+
+  it('should parse TODAY function (no args)', () => {
+    const result = parseFormula('=TODAY()', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('TODAY');
+      expect((result.ast.root as any).args.length).toBe(0);
+    }
+  });
+
+  it('should parse DATE function with 3 args', () => {
+    const result = parseFormula('=DATE(2024, 12, 25)', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('DATE');
+      expect((result.ast.root as any).args.length).toBe(3);
+    }
+  });
+
+  it('should parse HOUR function', () => {
+    const result = parseFormula('=HOUR(created_at)', testSchema);
+    expect(result.success).toBe(true);
+  });
+
+  it('should parse MINUTE function', () => {
+    const result = parseFormula('=MINUTE(created_at)', testSchema);
+    expect(result.success).toBe(true);
+  });
+
+  it('should parse SECOND function', () => {
+    const result = parseFormula('=SECOND(created_at)', testSchema);
+    expect(result.success).toBe(true);
+  });
+
+  it('should parse date comparison with YEAR', () => {
+    const result = parseFormula('=YEAR(created_at) = 2024', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.root.type).toBe('comparison');
+    }
+  });
+
+  it('should parse IF with date condition', () => {
+    const result = parseFormula(
+      "=IF(YEAR(created_at) > 2023, 'recent', 'old')",
+      testSchema
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('IF');
+    }
+  });
+});
+
+describe('parseFormula - Conditional Aggregates (SUMIF/COUNTIF/AVERAGEIF)', () => {
+  it('should parse SUMIF function', () => {
+    const result = parseFormula("=SUMIF(category = 'electronics', price)", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('SUMIF');
+      expect((result.ast.root as any).args.length).toBe(2);
+      expect(result.ast.isAggregate).toBe(true);
+    }
+  });
+
+  it('should parse COUNTIF function', () => {
+    const result = parseFormula("=COUNTIF(category = 'electronics')", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('COUNTIF');
+      expect((result.ast.root as any).args.length).toBe(1);
+      expect(result.ast.isAggregate).toBe(true);
+    }
+  });
+
+  it('should parse AVERAGEIF function', () => {
+    const result = parseFormula("=AVERAGEIF(category = 'electronics', price)", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).name).toBe('AVERAGEIF');
+      expect((result.ast.root as any).args.length).toBe(2);
+      expect(result.ast.isAggregate).toBe(true);
+    }
+  });
+
+  it('should parse SUMIF with numeric condition', () => {
+    const result = parseFormula('=SUMIF(quantity > 10, price)', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).args[0].type).toBe('comparison');
+    }
+  });
+
+  it('should parse COUNTIF with AND condition', () => {
+    const result = parseFormula('=COUNTIF(price > 100 AND quantity > 5)', testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).args[0].type).toBe('logical');
+    }
+  });
+
+  it('should parse SUMIF with OR condition', () => {
+    const result = parseFormula("=SUMIF(category = 'electronics' OR category = 'appliances', price)", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.ast.root as any).args[0].type).toBe('logical');
+    }
+  });
+
+  it('should reject SUMIF with wrong number of arguments', () => {
+    const result = parseFormula('=SUMIF(price > 100)', testSchema);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain('requires');
+    }
+  });
+
+  it('should reject COUNTIF with wrong number of arguments', () => {
+    const result = parseFormula('=COUNTIF(price > 100, quantity)', testSchema);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain('accepts at most');
+    }
+  });
+
+  it('should parse multiple conditional aggregates', () => {
+    const result = parseFormula("=SUMIF(category = 'electronics', price) + COUNTIF(quantity > 10)", testSchema);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.ast.isAggregate).toBe(true);
+    }
+  });
+});

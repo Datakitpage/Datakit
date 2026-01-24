@@ -37,7 +37,7 @@ interface FormulaBarProps {
 }
 
 // Token types for syntax highlighting
-type TokenType = 'operator' | 'number' | 'string' | 'function' | 'column' | 'paren' | 'comma' | 'comparison' | 'text';
+type TokenType = 'operator' | 'number' | 'string' | 'function' | 'column' | 'paren' | 'comma' | 'comparison' | 'logical' | 'text';
 
 interface Token {
   type: TokenType;
@@ -104,7 +104,7 @@ function tokenizeForHighlight(input: string, columnNames: Set<string>, functionN
       continue;
     }
 
-    // Identifier (function or column)
+    // Identifier (function, logical operator, or column)
     if (/[a-zA-Z_]/.test(char)) {
       const start = pos;
       while (pos < input.length && /[a-zA-Z0-9_]/.test(input[pos])) {
@@ -112,6 +112,12 @@ function tokenizeForHighlight(input: string, columnNames: Set<string>, functionN
       }
       const value = input.slice(start, pos);
       const upperValue = value.toUpperCase();
+
+      // Check if it's a logical operator (AND/OR)
+      if (upperValue === 'AND' || upperValue === 'OR') {
+        tokens.push({ type: 'logical', value, start, end: pos });
+        continue;
+      }
 
       // Check if it's a function (followed by parenthesis or known function name)
       const isFunction = functionNames.has(upperValue) ||
@@ -188,6 +194,8 @@ function getTokenColor(type: TokenType, accentColor: string): string {
       return '#ef4444'; // Red for operators
     case 'comparison':
       return '#ef4444'; // Red for comparisons
+    case 'logical':
+      return '#ec4899'; // Pink for logical operators (AND/OR)
     case 'paren':
       return '#6b7280'; // Gray for parentheses
     case 'comma':

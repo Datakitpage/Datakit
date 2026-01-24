@@ -18,6 +18,7 @@ import type {
   UnaryOp,
   FunctionCall,
   Comparison,
+  LogicalOp,
 } from './types';
 import { getFunctionMapping } from './functions';
 
@@ -94,6 +95,8 @@ class SQLTranslator {
         return this.translateFunction(node);
       case 'comparison':
         return this.translateComparison(node);
+      case 'logical':
+        return this.translateLogical(node);
       default:
         throw new Error(`Unknown AST node type: ${(node as ASTNode).type}`);
     }
@@ -140,6 +143,12 @@ class SQLTranslator {
     return `(${left} ${operator} ${right})`;
   }
 
+  private translateLogical(node: LogicalOp): string {
+    const left = this.translate(node.left);
+    const right = this.translate(node.right);
+    return `(${left} ${node.operator} ${right})`;
+  }
+
   private translateFunction(node: FunctionCall): string {
     const mapping = getFunctionMapping(node.name);
 
@@ -150,6 +159,31 @@ class SQLTranslator {
     // Special handling for IF (Excel IF → SQL CASE WHEN)
     if (node.name === 'IF') {
       return this.translateIF(node);
+    }
+
+    // Special handling for conditional aggregates
+    if (node.name === 'SUMIF') {
+      return this.translateSUMIF(node);
+    }
+    if (node.name === 'COUNTIF') {
+      return this.translateCOUNTIF(node);
+    }
+    if (node.name === 'AVERAGEIF') {
+      return this.translateAVERAGEIF(node);
+    }
+
+    // Special handling for NOW() and TODAY() - they are constants, not functions with ()
+    if (node.name === 'NOW') {
+      return 'CURRENT_TIMESTAMP';
+    }
+    if (node.name === 'TODAY') {
+      return 'CURRENT_DATE';
+    }
+
+    // Special handling for DATEVALUE - cast to DATE
+    if (node.name === 'DATEVALUE') {
+      const arg = this.translate(node.args[0]);
+      return `CAST(${arg} AS DATE)`;
     }
 
     // Standard function translation
@@ -170,6 +204,48 @@ class SQLTranslator {
     const falseValue = this.translate(node.args[2]);
 
     return `(CASE WHEN ${condition} THEN ${trueValue} ELSE ${falseValue} END)`;
+  }
+
+  /**
+   * Translate SUMIF(condition, sum_column) to SUM(CASE WHEN condition THEN sum_column ELSE 0 END)
+   */
+  private translateSUMIF(node: FunctionCall): string {
+    if (node.args.length !== 2) {
+      throw new Error('SUMIF function requires exactly 2 arguments: SUMIF(condition, sum_column)');
+    }
+
+    const condition = this.translate(node.args[0]);
+    const sumColumn = this.translate(node.args[1]);
+
+    return `SUM(CASE WHEN ${condition} THEN ${sumColumn} ELSE 0 END)`;
+  }
+
+  /**
+   * Translate COUNTIF(condition) to SUM(CASE WHEN condition THEN 1 ELSE 0 END)
+   */
+  private translateCOUNTIF(node: FunctionCall): string {
+    if (node.args.length !== 1) {
+      throw new Error('COUNTIF function requires exactly 1 argument: COUNTIF(condition)');
+    }
+
+    const condition = this.translate(node.args[0]);
+
+    return `SUM(CASE WHEN ${condition} THEN 1 ELSE 0 END)`;
+  }
+
+  /**
+   * Translate AVERAGEIF(condition, avg_column) to AVG(CASE WHEN condition THEN avg_column ELSE NULL END)
+   */
+  private translateAVERAGEIF(node: FunctionCall): string {
+    if (node.args.length !== 2) {
+      throw new Error('AVERAGEIF function requires exactly 2 arguments: AVERAGEIF(condition, avg_column)');
+    }
+
+    const condition = this.translate(node.args[0]);
+    const avgColumn = this.translate(node.args[1]);
+
+    // Use NULL for ELSE so rows that don't match are excluded from the average
+    return `AVG(CASE WHEN ${condition} THEN ${avgColumn} ELSE NULL END)`;
   }
 }
 

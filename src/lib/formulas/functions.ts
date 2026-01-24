@@ -22,6 +22,9 @@ export const AGGREGATE_FUNCTIONS = new Set([
   'STDEVP',
   'VAR',
   'VARP',
+  'SUMIF',
+  'COUNTIF',
+  'AVERAGEIF',
 ]);
 
 /**
@@ -72,6 +75,31 @@ export const FUNCTION_MAP: Record<string, FunctionMapping> = {
     isAggregate: true,
     minArgs: 1,
     maxArgs: 1,
+  },
+
+  // ============================================================================
+  // Conditional Aggregate Functions (special handling in translator)
+  // ============================================================================
+  // SUMIF(condition, sum_column) - sums sum_column where condition is true
+  // COUNTIF(condition) - counts rows where condition is true
+  // AVERAGEIF(condition, avg_column) - averages avg_column where condition is true
+  SUMIF: {
+    sql: 'SUM',
+    isAggregate: true,
+    minArgs: 2,
+    maxArgs: 2,
+  },
+  COUNTIF: {
+    sql: 'COUNT',
+    isAggregate: true,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  AVERAGEIF: {
+    sql: 'AVG',
+    isAggregate: true,
+    minArgs: 2,
+    maxArgs: 2,
   },
 
   // ============================================================================
@@ -241,6 +269,82 @@ export const FUNCTION_MAP: Record<string, FunctionMapping> = {
     isAggregate: false,
     minArgs: 2,
     maxArgs: 2,
+  },
+
+  // ============================================================================
+  // Date/Time Functions
+  // ============================================================================
+  YEAR: {
+    sql: 'YEAR',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  MONTH: {
+    sql: 'MONTH',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  DAY: {
+    sql: 'DAY',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  HOUR: {
+    sql: 'HOUR',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  MINUTE: {
+    sql: 'MINUTE',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  SECOND: {
+    sql: 'SECOND',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  NOW: {
+    sql: 'CURRENT_TIMESTAMP',
+    isAggregate: false,
+    minArgs: 0,
+    maxArgs: 0,
+  },
+  TODAY: {
+    sql: 'CURRENT_DATE',
+    isAggregate: false,
+    minArgs: 0,
+    maxArgs: 0,
+  },
+  DATE: {
+    sql: 'MAKE_DATE',
+    isAggregate: false,
+    minArgs: 3,
+    maxArgs: 3,
+  },
+  DATEVALUE: {
+    sql: 'CAST',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  WEEKDAY: {
+    sql: 'DAYOFWEEK',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
+  },
+  WEEKNUM: {
+    sql: 'WEEKOFYEAR',
+    isAggregate: false,
+    minArgs: 1,
+    maxArgs: 1,
   },
 };
 

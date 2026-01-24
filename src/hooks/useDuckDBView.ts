@@ -59,6 +59,15 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   const [queryResult, setQueryResult] = useState<PaginatedResult | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Formula tracking for auto-recalculation
+  // Maps "rowId:column" -> { formula, dependencies: Set<columnName> }
+  interface FormulaCell {
+    formula: string;
+    dependencies: Set<string>;
+  }
+  const [formulaCells, setFormulaCells] = useState<Map<string, FormulaCell>>(new Map());
+  const [pendingRecalcColumn, setPendingRecalcColumn] = useState<string | null>(null);
+
   // Get current view definition
   const viewDef = activeViewName ? views.get(activeViewName) : null;
 
@@ -247,7 +256,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   }, []);
 
   // Cell editing
-  const editCell = useCallback((rowId: number, column: string, newValue: unknown, options?: { formula?: string; isFormulaResult?: boolean }) => {
+  const editCell = useCallback((rowId: number, column: string, newValue: unknown, options?: { formula?: string; isFormulaResult?: boolean; skipRecalc?: boolean }) => {
     if (!activeViewName) return;
 
     // Find current value
@@ -276,7 +285,63 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
         ? { ...r, [column]: newValue, _hasChanges: true, [`_changed_${column}`]: true }
         : r
     ));
+
+    // Trigger recalculation for dependent formulas (unless this is already a recalculation)
+    if (!options?.skipRecalc && !options?.isFormulaResult) {
+      setPendingRecalcColumn(column);
+    }
   }, [activeViewName, data, recordChange]);
+
+  // Recalculate formulas that depend on a changed column
+  const recalculateDependentFormulas = useCallback(async (changedColumn: string) => {
+    if (!viewDef || formulaCells.size === 0) return;
+
+    // Find all formula cells that depend on the changed column
+    const dependentFormulas: Array<{ cellKey: string; formula: string; rowId: number; column: string }> = [];
+
+    formulaCells.forEach((formulaCell, cellKey) => {
+      if (formulaCell.dependencies.has(changedColumn)) {
+        const [rowIdStr, column] = cellKey.split(':');
+        const rowId = parseInt(rowIdStr, 10);
+        if (!isNaN(rowId)) {
+          dependentFormulas.push({ cellKey, formula: formulaCell.formula, rowId, column });
+        }
+      }
+    });
+
+    // Re-evaluate each dependent formula
+    for (const { formula, rowId, column } of dependentFormulas) {
+      const parseResult = parseFormula(formula, viewDef.schema);
+      if (!parseResult.success) continue;
+
+      const isAggregate = parseResult.ast.isAggregate;
+      const { sql } = translateToSQL(parseResult.ast, {
+        viewName: activeViewName!,
+        rowId: isAggregate ? undefined : rowId,
+        schema: viewDef.schema,
+      });
+
+      try {
+        const result = await executeSQL(sql);
+        if (result && result.length > 0) {
+          const newValue = result[0].result;
+          // Update cell with new value (skipRecalc to prevent infinite loop)
+          editCell(rowId, column, newValue, { formula, isFormulaResult: true, skipRecalc: true });
+        }
+      } catch (err) {
+        // Silently ignore errors in auto-recalculation
+        console.warn(`Auto-recalculation failed for formula in ${column}:`, err);
+      }
+    }
+  }, [activeViewName, viewDef, formulaCells, executeSQL, editCell]);
+
+  // Trigger recalculation when a column changes
+  useEffect(() => {
+    if (pendingRecalcColumn) {
+      recalculateDependentFormulas(pendingRecalcColumn);
+      setPendingRecalcColumn(null);
+    }
+  }, [pendingRecalcColumn, recalculateDependentFormulas]);
 
   // Evaluate a formula and return the result
   const evaluateFormula = useCallback(async (
@@ -339,16 +404,29 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   ): Promise<FormulaResult> => {
     const result = await evaluateFormula(formula, rowId, column);
 
-    if (result.success) {
+    if (result.success && viewDef) {
       // Apply the computed value to the cell
       editCell(rowId, column, result.value, {
         formula,
         isFormulaResult: true,
       });
+
+      // Track formula and its dependencies for auto-recalculation
+      const parseResult = parseFormula(formula, viewDef.schema);
+      if (parseResult.success) {
+        const cellKey = `${rowId}:${column}`;
+        const dependencies = new Set(parseResult.ast.columnRefs);
+
+        setFormulaCells(prev => {
+          const next = new Map(prev);
+          next.set(cellKey, { formula, dependencies });
+          return next;
+        });
+      }
     }
 
     return result;
-  }, [evaluateFormula, editCell]);
+  }, [evaluateFormula, editCell, viewDef]);
 
   // Delete row
   const deleteRow = useCallback((rowId: number) => {
@@ -527,6 +605,9 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     editCellWithFormula,
     evaluateFormula,
     deleteRow,
+
+    // Formula tracking (for auto-recalculation)
+    formulaCells,
 
     // Change management
     undo,

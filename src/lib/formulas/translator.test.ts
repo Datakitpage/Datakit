@@ -429,3 +429,213 @@ describe('translateToSQL - Performance', () => {
     }
   });
 });
+
+describe('translateToSQL - Logical Operators (AND/OR)', () => {
+  it('should translate AND operator', () => {
+    const result = translateFormula('=price > 100 AND quantity > 5');
+    expect(result.sql).toContain('((\"price\" > 100) AND (\"quantity\" > 5))');
+  });
+
+  it('should translate OR operator', () => {
+    const result = translateFormula("=category = 'electronics' OR category = 'appliances'");
+    expect(result.sql).toContain("((\"category\" = 'electronics') OR (\"category\" = 'appliances'))");
+  });
+
+  it('should translate IF with AND condition to CASE WHEN', () => {
+    const result = translateFormula("=IF(price > 100 AND quantity > 10, 'bulk', 'regular')");
+    expect(result.sql).toContain('CASE WHEN');
+    expect(result.sql).toContain('AND');
+    expect(result.sql).toContain("THEN 'bulk'");
+    expect(result.sql).toContain("ELSE 'regular'");
+  });
+
+  it('should translate IF with OR condition to CASE WHEN', () => {
+    const result = translateFormula("=IF(price < 10 OR discount > 0.5, 'cheap', 'normal')");
+    expect(result.sql).toContain('CASE WHEN');
+    expect(result.sql).toContain('OR');
+    expect(result.sql).toContain("THEN 'cheap'");
+    expect(result.sql).toContain("ELSE 'normal'");
+  });
+
+  it('should respect precedence: AND before OR', () => {
+    const result = translateFormula('=price > 100 OR quantity > 5 AND discount > 0');
+    // Should be: (price > 100) OR ((quantity > 5) AND (discount > 0))
+    expect(result.sql).toContain('((\"price\" > 100) OR ((\"quantity\" > 5) AND (\"discount\" > 0)))');
+  });
+
+  it('should translate multiple AND operators', () => {
+    const result = translateFormula('=price > 0 AND quantity > 0 AND total > 0');
+    expect(result.sql).toContain('AND');
+    expect(result.sql).toContain('\"price\" > 0');
+    expect(result.sql).toContain('\"quantity\" > 0');
+    expect(result.sql).toContain('\"total\" > 0');
+  });
+
+  it('should translate parenthesized logical expressions', () => {
+    const result = translateFormula('=(price > 100 OR quantity > 5) AND discount > 0');
+    // Should be: ((price > 100) OR (quantity > 5)) AND (discount > 0)
+    expect(result.sql).toContain('(((\"price\" > 100) OR (\"quantity\" > 5)) AND (\"discount\" > 0))');
+  });
+});
+
+describe('translateToSQL - Date Functions', () => {
+  // Create a schema with a date column for these tests
+  const dateSchema: ColumnSchema[] = [
+    { name: 'id', type: 'BIGINT' },
+    { name: 'created_at', type: 'TIMESTAMP' },
+    { name: 'updated_at', type: 'DATE' },
+    { name: 'amount', type: 'DOUBLE' },
+  ];
+
+  const dateOptions: TranslateOptions = {
+    viewName: 'test_view',
+    rowId: 5,
+    schema: dateSchema,
+  };
+
+  function translateDateFormula(formula: string) {
+    const parseResult = parseFormula(formula, dateSchema);
+    if (!parseResult.success) {
+      throw new Error(`Parse failed: ${parseResult.error}`);
+    }
+    return translateToSQL(parseResult.ast, dateOptions);
+  }
+
+  it('should translate YEAR function', () => {
+    const result = translateDateFormula('=YEAR(created_at)');
+    expect(result.sql).toContain('YEAR(\"created_at\")');
+  });
+
+  it('should translate MONTH function', () => {
+    const result = translateDateFormula('=MONTH(created_at)');
+    expect(result.sql).toContain('MONTH(\"created_at\")');
+  });
+
+  it('should translate DAY function', () => {
+    const result = translateDateFormula('=DAY(created_at)');
+    expect(result.sql).toContain('DAY(\"created_at\")');
+  });
+
+  it('should translate NOW() to CURRENT_TIMESTAMP', () => {
+    const result = translateDateFormula('=NOW()');
+    expect(result.sql).toContain('CURRENT_TIMESTAMP');
+    expect(result.sql).not.toContain('CURRENT_TIMESTAMP()');
+  });
+
+  it('should translate TODAY() to CURRENT_DATE', () => {
+    const result = translateDateFormula('=TODAY()');
+    expect(result.sql).toContain('CURRENT_DATE');
+    expect(result.sql).not.toContain('CURRENT_DATE()');
+  });
+
+  it('should translate DATE function to MAKE_DATE', () => {
+    const result = translateDateFormula('=DATE(2024, 12, 25)');
+    expect(result.sql).toContain('MAKE_DATE(2024, 12, 25)');
+  });
+
+  it('should translate HOUR function', () => {
+    const result = translateDateFormula('=HOUR(created_at)');
+    expect(result.sql).toContain('HOUR(\"created_at\")');
+  });
+
+  it('should translate MINUTE function', () => {
+    const result = translateDateFormula('=MINUTE(created_at)');
+    expect(result.sql).toContain('MINUTE(\"created_at\")');
+  });
+
+  it('should translate SECOND function', () => {
+    const result = translateDateFormula('=SECOND(created_at)');
+    expect(result.sql).toContain('SECOND(\"created_at\")');
+  });
+
+  it('should translate DATEVALUE to CAST AS DATE', () => {
+    const result = translateDateFormula("=DATEVALUE('2024-01-15')");
+    expect(result.sql).toContain("CAST('2024-01-15' AS DATE)");
+  });
+
+  it('should translate date comparison', () => {
+    const result = translateDateFormula('=YEAR(created_at) = 2024');
+    expect(result.sql).toContain('(YEAR(\"created_at\") = 2024)');
+  });
+
+  it('should translate IF with date condition', () => {
+    const result = translateDateFormula("=IF(YEAR(created_at) > 2023, 'recent', 'old')");
+    expect(result.sql).toContain('CASE WHEN');
+    expect(result.sql).toContain('YEAR(\"created_at\") > 2023');
+    expect(result.sql).toContain("THEN 'recent'");
+    expect(result.sql).toContain("ELSE 'old'");
+  });
+
+  it('should translate arithmetic with date functions', () => {
+    const result = translateDateFormula('=YEAR(created_at) - 2000');
+    expect(result.sql).toContain('(YEAR(\"created_at\") - 2000)');
+  });
+});
+
+describe('translateToSQL - Conditional Aggregates (SUMIF/COUNTIF/AVERAGEIF)', () => {
+  it('should translate SUMIF to SUM with CASE WHEN', () => {
+    const result = translateFormula("=SUMIF(category = 'electronics', price)");
+    expect(result.sql).toContain('SUM(CASE WHEN');
+    expect(result.sql).toContain("(\"category\" = 'electronics')");
+    expect(result.sql).toContain('THEN \"price\"');
+    expect(result.sql).toContain('ELSE 0 END)');
+    expect(result.isAggregate).toBe(true);
+  });
+
+  it('should translate COUNTIF to SUM with CASE WHEN', () => {
+    const result = translateFormula("=COUNTIF(category = 'electronics')");
+    expect(result.sql).toContain('SUM(CASE WHEN');
+    expect(result.sql).toContain("(\"category\" = 'electronics')");
+    expect(result.sql).toContain('THEN 1 ELSE 0 END)');
+    expect(result.isAggregate).toBe(true);
+  });
+
+  it('should translate AVERAGEIF to AVG with CASE WHEN and NULL', () => {
+    const result = translateFormula("=AVERAGEIF(category = 'electronics', price)");
+    expect(result.sql).toContain('AVG(CASE WHEN');
+    expect(result.sql).toContain("(\"category\" = 'electronics')");
+    expect(result.sql).toContain('THEN \"price\"');
+    expect(result.sql).toContain('ELSE NULL END)');
+    expect(result.isAggregate).toBe(true);
+  });
+
+  it('should translate SUMIF with numeric condition', () => {
+    const result = translateFormula('=SUMIF(quantity > 10, price)');
+    expect(result.sql).toContain('SUM(CASE WHEN (\"quantity\" > 10) THEN \"price\" ELSE 0 END)');
+  });
+
+  it('should translate COUNTIF with AND condition', () => {
+    const result = translateFormula('=COUNTIF(price > 100 AND quantity > 5)');
+    expect(result.sql).toContain('SUM(CASE WHEN');
+    expect(result.sql).toContain('AND');
+    expect(result.sql).toContain('THEN 1 ELSE 0 END)');
+  });
+
+  it('should translate SUMIF with OR condition', () => {
+    const result = translateFormula("=SUMIF(category = 'a' OR category = 'b', price)");
+    expect(result.sql).toContain('SUM(CASE WHEN');
+    expect(result.sql).toContain('OR');
+    expect(result.sql).toContain('THEN \"price\" ELSE 0 END)');
+  });
+
+  it('should translate SUMIF with complex condition using AND/OR', () => {
+    const result = translateFormula("=SUMIF((category = 'electronics' OR category = 'appliances') AND price > 50, quantity)");
+    expect(result.sql).toContain('SUM(CASE WHEN');
+    expect(result.sql).toContain('AND');
+    expect(result.sql).toContain('OR');
+    expect(result.sql).toContain('THEN \"quantity\" ELSE 0 END)');
+  });
+
+  it('should not include WHERE clause for SUMIF (aggregate)', () => {
+    const result = translateFormula("=SUMIF(category = 'electronics', price)");
+    expect(result.sql).not.toContain('WHERE _rowid');
+    expect(result.isAggregate).toBe(true);
+  });
+
+  it('should translate addition of conditional aggregates', () => {
+    const result = translateFormula("=SUMIF(category = 'electronics', price) + COUNTIF(quantity > 10)");
+    expect(result.sql).toContain('(SUM(CASE WHEN');
+    expect(result.sql).toContain(' + SUM(CASE WHEN');
+    expect(result.isAggregate).toBe(true);
+  });
+});

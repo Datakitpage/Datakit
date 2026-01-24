@@ -17,6 +17,7 @@ export type TokenType =
   | 'IDENTIFIER' // Column name or function name
   | 'OPERATOR'
   | 'COMPARISON'
+  | 'LOGICAL' // AND, OR
   | 'LPAREN'
   | 'RPAREN'
   | 'COMMA'
@@ -73,6 +74,13 @@ export interface Comparison {
   right: ASTNode;
 }
 
+export interface LogicalOp {
+  type: 'logical';
+  operator: 'AND' | 'OR';
+  left: ASTNode;
+  right: ASTNode;
+}
+
 export type ASTNode =
   | NumberLiteral
   | StringLiteral
@@ -80,7 +88,8 @@ export type ASTNode =
   | BinaryOp
   | UnaryOp
   | FunctionCall
-  | Comparison;
+  | Comparison
+  | LogicalOp;
 
 // ============================================================================
 // Parser Result Types

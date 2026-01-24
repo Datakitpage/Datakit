@@ -2,11 +2,13 @@
  * Excel Formula Parser
  *
  * Tokenizes and parses Excel-style formulas into an AST.
- * Supports arithmetic, comparisons, function calls, and column references.
+ * Supports arithmetic, comparisons, logical operators, function calls, and column references.
  *
  * Grammar (simplified):
  *   formula     → "=" expression
- *   expression  → comparison
+ *   expression  → logicalOr
+ *   logicalOr   → logicalAnd (OR logicalAnd)*
+ *   logicalAnd  → comparison (AND comparison)*
  *   comparison  → term (("=" | "!=" | "<" | ">" | "<=" | ">=") term)?
  *   term        → factor (("+" | "-") factor)*
  *   factor      → unary (("*" | "/") unary)*
@@ -31,6 +33,7 @@ import type {
   UnaryOp,
   FunctionCall,
   Comparison,
+  LogicalOp,
 } from './types';
 import { getFunctionMapping, isAggregateFunction } from './functions';
 
@@ -203,7 +206,15 @@ class Tokenizer {
     ) {
       this.position++;
     }
-    this.addToken('IDENTIFIER', this.input.slice(start, this.position));
+    const value = this.input.slice(start, this.position);
+    const upperValue = value.toUpperCase();
+
+    // Check for logical keywords
+    if (upperValue === 'AND' || upperValue === 'OR') {
+      this.addToken('LOGICAL', upperValue);
+    } else {
+      this.addToken('IDENTIFIER', value);
+    }
   }
 
   private readComparison(): void {
@@ -277,7 +288,31 @@ class Parser {
   }
 
   private expression(): ASTNode {
-    return this.comparison();
+    return this.logicalOr();
+  }
+
+  private logicalOr(): ASTNode {
+    let left = this.logicalAnd();
+
+    while (this.checkLogical('OR')) {
+      this.advance();
+      const right = this.logicalAnd();
+      left = { type: 'logical', operator: 'OR', left, right } as LogicalOp;
+    }
+
+    return left;
+  }
+
+  private logicalAnd(): ASTNode {
+    let left = this.comparison();
+
+    while (this.checkLogical('AND')) {
+      this.advance();
+      const right = this.comparison();
+      left = { type: 'logical', operator: 'AND', left, right } as LogicalOp;
+    }
+
+    return left;
   }
 
   private comparison(): ASTNode {
@@ -446,6 +481,12 @@ class Parser {
     if (this.isAtEnd()) return false;
     const token = this.peek();
     return token.type === 'OPERATOR' && token.value === op;
+  }
+
+  private checkLogical(op: 'AND' | 'OR'): boolean {
+    if (this.isAtEnd()) return false;
+    const token = this.peek();
+    return token.type === 'LOGICAL' && token.value === op;
   }
 
   private advance(): Token {
