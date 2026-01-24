@@ -73,10 +73,8 @@ export function translateExpression(
 // ============================================================================
 
 class SQLTranslator {
-  private options: TranslateOptions;
-
-  constructor(options: TranslateOptions) {
-    this.options = options;
+  constructor(_options: TranslateOptions) {
+    // Options kept for future extensibility (e.g., schema validation, custom functions)
   }
 
   translate(node: ASTNode): string {

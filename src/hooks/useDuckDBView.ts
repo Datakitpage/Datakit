@@ -16,6 +16,12 @@ interface ViewState {
   isReady: boolean;
 }
 
+// Formula cell tracking for auto-recalculation
+export interface FormulaCell {
+  formula: string;
+  dependencies: Set<string>;
+}
+
 export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   const { initialPageSize = 50, autoQuery = true } = options;
 
@@ -61,10 +67,6 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
 
   // Formula tracking for auto-recalculation
   // Maps "rowId:column" -> { formula, dependencies: Set<columnName> }
-  interface FormulaCell {
-    formula: string;
-    dependencies: Set<string>;
-  }
   const [formulaCells, setFormulaCells] = useState<Map<string, FormulaCell>>(new Map());
   const [pendingRecalcColumn, setPendingRecalcColumn] = useState<string | null>(null);
 
@@ -347,7 +349,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   const evaluateFormula = useCallback(async (
     formula: string,
     rowId: number,
-    column: string
+    _column: string
   ): Promise<FormulaResult> => {
     if (!activeViewName || !viewDef) {
       return { success: false, error: 'No active view' };

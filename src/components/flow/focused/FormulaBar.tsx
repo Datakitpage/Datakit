@@ -47,7 +47,7 @@ interface Token {
 }
 
 // Tokenize formula for syntax highlighting
-function tokenizeForHighlight(input: string, columnNames: Set<string>, functionNames: Set<string>): Token[] {
+function tokenizeForHighlight(input: string, _columnNames: Set<string>, functionNames: Set<string>): Token[] {
   const tokens: Token[] = [];
   let pos = 0;
 
