@@ -609,10 +609,10 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
                 ◎
               </motion.div>
               <p className="text-lg font-light mb-2" style={{ color: 'var(--text-secondary)' }}>
-                Drop a file to explore
+                Drop your files here to explore
               </p>
               <p className="text-sm mb-8" style={{ color: 'var(--text-tertiary)' }}>
-                CSV, JSON, Excel, Parquet - your data becomes visible
+                CSV, JSON, Excel, Parquet - your files becomes visible
               </p>
               {/* Keyboard hints */}
               <div className="flex items-center justify-center gap-6 text-xs" style={{ color: 'var(--text-tertiary)' }}>
