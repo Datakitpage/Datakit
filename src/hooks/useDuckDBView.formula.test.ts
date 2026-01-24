@@ -75,7 +75,7 @@ describe('useDuckDBView - Formula Evaluation', () => {
       refreshViewSchema: vi.fn(),
       addColumnWithVersion: vi.fn(),
       views: new Map([['test_view', mockViewDef]]),
-      activeViewName: 'test_view',
+      activeViewName: 'test_view' as string | null,
       isLoading: false,
       error: null,
       pendingChanges,
