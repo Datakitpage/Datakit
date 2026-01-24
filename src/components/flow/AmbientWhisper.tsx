@@ -233,6 +233,7 @@ export function WhisperContainer({ whispers, onDismiss }: WhisperContainerProps)
 }
 
 // AI Engine that generates whispers based on data analysis
+// eslint-disable-next-line react-refresh/only-export-components -- Hook is tightly coupled with AmbientWhisper components
 export function useAmbientAI(files: Array<{ id: string; data?: unknown[]; position: { x: number; y: number }; name: string }>) {
   const [whispers, setWhispers] = useState<Whisper[]>([]);
 
