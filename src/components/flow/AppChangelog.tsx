@@ -293,7 +293,7 @@ export function AppChangelog({ isMinimized = false, onMinimize, autoExpand = fal
                               <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
                                 {item.title}
                               </span>
-                              {item.type === 'new' && (
+                              {item.type === 'feature' && (
                                 <span
                                   className="text-[9px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
                                   style={{
