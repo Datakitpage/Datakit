@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDuckDBViewStore, type QueryParams, type ChangeRecord, type ColumnSchema, type PaginatedResult, type FilterCondition } from '@/store/duckDBViewStore';
+import { parseFormula, translateToSQL, isFormula, type FormulaResult } from '@/lib/formulas';
 
 interface UseDuckDBViewOptions {
   initialPageSize?: number;
@@ -246,7 +247,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   }, []);
 
   // Cell editing
-  const editCell = useCallback((rowId: number, column: string, newValue: unknown) => {
+  const editCell = useCallback((rowId: number, column: string, newValue: unknown, options?: { formula?: string; isFormulaResult?: boolean }) => {
     if (!activeViewName) return;
 
     // Find current value
@@ -265,6 +266,8 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
       newValue,
       changeType: 'update',
       source: 'user',
+      formula: options?.formula,
+      isFormulaResult: options?.isFormulaResult,
     });
 
     // Optimistic update
@@ -274,6 +277,78 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
         : r
     ));
   }, [activeViewName, data, recordChange]);
+
+  // Evaluate a formula and return the result
+  const evaluateFormula = useCallback(async (
+    formula: string,
+    rowId: number,
+    column: string
+  ): Promise<FormulaResult> => {
+    if (!activeViewName || !viewDef) {
+      return { success: false, error: 'No active view' };
+    }
+
+    // Check if input is a formula
+    if (!isFormula(formula)) {
+      return { success: false, error: 'Input is not a formula (must start with =)' };
+    }
+
+    // Parse the formula
+    const parseResult = parseFormula(formula, viewDef.schema);
+    if (!parseResult.success) {
+      return { success: false, error: parseResult.error };
+    }
+
+    // Check if formula is aggregate (determines if rowId is used)
+    const isAggregate = parseResult.ast.isAggregate;
+
+    // Translate to SQL
+    const { sql } = translateToSQL(parseResult.ast, {
+      viewName: activeViewName,
+      rowId: isAggregate ? undefined : rowId,
+      schema: viewDef.schema,
+    });
+
+    // Execute the SQL
+    try {
+      const result = await executeSQL(sql);
+      if (!result || result.length === 0) {
+        return { success: false, error: 'No result returned from query' };
+      }
+
+      const value = result[0].result;
+      return {
+        success: true,
+        value,
+        sql,
+        isAggregate,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Formula evaluation failed',
+      };
+    }
+  }, [activeViewName, viewDef, executeSQL]);
+
+  // Edit cell with formula - evaluates and applies the result
+  const editCellWithFormula = useCallback(async (
+    rowId: number,
+    column: string,
+    formula: string
+  ): Promise<FormulaResult> => {
+    const result = await evaluateFormula(formula, rowId, column);
+
+    if (result.success) {
+      // Apply the computed value to the cell
+      editCell(rowId, column, result.value, {
+        formula,
+        isFormulaResult: true,
+      });
+    }
+
+    return result;
+  }, [evaluateFormula, editCell]);
 
   // Delete row
   const deleteRow = useCallback((rowId: number) => {
@@ -449,6 +524,8 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
 
     // Cell editing
     editCell,
+    editCellWithFormula,
+    evaluateFormula,
     deleteRow,
 
     // Change management

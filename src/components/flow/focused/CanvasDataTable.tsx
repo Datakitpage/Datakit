@@ -13,6 +13,7 @@ import DataEditor, {
 import '@glideapps/glide-data-grid/dist/index.css';
 import type { ColumnSchema, ChangeRecord } from '@/store/duckDBViewStore';
 import { FloatingToolbar } from './FloatingToolbar';
+import { FormulaBar } from './FormulaBar';
 
 // Type configuration for column display - matches original DataTable
 const typeConfig: Record<string, { icon: string; color: string }> = {
@@ -100,6 +101,12 @@ interface CanvasDataTableProps {
   onSortWithDirection?: (column: string, direction: 'ASC' | 'DESC') => void;
   onFilterByValue?: (column: string, value: unknown) => void;
   onAddColumn?: (columnName: string, columnType: string) => void;
+
+  // Formula support
+  onFormulaSubmit?: (rowId: number, column: string, formula: string) => Promise<void>;
+  formulaError?: string | null;
+  isFormulaLoading?: boolean;
+  pendingFormulas?: Map<string, string>;
 }
 
 // Convert DuckDB type to GridCellKind
@@ -207,6 +214,10 @@ export function CanvasDataTable({
   onFilterByValue,
   onRowDelete,
   onAddColumn,
+  onFormulaSubmit,
+  formulaError,
+  isFormulaLoading,
+  pendingFormulas,
 }: CanvasDataTableProps) {
   const totalPages = totalPagesOverride ?? Math.ceil(totalRows / pageSize);
   const gridRef = useRef<DataEditorRef>(null);
@@ -701,6 +712,20 @@ export function CanvasDataTable({
             Clear
           </button>
         </div>
+      )}
+
+      {/* Formula bar */}
+      {onFormulaSubmit && (
+        <FormulaBar
+          selectedCell={selectedCell}
+          schema={columns}
+          onFormulaSubmit={onFormulaSubmit}
+          onValueSubmit={onCellEdit}
+          accentColor={accentColor}
+          isLoading={isFormulaLoading}
+          error={formulaError}
+          pendingFormulas={pendingFormulas}
+        />
       )}
 
       {/* Canvas table */}
