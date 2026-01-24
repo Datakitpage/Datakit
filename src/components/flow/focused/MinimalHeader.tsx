@@ -83,7 +83,8 @@ export function MinimalHeader({
   onViewUndo,
   onViewRedo,
   versionInfo,
-  currentFolderId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Available for folder-aware navigation
+  currentFolderId: _currentFolderId,
   folderFileIds,
   onRemoveFromFolder,
 }: MinimalHeaderProps) {

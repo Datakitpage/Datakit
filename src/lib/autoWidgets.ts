@@ -1,4 +1,4 @@
-import { TableSchema } from "@/store/dataStore";
+import type { TableSchema } from "@/store/dataStore";
 
 interface WidgetSuggestion {
   type: "metric" | "chart" | "table";

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useCanvas } from '@/hooks/useCanvas';
 

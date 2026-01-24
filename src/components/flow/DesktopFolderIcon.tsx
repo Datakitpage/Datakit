@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 import type { Folder } from '@/store/boardStore';
 import type { ContentType } from './ContentNode';
 import { FolderContextMenu } from './FolderContextMenu';

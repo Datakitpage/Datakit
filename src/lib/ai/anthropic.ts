@@ -1,4 +1,4 @@
-import { TableSchema } from "@/store/dataStore";
+import type { TableSchema } from "@/store/dataStore";
 import type { ColumnSchema } from "@/store/duckDBViewStore";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
