@@ -402,17 +402,20 @@ export function DesktopFolderIcon({
                 onChange={(e) => setEditingName(e.target.value)}
                 onBlur={handleRenameSubmit}
                 onKeyDown={handleRenameKeyDown}
-                className="w-full text-xs font-medium text-center bg-white border border-indigo-400 rounded px-1 py-0.5 outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full text-xs font-medium text-center rounded px-1 py-0.5 outline-none focus:ring-2 focus:ring-indigo-300"
+                style={{
+                  backgroundColor: 'var(--surface-primary)',
+                  color: 'var(--text-primary)',
+                  border: `1px solid ${folder.color || '#6366F1'}`,
+                }}
                 onClick={(e) => e.stopPropagation()}
               />
             ) : (
               <div
-                className={`
-                  text-xs font-medium truncate px-1.5 py-0.5 rounded
-                  ${folder.selected ? 'text-white' : 'text-stone-700'}
-                `}
+                className="text-xs font-medium truncate px-1.5 py-0.5 rounded"
                 style={{
                   backgroundColor: folder.selected ? (folder.color || '#6366F1') : 'transparent',
+                  color: folder.selected ? 'white' : 'var(--text-primary)',
                 }}
                 title={folder.name}
               >
@@ -423,7 +426,8 @@ export function DesktopFolderIcon({
 
           {/* Hover hint */}
           <motion.div
-            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 whitespace-nowrap"
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] whitespace-nowrap"
+            style={{ color: 'var(--text-tertiary)' }}
             initial={{ opacity: 0, y: -4 }}
             animate={{
               opacity: isHovered && !isDragging && !isRenaming && !isFileDragTarget ? 1 : 0,
@@ -435,7 +439,8 @@ export function DesktopFolderIcon({
 
           {/* Drop to add hint */}
           <motion.div
-            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-indigo-500 font-medium whitespace-nowrap"
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium whitespace-nowrap"
+            style={{ color: folder.color || '#6366F1' }}
             initial={{ opacity: 0, y: -4 }}
             animate={{
               opacity: isFileDragTarget ? 1 : 0,
