@@ -108,7 +108,7 @@ export async function executeSQL(
  * Simple SQL parser for basic queries when DuckDB isn't available
  */
 function executeSimpleSQL(
-  sql: string,
+  _sql: string, // TODO: Parse SQL for filtering; currently returns all rows
   data?: { tableName: string; rows: Record<string, unknown>[] },
   startTime: number = performance.now()
 ): DataEngineResult {

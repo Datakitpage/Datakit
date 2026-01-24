@@ -140,6 +140,28 @@ export function FloatingAICommand({
     }
   }, [isOpen, mode]);
 
+  // Ensure ESC key always works to close/switch mode
+  // This handles cases where focus is not on the input (e.g., user clicked on a suggestion)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // Prevent FocusedFileView's handler from also firing
+        if (mode === 'sql') {
+          setMode('ai');
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    // Use capture phase to ensure this handler fires BEFORE FocusedFileView's handler
+    window.addEventListener('keydown', handleEscapeKey, true);
+    return () => window.removeEventListener('keydown', handleEscapeKey, true);
+  }, [isOpen, mode, onClose]);
+
   // Fetch smart suggestions when modal opens (only once per session)
   // For sample files: use proxy or fallback to pre-computed
   // For other files: require API key

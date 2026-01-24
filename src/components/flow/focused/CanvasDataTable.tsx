@@ -1,12 +1,14 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import DataEditor, {
   GridCellKind,
+  CompactSelection,
+} from '@glideapps/glide-data-grid';
+import type {
   GridColumn,
   EditableGridCell,
   GridCell,
   Item,
   GridSelection,
-  CompactSelection,
   DataEditorRef,
   Theme,
 } from '@glideapps/glide-data-grid';

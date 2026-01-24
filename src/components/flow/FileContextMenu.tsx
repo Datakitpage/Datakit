@@ -124,7 +124,7 @@ export function FileContextMenu({
       {isOpen && (
         <motion.div
           ref={menuRef}
-          className="fixed z-[9999] min-w-[200px] rounded-xl overflow-hidden backdrop-blur-xl"
+          className="fixed z-[9999] min-w-[200px] max-w-[280px] rounded-xl overflow-hidden backdrop-blur-xl"
           style={{
             left: position.x,
             top: position.y,
@@ -159,8 +159,9 @@ export function FileContextMenu({
               />
             ) : (
               <div
-                className="text-sm font-medium truncate"
+                className="text-sm font-medium truncate max-w-[230px]"
                 style={{ color: '#1a1a1a' }}
+                title={file.name}
               >
                 {file.name}
               </div>

@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { chat, generateAutoDashboard, DashboardSuggestion, AIResponse } from "@/lib/ai/anthropic";
-import { TableSchema } from "./dataStore";
+import { chat, generateAutoDashboard } from "@/lib/ai/anthropic";
+import type { DashboardSuggestion, AIResponse } from "@/lib/ai/anthropic";
+import type { TableSchema } from "./dataStore";
 import { useSettingsStore } from "./settingsStore";
 
 export interface Message {
