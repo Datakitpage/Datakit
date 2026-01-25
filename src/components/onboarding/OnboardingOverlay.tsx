@@ -55,6 +55,7 @@ export function OnboardingOverlay({
       progress.hasUsedCommandBar
     ) {
       // Show completion message briefly
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Triggering completion animation
       setShowCompletionMessage(true);
       const hideTimer = setTimeout(() => {
         setShowCompletionMessage(false);

@@ -108,7 +108,8 @@ export default {
       }
 
       // Extract the Anthropic request payload (remove our custom fields)
-      const { fileId, ...anthropicPayload } = body;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- fileId validated above, extracted but not needed
+      const { fileId: _fileId, ...anthropicPayload } = body;
 
       // Validate required fields
       if (!anthropicPayload.messages || !Array.isArray(anthropicPayload.messages)) {

@@ -57,6 +57,7 @@ export function DemoCursor({ currentStep }: DemoCursorProps) {
   // Update position when step changes
   useEffect(() => {
     if (!isDemoPlaying || currentStep === 'complete') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing visibility with demo state
       setIsVisible(false);
       if (currentStep === 'complete') {
         setDemoPlaying(false);

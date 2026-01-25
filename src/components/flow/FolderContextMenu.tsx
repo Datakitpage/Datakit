@@ -47,6 +47,7 @@ export function FolderContextMenu({
   // Reset state when menu opens
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Resetting state when menu opens is intentional
       setIsRenaming(false);
       setShowColorPicker(false);
       setRenameValue(folder.name);

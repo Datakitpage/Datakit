@@ -184,7 +184,8 @@ export function OpenSheet() {
     }
 
     checkStoredHandles();
-  }, []); // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on mount
+  }, []);
 
   // Restore folders from IndexedDB on app load
   useEffect(() => {
@@ -209,7 +210,8 @@ export function OpenSheet() {
     }
 
     restoreStoredFolders();
-  }, []); // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on mount
+  }, []);
 
   // Handler to restore files that need permission (requires user gesture)
   const handleRestoreFiles = useCallback(async () => {

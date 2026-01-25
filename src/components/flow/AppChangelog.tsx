@@ -27,13 +27,13 @@ interface ChangelogData {
 
 const data = changelog as ChangelogData;
 
-// Helper to check if there are new changes since last visit
+// eslint-disable-next-line react-refresh/only-export-components -- Helper function used by other components
 export function hasNewChangelogChanges(): boolean {
   const lastSeenVersion = localStorage.getItem('opensheet-changelog-version');
   return lastSeenVersion !== data.version;
 }
 
-// Export version for display
+// eslint-disable-next-line react-refresh/only-export-components -- Constant used by other components
 export const currentVersion = data.version;
 
 function formatDate(dateString: string): string {
@@ -55,6 +55,7 @@ export function AppChangelog({ isMinimized = false, onMinimize, autoExpand = fal
   // Auto-expand when prop changes to true
   useEffect(() => {
     if (autoExpand) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing state with prop is intentional
       setIsExpanded(true);
     }
   }, [autoExpand]);
@@ -63,6 +64,7 @@ export function AppChangelog({ isMinimized = false, onMinimize, autoExpand = fal
   useEffect(() => {
     const lastSeenVersion = localStorage.getItem('opensheet-changelog-version');
     if (lastSeenVersion !== data.version) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initializing state from localStorage on mount
       setHasNewChanges(true);
     }
   }, []);
@@ -71,6 +73,7 @@ export function AppChangelog({ isMinimized = false, onMinimize, autoExpand = fal
   useEffect(() => {
     if (isExpanded && hasNewChanges) {
       localStorage.setItem('opensheet-changelog-version', data.version);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Updating state after localStorage sync
       setHasNewChanges(false);
     }
   }, [isExpanded, hasNewChanges]);
