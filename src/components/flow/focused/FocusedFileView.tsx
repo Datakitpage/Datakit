@@ -1212,17 +1212,30 @@ export function FocusedFileView({
         folderFileIds={folderFileIds}
         onRemoveFromFolder={onRemoveFromFolder}
         onViewUndo={() => {
-          // Priority: data versions first (more important), then view history
-          // This ensures committed data changes are undone before view changes
-          if (canUndoVersion) {
+          // Context-aware navigation:
+          // - When viewing a SQL query result, prioritize view history (query results)
+          // - Otherwise, prioritize data versions (committed changes)
+          if (customQueryResult !== null) {
+            // User is viewing query results, navigate through query history
+            if (viewHistory.canUndo) {
+              handleViewUndo();
+            }
+          } else if (canUndoVersion) {
             handleVersionUndo();
           } else if (viewHistory.canUndo) {
             handleViewUndo();
           }
         }}
         onViewRedo={() => {
-          // Priority: data versions first, then view history
-          if (canRedoVersion) {
+          // Context-aware navigation:
+          // - When viewing a SQL query result, prioritize view history (query results)
+          // - Otherwise, prioritize data versions (committed changes)
+          if (customQueryResult !== null) {
+            // User is viewing query results, navigate through query history
+            if (viewHistory.canRedo) {
+              handleViewRedo();
+            }
+          } else if (canRedoVersion) {
             handleVersionRedo();
           } else if (viewHistory.canRedo) {
             handleViewRedo();
