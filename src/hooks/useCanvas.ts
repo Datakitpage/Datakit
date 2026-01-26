@@ -206,9 +206,13 @@ export function useCanvas(options: UseCanvasOptions = {}) {
    */
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.code === 'Space' && !isSpacePressed) {
-      // Don't capture if typing in input
+      // Don't capture if typing in input or in an editor (like Monaco)
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      // Also check if target is inside a Monaco editor (which uses special input handling)
+      if (target.closest('.monaco-editor')) {
         return;
       }
       e.preventDefault();
