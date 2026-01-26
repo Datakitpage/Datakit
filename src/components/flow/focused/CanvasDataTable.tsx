@@ -11,6 +11,7 @@ import type {
   GridSelection,
   DataEditorRef,
   Theme,
+  DrawHeaderCallback,
 } from '@glideapps/glide-data-grid';
 import '@glideapps/glide-data-grid/dist/index.css';
 import type { ColumnSchema, ChangeRecord } from '@/store/duckDBViewStore';
@@ -102,6 +103,8 @@ interface CanvasDataTableProps {
   onSortWithDirection?: (column: string, direction: 'ASC' | 'DESC') => void;
   onFilterByValue?: (column: string, value: unknown) => void;
   onAddColumn?: (columnName: string, columnType: string) => void;
+  /** Called when user wants to change a column's type (right-click or Option+click on header) */
+  onColumnTypeChange?: (columnName: string, currentType: string, anchorRect: DOMRect) => void;
 }
 
 // Convert DuckDB type to GridCellKind
@@ -209,6 +212,7 @@ export function CanvasDataTable({
   onFilterByValue,
   onRowDelete,
   onAddColumn,
+  onColumnTypeChange,
 }: CanvasDataTableProps) {
   const totalPages = totalPagesOverride ?? Math.ceil(totalRows / pageSize);
   const gridRef = useRef<DataEditorRef>(null);
@@ -237,6 +241,9 @@ export function CanvasDataTable({
   // Add column popover state
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
+
+  // Track hovered header column index for showing menu icon
+  const [hoveredHeaderCol, setHoveredHeaderCol] = useState<number | null>(null);
   const addColumnRef = useRef<HTMLDivElement>(null);
 
   // Column order state (for drag reordering)
@@ -290,6 +297,36 @@ export function CanvasDataTable({
       };
     });
   }, [orderedColumns, sortColumn, sortDirection, accentColor, themeColors, columnWidths]);
+
+  // Custom header drawing to show three vertical dots menu icon on hover
+  const drawHeader: DrawHeaderCallback = useCallback((args, draw) => {
+    // First, draw the default header content
+    draw();
+
+    // Only draw menu icon if type change is available and this column is hovered
+    if (!onColumnTypeChange) return;
+
+    const { ctx, rect, theme, columnIndex } = args;
+
+    // Only show dots when hovering this column header
+    if (hoveredHeaderCol !== columnIndex) return;
+
+    const dotRadius = 1.2;
+    const dotSpacing = 2.5;
+    const totalHeight = dotRadius * 2 * 3 + dotSpacing * 2;
+    const menuX = rect.x + rect.width - 10;
+    const menuY = rect.y + (rect.height - totalHeight) / 2;
+
+    // Draw three tiny vertical dots
+    ctx.fillStyle = theme.textMedium ?? '#6B7280';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(menuX, menuY + i * (dotRadius * 2 + dotSpacing) + dotRadius, dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    return true;
+  }, [onColumnTypeChange, hoveredHeaderCol]);
 
   // Handle column resize
   const onColumnResize = useCallback((column: GridColumn, newSize: number) => {
@@ -537,10 +574,26 @@ export function CanvasDataTable({
     setShowToolbar(true);
   }, [data, orderedColumns, onCellClick]);
 
-  // Handle header click for sorting
-  const onHeaderClicked = useCallback((colIdx: number) => {
+  // Handle header click for sorting (or menu if clicking on three-dot icon)
+  const onHeaderClicked = useCallback((colIdx: number, event: { localEventX: number; bounds: { width: number; x: number; y: number; height: number } }) => {
     const col = orderedColumns[colIdx];
     if (!col) return;
+
+    // Check if click was on the three-dot menu icon (right 18px of header)
+    const menuAreaWidth = 18;
+    const clickedOnMenu = event.localEventX > event.bounds.width - menuAreaWidth;
+
+    if (clickedOnMenu && onColumnTypeChange) {
+      // Open type change popover
+      const rect = new DOMRect(
+        event.bounds.x + event.bounds.width - menuAreaWidth,
+        event.bounds.y + event.bounds.height,
+        menuAreaWidth,
+        0
+      );
+      onColumnTypeChange(col.name, col.type, rect);
+      return;
+    }
 
     onColumnClick?.(col.name);
 
@@ -554,7 +607,32 @@ export function CanvasDataTable({
     } else {
       onSortWithDirection?.(col.name, 'ASC');
     }
-  }, [orderedColumns, sortColumn, sortDirection, onColumnClick, onSort, onSortWithDirection]);
+  }, [orderedColumns, sortColumn, sortDirection, onColumnClick, onSort, onSortWithDirection, onColumnTypeChange]);
+
+  // Handle header context menu (right-click) for column type change
+  const onHeaderContextMenu = useCallback((colIdx: number, event: { bounds: { x: number; y: number; width: number; height: number }; preventDefault: () => void }) => {
+    event.preventDefault();
+    const col = orderedColumns[colIdx];
+    if (!col || !onColumnTypeChange) return;
+
+    // Create a rect for positioning the popover near the header
+    const rect = new DOMRect(event.bounds.x, event.bounds.y + event.bounds.height, event.bounds.width, 0);
+    onColumnTypeChange(col.name, col.type, rect);
+  }, [orderedColumns, onColumnTypeChange]);
+
+  // Track hover state for showing menu icon on headers
+  const onItemHovered = useCallback((args: { kind: string; location: readonly [number, number] } | undefined) => {
+    if (!args) {
+      setHoveredHeaderCol(null);
+      return;
+    }
+
+    if (args.kind === 'header') {
+      setHoveredHeaderCol(args.location[0]);
+    } else {
+      setHoveredHeaderCol(null);
+    }
+  }, []);
 
   // Handle selection change
   const onSelectionChanged = useCallback((newSelection: GridSelection) => {
@@ -715,6 +793,9 @@ export function CanvasDataTable({
           onCellEdited={onCellEdited}
           onCellActivated={onCellActivated}
           onHeaderClicked={onHeaderClicked}
+          onHeaderContextMenu={onHeaderContextMenu}
+          drawHeader={drawHeader}
+          onItemHovered={onItemHovered}
           gridSelection={selection}
           onGridSelectionChange={onSelectionChanged}
           theme={theme}
