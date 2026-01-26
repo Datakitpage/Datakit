@@ -851,7 +851,7 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
                 ◎
               </motion.div>
               <p className="text-lg font-light mb-2" style={{ color: 'var(--text-secondary)' }}>
-                Drop your files here to explore
+                Drop your files on the canvas to explore
               </p>
               <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
                 CSV, JSON, Parquet - your files becomes visible
