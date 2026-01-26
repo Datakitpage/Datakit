@@ -853,8 +853,11 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
               <p className="text-lg font-light mb-2" style={{ color: 'var(--text-secondary)' }}>
                 Drop your files here to explore
               </p>
-              <p className="text-sm mb-8" style={{ color: 'var(--text-tertiary)' }}>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
                 CSV, JSON, Parquet - your files becomes visible
+              </p>
+              <p className="text-xs mb-8" style={{ color: 'var(--text-tertiary)', opacity: 0.7 }}>
+                Everything runs locally — Your data stays private
               </p>
               {/* Keyboard hints */}
               <div className="flex items-center justify-center gap-6 text-xs" style={{ color: 'var(--text-tertiary)' }}>
