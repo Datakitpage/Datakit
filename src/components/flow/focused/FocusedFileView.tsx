@@ -7,6 +7,7 @@ import { ChangeLog, ChangeLogTrigger } from './ChangeLog';
 import { MinimalHeader } from './MinimalHeader';
 import { FloatingAICommand, type AICommand } from './FloatingAICommand';
 import { OperationFeedback } from './OperationFeedback';
+import { ColumnTypePopover, type ColumnTypeOption } from './ColumnTypePopover';
 import { useDuckDBView } from '@/hooks/useDuckDBView';
 import { useDuckDBViewStore, type ChangeRecord } from '@/store/duckDBViewStore';
 import { useOnboardingStore } from '@/store/onboardingStore';
@@ -77,6 +78,14 @@ export function FocusedFileView({
   // This persists even after all rows are deleted
   const [duckDBHasLoaded, setDuckDBHasLoaded] = useState(false);
   const loadedViewsRef = useRef<Set<string>>(new Set());
+
+  // Column type popover state
+  const [columnTypePopover, setColumnTypePopover] = useState<{
+    isOpen: boolean;
+    columnName: string;
+    currentType: string;
+    anchorRect: DOMRect | null;
+  }>({ isOpen: false, columnName: '', currentType: '', anchorRect: null });
 
   // Track AI command usage for onboarding (CMD+K or / key)
   const markCommandBarUsed = useOnboardingStore(state => state.markCommandBarUsed);
@@ -424,6 +433,45 @@ export function FocusedFileView({
       feedback.showError('Failed to add column', err instanceof Error ? err.message : 'Unknown error');
     }
   }, [isDuckDBReady, addColumn, feedback]);
+
+  // Column type change handler - opens the type selector popover
+  const handleColumnTypeClick = useCallback((columnName: string, currentType: string, anchorRect: DOMRect) => {
+    setColumnTypePopover({
+      isOpen: true,
+      columnName,
+      currentType,
+      anchorRect,
+    });
+  }, []);
+
+  // Apply column type change - re-imports with type override
+  const handleColumnTypeChange = useCallback(async (newType: ColumnTypeOption) => {
+    if (!isDuckDBReady || !activeFile?.file || !viewState.viewName) {
+      feedback.showError('Not ready', 'Cannot change column type without original file');
+      setColumnTypePopover(prev => ({ ...prev, isOpen: false }));
+      return;
+    }
+
+    const { columnName } = columnTypePopover;
+
+    try {
+      const changeColumnType = useDuckDBViewStore.getState().changeColumnType;
+      const success = await changeColumnType(viewState.viewName, columnName, newType, activeFile.file);
+
+      if (success) {
+        feedback.showSuccess('Type changed', `${columnName} is now ${newType}`);
+        // Clear loaded state to trigger data refresh
+        loadedViewsRef.current.delete(activeFile.id);
+        setDuckDBHasLoaded(false);
+      } else {
+        feedback.showError('Failed to change type', 'Could not re-import with new type');
+      }
+    } catch (err) {
+      feedback.showError('Failed to change type', err instanceof Error ? err.message : 'Unknown error');
+    }
+
+    setColumnTypePopover(prev => ({ ...prev, isOpen: false }));
+  }, [isDuckDBReady, activeFile?.file, activeFile?.id, viewState.viewName, columnTypePopover, feedback]);
 
   // Undo handler
   const handleUndo = useCallback(() => {
@@ -1316,6 +1364,7 @@ export function FocusedFileView({
                     }
                   }}
                   onAddColumn={customQueryResult ? undefined : handleAddColumn}
+                  onColumnTypeChange={customQueryResult ? undefined : (activeFile?.file ? handleColumnTypeClick : undefined)}
                 />
               </>
             ) : (
@@ -1487,6 +1536,17 @@ export function FocusedFileView({
         items={feedback.items}
         onDismiss={feedback.dismiss}
         position="bottom-right"
+      />
+
+      {/* Column Type Popover - for changing column data types */}
+      <ColumnTypePopover
+        isOpen={columnTypePopover.isOpen}
+        currentType={columnTypePopover.currentType}
+        columnName={columnTypePopover.columnName}
+        anchorRect={columnTypePopover.anchorRect}
+        onTypeChange={handleColumnTypeChange}
+        onClose={() => setColumnTypePopover(prev => ({ ...prev, isOpen: false }))}
+        accentColor={config.color}
       />
     </div>
   );
