@@ -18,5 +18,6 @@ export { ConnectionPort, ConnectionLinePreview } from './ConnectionPort';
 export { FocusedFileView as LegacyFocusedFileView } from './FocusedFileView';
 export { MinimizedFileIcon, FileIconRail } from './MinimizedFileIcon';
 export { SettingsPanel } from './SettingsPanel';
+export { AppChangelog, hasNewChangelogChanges, currentVersion as changelogVersion } from './AppChangelog';
 // New enhanced focused view components
 export { FocusedFileView, FileTabs, ColumnInspector, type FileTab } from './focused';

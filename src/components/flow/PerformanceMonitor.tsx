@@ -277,6 +277,7 @@ export function PerformanceMonitor({
 /**
  * Hook for tracking operation performance
  */
+// eslint-disable-next-line react-refresh/only-export-components -- Hook is related to PerformanceMonitor
 export function usePerformanceTracker() {
   const [operations, setOperations] = useState<{
     name: string;

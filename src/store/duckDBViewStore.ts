@@ -57,6 +57,8 @@ export interface ViewDefinition {
   totalRows: number;
   createdAt: number;
   registeredFileName?: string;
+  /** User-specified column type overrides (column name -> DuckDB type) */
+  typeOverrides?: Record<string, string>;
 }
 
 export interface ChangeRecord {
@@ -147,12 +149,14 @@ interface DuckDBViewState {
   resetError: () => void;
 
   // Actions - Views
-  createViewFromFile: (file: File, viewName?: string) => Promise<ViewDefinition | null>;
+  createViewFromFile: (file: File, viewName?: string, typeOverrides?: Record<string, string>) => Promise<ViewDefinition | null>;
   createViewFromData: (viewName: string, data: Record<string, unknown>[], columns: string[]) => Promise<ViewDefinition | null>;
   dropView: (viewName: string) => Promise<boolean>;
   getViewSchema: (viewName: string) => Promise<ColumnSchema[] | null>;
   refreshViewSchema: (viewName: string) => Promise<boolean>;
   setActiveView: (viewName: string | null) => void;
+  /** Change a column's type by re-importing from source with type override */
+  changeColumnType: (viewName: string, columnName: string, newType: string, file: File) => Promise<boolean>;
 
   // Actions - Queries
   queryView: (viewName: string, params: QueryParams) => Promise<PaginatedResult | null>;
@@ -317,7 +321,7 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
   },
 
   // Create VIEW from file (lazy loading, not loading into memory)
-  createViewFromFile: async (file: File, customViewName?: string) => {
+  createViewFromFile: async (file: File, customViewName?: string, typeOverrides?: Record<string, string>) => {
     let conn = get().connection;
     let db = get().db;
 
@@ -360,12 +364,27 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
         // Ignore - view might not exist
       }
 
+      // Build type hints for read_csv if we have overrides
+      // Format: types={'column_name': 'VARCHAR', ...}
+      let typeHintsSQL = '';
+      if (typeOverrides && Object.keys(typeOverrides).length > 0 && fileExt === 'csv') {
+        const typeEntries = Object.entries(typeOverrides)
+          .map(([col, type]) => `'${col}': '${type}'`)
+          .join(', ');
+        typeHintsSQL = `, types={${typeEntries}}`;
+      }
+
       // Create TABLE (not VIEW) based on file type - must be table for UPDATE support
       // Let DuckDB auto-detect types for proper numeric/date handling
       let createTableSQL: string;
       switch (fileExt) {
         case 'csv':
-          createTableSQL = `CREATE TABLE "${viewName}" AS SELECT row_number() OVER () as _rowid, * FROM read_csv_auto('${registeredFileName}')`;
+          // Use read_csv with optional type hints instead of read_csv_auto when we have overrides
+          if (typeHintsSQL) {
+            createTableSQL = `CREATE TABLE "${viewName}" AS SELECT row_number() OVER () as _rowid, * FROM read_csv('${registeredFileName}', auto_detect=true${typeHintsSQL})`;
+          } else {
+            createTableSQL = `CREATE TABLE "${viewName}" AS SELECT row_number() OVER () as _rowid, * FROM read_csv_auto('${registeredFileName}')`;
+          }
           break;
         case 'json':
           createTableSQL = `CREATE TABLE "${viewName}" AS SELECT row_number() OVER () as _rowid, * FROM read_json_auto('${registeredFileName}')`;
@@ -423,6 +442,7 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
         totalRows,
         createdAt: Date.now(),
         registeredFileName,
+        typeOverrides,
       };
 
       // Update state
@@ -1459,6 +1479,48 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Redo version failed';
       console.error('[DuckDBView] Redo version failed:', err);
+      set({ error: errorMsg, isLoading: false, loadingMessage: '' });
+      return false;
+    }
+  },
+
+  // Change a column's type by re-importing from source with type override
+  changeColumnType: async (viewName: string, columnName: string, newType: string, file: File) => {
+    const views = get().views;
+    const viewDef = views.get(viewName);
+
+    if (!viewDef) {
+      console.error('[DuckDBView] View not found:', viewName);
+      return false;
+    }
+
+    set({ isLoading: true, loadingMessage: `Changing ${columnName} to ${newType}...` });
+
+    try {
+      // Merge new type override with existing ones
+      const existingOverrides = viewDef.typeOverrides || {};
+      const newOverrides: Record<string, string> = {
+        ...existingOverrides,
+        [columnName]: newType,
+      };
+
+      console.log('[DuckDBView] Re-importing with type overrides:', newOverrides);
+
+      // Re-create the view with the new type overrides
+      // This will drop the existing table and create a new one with the overridden types
+      const result = await get().createViewFromFile(file, viewName, newOverrides);
+
+      if (result) {
+        console.log('[DuckDBView] Column type changed successfully:', columnName, '->', newType);
+        set({ isLoading: false, loadingMessage: '' });
+        return true;
+      } else {
+        set({ isLoading: false, loadingMessage: '', error: 'Failed to re-import with new type' });
+        return false;
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to change column type';
+      console.error('[DuckDBView] Change column type failed:', err);
       set({ error: errorMsg, isLoading: false, loadingMessage: '' });
       return false;
     }
