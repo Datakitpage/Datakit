@@ -73,6 +73,9 @@ export interface ChangeRecord {
   source: 'user' | 'ai';
   // For schema changes
   columnType?: string;
+  // For formula-based changes
+  formula?: string;
+  isFormulaResult?: boolean;
 }
 
 export interface FilterCondition {

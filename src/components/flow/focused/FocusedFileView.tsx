@@ -109,6 +109,12 @@ export function FocusedFileView({
     isEditable?: boolean;
   }>>(new Map());
 
+  // Formula evaluation state
+  const [isFormulaLoading, setIsFormulaLoading] = useState(false);
+  const [formulaError, setFormulaError] = useState<string | null>(null);
+  // Track formulas applied to cells (key: "rowId:column", value: formula string)
+  const [pendingFormulas, setPendingFormulas] = useState<Map<string, string>>(new Map());
+
   const activeFile = files.find(f => f.id === activeFileId);
   const config = activeFile ? typeConfigs[activeFile.type] : typeConfigs.unknown;
   const rowsPerPage = 50; // Increased for SQL-level pagination
@@ -131,6 +137,7 @@ export function FocusedFileView({
     toggleSort,
     setSearch,
     editCell,
+    editCellWithFormula,
     deleteRow,
     undo,
     discard,
@@ -369,6 +376,37 @@ export function FocusedFileView({
       editCell(rowId, column, value);
     }
   }, [isDuckDBReady, editCell]);
+
+  // Formula submission handler
+  const handleFormulaSubmit = useCallback(async (rowId: number, column: string, formula: string) => {
+    if (!isDuckDBReady) return;
+
+    setIsFormulaLoading(true);
+    setFormulaError(null);
+
+    try {
+      const result = await editCellWithFormula(rowId, column, formula);
+
+      if (result.success) {
+        // Track the formula for display in formula bar
+        setPendingFormulas(prev => {
+          const newMap = new Map(prev);
+          newMap.set(`${rowId}:${column}`, formula);
+          return newMap;
+        });
+        feedback.showSuccess(`Formula applied: ${result.value}`);
+      } else {
+        setFormulaError(result.error || 'Formula evaluation failed');
+        feedback.showError('Formula error', result.error);
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Formula evaluation failed';
+      setFormulaError(errorMsg);
+      feedback.showError('Formula error', errorMsg);
+    } finally {
+      setIsFormulaLoading(false);
+    }
+  }, [isDuckDBReady, editCellWithFormula, feedback]);
 
   // Cell editing handler for query results (uses _rowid from result row)
   // Note: rowId parameter is the actual _rowid value from the data, passed by CanvasDataTable
@@ -1364,6 +1402,10 @@ export function FocusedFileView({
                     }
                   }}
                   onAddColumn={customQueryResult ? undefined : handleAddColumn}
+                  onFormulaSubmit={customQueryResult ? undefined : handleFormulaSubmit}
+                  formulaError={formulaError}
+                  isFormulaLoading={isFormulaLoading}
+                  pendingFormulas={pendingFormulas}
                   onColumnTypeChange={customQueryResult ? undefined : (activeFile?.file ? handleColumnTypeClick : undefined)}
                 />
               </>
