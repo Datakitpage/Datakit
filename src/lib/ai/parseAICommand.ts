@@ -296,10 +296,10 @@ const COMMAND_PATTERNS: CommandPattern[] = [
     },
   },
 
-  // EXPORT: "export as csv|json|parquet"
+  // EXPORT: "export as csv|json|parquet|xlsx"
   {
     name: 'export',
-    regex: /^export\s+as\s+(csv|json|parquet)$/i,
+    regex: /^export\s+as\s+(csv|json|parquet|xlsx)$/i,
     type: 'export',
     isWriteOperation: false,
     parse: (match) => {
@@ -623,7 +623,7 @@ export function getCommandPatterns(): { name: string; example: string; descripti
     { name: 'limit', example: 'show first 10 rows', description: 'Limit rows displayed' },
     { name: 'page', example: 'go to page 5', description: 'Navigate to a specific page' },
     { name: 'reset', example: 'reset view', description: 'Clear filters and reset view' },
-    { name: 'export', example: 'export as csv', description: 'Export data to file format' },
+    { name: 'export', example: 'export as csv', description: 'Export data (csv, json, parquet, xlsx)' },
     { name: 'fill', example: "fill empty column with 'value'", description: 'Fill null values' },
     { name: 'update', example: "update column to 'value' where condition", description: 'Update values' },
     { name: 'change', example: "change column from 'old' to 'new'", description: 'Replace specific values' },

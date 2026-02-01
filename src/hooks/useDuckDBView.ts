@@ -494,7 +494,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
   }, [resetError]);
 
   // Export data to file and trigger download
-  const exportData = useCallback(async (format: 'csv' | 'json' | 'parquet', fileName?: string) => {
+  const exportData = useCallback(async (format: 'csv' | 'json' | 'parquet' | 'xlsx', fileName?: string) => {
     if (!activeViewName) return false;
 
     const blob = await exportView(activeViewName, format, fileName);

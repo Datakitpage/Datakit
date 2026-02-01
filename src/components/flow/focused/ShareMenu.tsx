@@ -4,7 +4,7 @@ import gmailLogo from '@/assets/gmail.webp';
 
 interface ShareMenuProps {
   fileName: string;
-  onExport: (format: 'csv' | 'json' | 'parquet') => void;
+  onExport: (format: 'csv' | 'json' | 'parquet' | 'xlsx') => void;
   onCopyToClipboard?: () => Promise<boolean>;
   accentColor: string;
   disabled?: boolean;
@@ -132,6 +132,41 @@ export function ShareMenu({ fileName, onExport, onCopyToClipboard, accentColor, 
                   </div>
                   <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
                     {fileName.replace(/\.[^/.]+$/, '')}.csv
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Download Excel */}
+              <motion.button
+                onClick={() => {
+                  setDownloading(true);
+                  onExport('xlsx');
+                  setTimeout(() => {
+                    setDownloading(false);
+                    setIsOpen(false);
+                  }, 500);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors"
+                style={{ backgroundColor: 'transparent' }}
+                whileHover={{ backgroundColor: 'var(--surface-secondary)' }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-md"
+                  style={{ backgroundColor: '#05966915', color: '#059669' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                    Download Excel
+                  </div>
+                  <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                    {fileName.replace(/\.[^/.]+$/, '')}.xlsx
                   </div>
                 </div>
               </motion.button>

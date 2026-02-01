@@ -28,7 +28,7 @@ interface MinimalHeaderProps {
   onFileSelect: (fileId: string) => void;
   onCommit?: () => void;
   onUndo?: () => void;
-  onExport?: (format: 'csv' | 'json' | 'parquet') => void;
+  onExport?: (format: 'csv' | 'json' | 'parquet' | 'xlsx') => void;
   hasCommittedChanges?: boolean;
   // Whether there's a custom query result (AI query) that can be exported
   hasQueryResult?: boolean;
