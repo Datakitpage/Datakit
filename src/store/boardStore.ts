@@ -208,6 +208,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       let data: unknown[] = [];
       let rawContent: string | undefined;
       let imageUrl: string | undefined;
+      let pdfUrl: string | undefined;
+      let pageCount: number | undefined;
       let rowCount = 0;
       let columnCount = 0;
       let columns: string[] = [];
@@ -255,6 +257,19 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         rawContent = await file.text();
       } else if (fileType === 'image') {
         imageUrl = URL.createObjectURL(file);
+      } else if (fileType === 'pdf') {
+        pdfUrl = URL.createObjectURL(file);
+        try {
+          const { initPDFWorker } = await import('@/lib/pdf/pdfWorkerConfig');
+          await initPDFWorker();
+          const { pdfjs } = await import('react-pdf');
+          const pdfDoc = await pdfjs.getDocument(pdfUrl).promise;
+          pageCount = pdfDoc.numPages;
+          pdfDoc.destroy();
+        } catch (e) {
+          console.warn('[PDF] Could not read page count:', e);
+          pageCount = 0;
+        }
       }
 
       // Update file with parsed data
@@ -267,6 +282,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
                 columns,
                 rawContent,
                 imageUrl,
+                pdfUrl,
+                pageCount,
                 rowCount,
                 columnCount,
                 processing: false,
@@ -320,6 +337,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       let data: unknown[] = [];
       let rawContent: string | undefined;
       let imageUrl: string | undefined;
+      let pdfUrl: string | undefined;
+      let pageCount: number | undefined;
       let rowCount = 0;
       let columnCount = 0;
       let columns: string[] = [];
@@ -356,6 +375,19 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         rawContent = await file.text();
       } else if (fileType === 'image') {
         imageUrl = URL.createObjectURL(file);
+      } else if (fileType === 'pdf') {
+        pdfUrl = URL.createObjectURL(file);
+        try {
+          const { initPDFWorker } = await import('@/lib/pdf/pdfWorkerConfig');
+          await initPDFWorker();
+          const { pdfjs } = await import('react-pdf');
+          const pdfDoc = await pdfjs.getDocument(pdfUrl).promise;
+          pageCount = pdfDoc.numPages;
+          pdfDoc.destroy();
+        } catch (e) {
+          console.warn('[PDF] Could not read page count:', e);
+          pageCount = 0;
+        }
       }
 
       set(state => ({
@@ -367,6 +399,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
                 columns,
                 rawContent,
                 imageUrl,
+                pdfUrl,
+                pageCount,
                 rowCount,
                 columnCount,
                 processing: false,
@@ -400,6 +434,11 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   deleteFile: (id) => {
+    // Revoke blob URLs to free memory
+    const file = get().files.find(f => f.id === id);
+    if (file?.imageUrl) URL.revokeObjectURL(file.imageUrl);
+    if (file?.pdfUrl) URL.revokeObjectURL(file.pdfUrl);
+
     // Remove file handle from IndexedDB
     removeFileHandle(id);
 

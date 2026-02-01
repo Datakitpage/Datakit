@@ -83,7 +83,7 @@ const typeConfigs: Record<ContentType, TypeConfig> = {
   },
   md: {
     icon: 'M↓',
-    label: 'Markdown',
+    label: 'MD',
     color: '#6366F1',
     bgGradient: 'linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%)',
     shadowColor: 'rgba(99, 102, 241, 0.3)',
