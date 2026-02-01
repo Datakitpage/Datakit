@@ -184,6 +184,9 @@ export function DesktopFileIcon({
   useEffect(() => {
     if (!isDragging || !dragState.current) return;
 
+    // Lock cursor globally so it stays 'grabbing' even over other elements
+    document.body.classList.add('is-dragging');
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragState.current) return;
 
@@ -219,6 +222,7 @@ export function DesktopFileIcon({
     window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
+      document.body.classList.remove('is-dragging');
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };

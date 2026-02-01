@@ -107,6 +107,7 @@ interface BoardState {
   selectedId: string | null;
   focusedFileId: string | null;
   openFileIds: string[];
+  expandedFolderId: string | null;
   dragOverFileId: string | null;
   dragOverFolderId: string | null;
   pendingFolderFiles: string[] | null;
@@ -134,6 +135,8 @@ interface BoardState {
   updateFolderPosition: (folderId: string, position: { x: number; y: number }) => void;
   openFolder: (folderId: string) => void;
   closeFolder: (folderId: string) => void;
+  expandFolder: (folderId: string) => void;
+  collapseFolder: () => void;
   startRenamingFolder: (folderId: string) => void;
   stopRenamingFolder: (folderId: string) => void;
   setDragOverFile: (fileId: string | null) => void;
@@ -149,6 +152,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   selectedId: null,
   focusedFileId: null,
   openFileIds: [],
+  expandedFolderId: null,
   dragOverFileId: null,
   dragOverFolderId: null,
   pendingFolderFiles: null,
@@ -598,6 +602,26 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     set(state => ({
       folders: state.folders.map(f =>
         f.id === folderId ? { ...f, isOpen: false } : f
+      ),
+    }));
+  },
+
+  expandFolder: (folderId) => {
+    set(state => ({
+      expandedFolderId: folderId,
+      folders: state.folders.map(f =>
+        f.id === folderId
+          ? { ...f, isOpen: true }
+          : f.isOpen ? { ...f, isOpen: false } : f
+      ),
+    }));
+  },
+
+  collapseFolder: () => {
+    set(state => ({
+      expandedFolderId: null,
+      folders: state.folders.map(f =>
+        f.isOpen ? { ...f, isOpen: false } : f
       ),
     }));
   },
