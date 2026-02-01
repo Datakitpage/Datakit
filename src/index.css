@@ -283,6 +283,12 @@
     color: var(--foreground);
   }
 
+  /* Global grabbing cursor during drag — overrides all inline cursor styles */
+  body.is-dragging,
+  body.is-dragging * {
+    cursor: grabbing !important;
+  }
+
   /* Focus visible - keyboard navigation */
   :focus-visible {
     outline: 2px solid var(--primary);

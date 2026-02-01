@@ -41,6 +41,7 @@ export function OpenSheet() {
     selectedId,
     focusedFileId,
     openFileIds,
+    expandedFolderId,
     dragOverFileId,
     dragOverFolderId,
     addFile,
@@ -66,6 +67,8 @@ export function OpenSheet() {
     stopRenamingFolder,
     setDragOverFile,
     setDragOverFolder,
+    expandFolder,
+    collapseFolder,
   } = useBoardStore();
 
   // File restoration state
@@ -92,6 +95,61 @@ export function OpenSheet() {
     () => files.filter(f => !filesInFolders.has(f.id)),
     [files, filesInFolders]
   );
+
+  // Compute grid positions for files when a folder is expanded (bloom layout)
+  const expandedFolderFilePositions = useMemo(() => {
+    if (!expandedFolderId) return new Map<string, { x: number; y: number }>();
+    const folder = folders.find(f => f.id === expandedFolderId);
+    if (!folder) return new Map<string, { x: number; y: number }>();
+
+    const SPACING = 108; // 88px icon + 20px gap
+    const fileIds = folder.fileIds;
+    const cols = fileIds.length <= 2 ? 2 : fileIds.length <= 6 ? 3 : 4;
+
+    const gridWidth = (cols - 1) * SPACING;
+    const startX = folder.position.x - gridWidth / 2 + 44; // center on folder (folder icon is 88px, so +44 to center)
+    const startY = folder.position.y + 100; // below folder icon
+
+    const positions = new Map<string, { x: number; y: number }>();
+    fileIds.forEach((id, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      positions.set(id, { x: startX + col * SPACING, y: startY + row * SPACING });
+    });
+    return positions;
+  }, [expandedFolderId, folders]);
+
+  // Track drag state for expanded folder files (real-time feedback during drag)
+  const [expandedDragState, setExpandedDragState] = useState<{
+    fileId: string;
+    isOutside: boolean;
+  } | null>(null);
+
+  // Display positions: when a file is being dragged outside, remaining files close the gap
+  const expandedDisplayPositions = useMemo(() => {
+    if (!expandedDragState?.isOutside || !expandedFolderId) {
+      return expandedFolderFilePositions;
+    }
+    const folder = folders.find(f => f.id === expandedFolderId);
+    if (!folder) return expandedFolderFilePositions;
+
+    const remainingIds = folder.fileIds.filter(id => id !== expandedDragState.fileId);
+    if (remainingIds.length === 0) return expandedFolderFilePositions;
+
+    const SPACING = 108;
+    const cols = remainingIds.length <= 2 ? 2 : remainingIds.length <= 6 ? 3 : 4;
+    const gridWidth = (cols - 1) * SPACING;
+    const startX = folder.position.x - gridWidth / 2 + 44;
+    const startY = folder.position.y + 100;
+
+    const positions = new Map<string, { x: number; y: number }>();
+    remainingIds.forEach((id, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      positions.set(id, { x: startX + col * SPACING, y: startY + row * SPACING });
+    });
+    return positions;
+  }, [expandedDragState, expandedFolderId, folders, expandedFolderFilePositions]);
 
   // Check if only sample files exist (no user-dropped files)
   const onlySampleFiles = useMemo(
@@ -273,12 +331,14 @@ export function OpenSheet() {
         setCommandBarOpen(false);
       } else if (focusedFileId) {
         unfocusFile();
+      } else if (expandedFolderId) {
+        collapseFolder();
       } else {
         selectItem(null);
       }
     },
     onEnter: () => {
-      // Open (focus) the selected file or folder
+      // Open (focus) the selected file or expand the selected folder
       if (selectedId && !focusedFileId) {
         const isFile = files.some(f => f.id === selectedId);
         const isFolder = folders.some(f => f.id === selectedId);
@@ -287,8 +347,7 @@ export function OpenSheet() {
         } else if (isFolder) {
           const folder = folders.find(f => f.id === selectedId);
           if (folder && folder.fileIds.length > 0) {
-            openFolder(selectedId);
-            focusFile(folder.fileIds[0]);
+            expandFolder(selectedId);
           }
         }
       }
@@ -416,8 +475,11 @@ export function OpenSheet() {
   ], [files, folders, focusFile, openFolder, theme, toggleTheme]);
 
   const handleCanvasClick = useCallback(() => {
+    if (expandedFolderId) {
+      collapseFolder();
+    }
     selectItem(null);
-  }, [selectItem]);
+  }, [selectItem, expandedFolderId, collapseFolder]);
 
   const handleFileDrop = useCallback(
     (file: File, position: { x: number; y: number }, handle?: FileSystemFileHandle) => {
@@ -498,22 +560,89 @@ export function OpenSheet() {
     [addFileToFolder]
   );
 
-  // Handle folder double-click (open in focused view showing all files)
+  // Handle folder double-click (expand/collapse files on canvas with bloom animation)
   const handleFolderDoubleClick = useCallback(
     (folderId: string) => {
       const folder = folders.find(f => f.id === folderId);
       if (!folder || folder.fileIds.length === 0) return;
 
-      setOpenFolderId(folderId);
-      openFolder(folderId);
-      focusFile(folder.fileIds[0]);
-
-      folder.fileIds.slice(1).forEach(fileId => {
-        focusFile(fileId);
-      });
-      focusFile(folder.fileIds[0]);
+      if (expandedFolderId === folderId) {
+        collapseFolder();
+      } else {
+        expandFolder(folderId);
+      }
     },
-    [folders, openFolder, focusFile]
+    [folders, expandedFolderId, expandFolder, collapseFolder]
+  );
+
+  // Track drag position in real-time for visual feedback
+  const handleExpandedFileDragMove = useCallback(
+    (fileId: string, pos: { x: number; y: number }) => {
+      if (!expandedFolderId) return;
+      const folder = folders.find(f => f.id === expandedFolderId);
+      if (!folder) return;
+      const bloomPos = expandedFolderFilePositions.get(fileId);
+      if (!bloomPos) return;
+
+      const canvasX = bloomPos.x + pos.x;
+      const canvasY = bloomPos.y + pos.y;
+      const dx = canvasX - folder.position.x;
+      const dy = canvasY - folder.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      setExpandedDragState({ fileId, isOutside: distance > 150 });
+    },
+    [expandedFolderId, folders, expandedFolderFilePositions]
+  );
+
+  // Handle dropping a file — remove from folder if dragged out
+  const handleExpandedFileDragEnd = useCallback(
+    (fileId: string, dragDelta: { x: number; y: number }) => {
+      setExpandedDragState(null);
+
+      if (!expandedFolderId) return;
+
+      const folder = folders.find(f => f.id === expandedFolderId);
+      if (!folder) return;
+
+      const bloomPos = expandedFolderFilePositions.get(fileId);
+      if (!bloomPos) return;
+
+      // Compute actual canvas drop position
+      const canvasPos = {
+        x: bloomPos.x + dragDelta.x,
+        y: bloomPos.y + dragDelta.y,
+      };
+
+      // Check distance from folder center — threshold is 150px
+      const dx = canvasPos.x - folder.position.x;
+      const dy = canvasPos.y - folder.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 150) {
+        // Dragged out — remove from folder, place on canvas
+        updateFilePosition(fileId, canvasPos);
+        removeFileFromFolder(expandedFolderId, fileId);
+
+        // Auto-dissolve folder if 1 or 0 files remain
+        const remainingCount = folder.fileIds.length - 1;
+        if (remainingCount <= 1) {
+          collapseFolder();
+          if (remainingCount === 1) {
+            // Release the last remaining file to the canvas at the folder's position
+            const lastFileId = folder.fileIds.find(id => id !== fileId);
+            if (lastFileId) {
+              removeFileFromFolder(expandedFolderId, lastFileId);
+              updateFilePosition(lastFileId, folder.position);
+            }
+          }
+          deleteFolder(expandedFolderId, true);
+        }
+      }
+      // If not dragged far enough: no-op — file snaps back to grid position
+    },
+    [expandedFolderId, folders, expandedFolderFilePositions,
+     updateFilePosition, removeFileFromFolder, collapseFolder, deleteFolder]
   );
 
   // Handle folder selection
@@ -573,6 +702,7 @@ export function OpenSheet() {
   // Handle closing the focused view
   const handleCloseFocusedView = useCallback(() => {
     unfocusFile();
+    // Preserve expandedFolderId so user returns to bloom-expanded folder
     setOpenFolderId(null);
   }, [unfocusFile]);
 
@@ -792,48 +922,179 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
         onFileDrop={handleFileDrop}
         onZoomChange={handleZoomChange}
       >
-        {/* Desktop file icons - hidden when a file is focused */}
-        {!focusedFileId && desktopFiles.map(file => (
-          <DesktopFileIcon
-            key={file.id}
-            node={{ ...file, selected: selectedId === file.id }}
-            zoom={zoom}
-            onSelect={handleFileSelect}
-            onDoubleClick={focusFile}
-            onRename={renameFile}
-            onDelete={deleteFile}
-            onDrag={updateFilePosition}
-            onDragMove={handleFileDragMove}
-            onDragEnd={handleFileDragEnd}
-            isDragTarget={dragOverFileId === file.id}
-          />
-        ))}
+        {/* Desktop file icons - hidden when a file is focused, dimmed when folder is expanded */}
+        {!focusedFileId && (
+          <div style={{
+            opacity: expandedFolderId ? 0.3 : 1,
+            transition: 'opacity 0.25s ease',
+            pointerEvents: expandedFolderId ? 'none' : 'auto',
+          }}>
+            {desktopFiles.map(file => (
+              <DesktopFileIcon
+                key={file.id}
+                node={{ ...file, selected: selectedId === file.id }}
+                zoom={zoom}
+                onSelect={handleFileSelect}
+                onDoubleClick={focusFile}
+                onRename={renameFile}
+                onDelete={deleteFile}
+                onDrag={updateFilePosition}
+                onDragMove={handleFileDragMove}
+                onDragEnd={handleFileDragEnd}
+                isDragTarget={dragOverFileId === file.id}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Desktop folder icons - hidden when a file is focused */}
         {!focusedFileId && folders.map(folder => {
           const folderFileTypes = folder.fileIds
             .map(fid => files.find(f => f.id === fid)?.type)
             .filter((t): t is NonNullable<typeof t> => !!t);
+          const isThisExpanded = expandedFolderId === folder.id;
 
           return (
-            <DesktopFolderIcon
+            <div
               key={folder.id}
-              folder={{ ...folder, selected: selectedId === folder.id }}
-              fileTypes={folderFileTypes}
-              zoom={zoom}
-              onSelect={handleFolderSelect}
-              onDoubleClick={handleFolderDoubleClick}
-              onDrag={updateFolderPosition}
-              onFileDrop={handleFileDropOnFolder}
-              onRename={handleFolderRename}
-              onRenameStart={handleFolderRenameStart}
-              onRenameCancel={handleFolderRenameCancel}
-              onChangeColor={setFolderColor}
-              onDelete={(folderId) => deleteFolder(folderId, true)}
-              isDragTarget={dragOverFolderId === folder.id}
-            />
+              style={{
+                opacity: expandedFolderId && !isThisExpanded ? 0.3 : 1,
+                transition: 'opacity 0.25s ease',
+                pointerEvents: expandedFolderId && !isThisExpanded ? 'none' : 'auto',
+                zIndex: isThisExpanded ? 10 : 1,
+                position: 'relative',
+              }}
+            >
+              <DesktopFolderIcon
+                folder={{ ...folder, selected: selectedId === folder.id }}
+                fileTypes={folderFileTypes}
+                zoom={zoom}
+                onSelect={handleFolderSelect}
+                onDoubleClick={handleFolderDoubleClick}
+                onDrag={updateFolderPosition}
+                onFileDrop={handleFileDropOnFolder}
+                onRename={handleFolderRename}
+                onRenameStart={handleFolderRenameStart}
+                onRenameCancel={handleFolderRenameCancel}
+                onChangeColor={setFolderColor}
+                onDelete={(folderId) => deleteFolder(folderId, true)}
+                isDragTarget={dragOverFolderId === folder.id}
+                isExpanded={isThisExpanded}
+              />
+            </div>
           );
         })}
+
+        {/* Expanded folder files — bloom onto canvas */}
+        <AnimatePresence>
+          {expandedFolderId && !focusedFileId && (() => {
+            const folder = folders.find(f => f.id === expandedFolderId);
+            if (!folder) return null;
+
+            const folderColor = folder.color || '#6366F1';
+            const isDragging = !!expandedDragState;
+            const isDraggingOut = expandedDragState?.isOutside ?? false;
+
+            // Use display positions (gap-closed when dragging outside) for container bounds
+            const displayPositions = Array.from(expandedDisplayPositions.values());
+            const CONTAINER_PAD = 24;
+            const CONTAINER_PAD_TOP = 20;
+            const minX = Math.min(...displayPositions.map(p => p.x)) - CONTAINER_PAD;
+            const minY = Math.min(...displayPositions.map(p => p.y)) - CONTAINER_PAD_TOP;
+            const maxX = Math.max(...displayPositions.map(p => p.x)) + 88 + CONTAINER_PAD;
+            const maxY = Math.max(...displayPositions.map(p => p.y)) + 85 + CONTAINER_PAD;
+
+            const folderFiles = folder.fileIds
+              .map(id => files.find(f => f.id === id))
+              .filter(Boolean) as typeof files;
+
+            return [
+              // Folder container — reacts to drag state
+              <motion.div
+                key="glass-backdrop"
+                className="absolute rounded-2xl overflow-hidden"
+                style={{
+                  backdropFilter: 'blur(12px)',
+                  background: isDraggingOut ? `${folderColor}08` : `${folderColor}10`,
+                  border: isDraggingOut
+                    ? `2px dashed ${folderColor}35`
+                    : isDragging
+                      ? `1.5px solid ${folderColor}45`
+                      : `1.5px solid ${folderColor}25`,
+                  boxShadow: `inset 0 1px 4px ${folderColor}${isDraggingOut ? '04' : '0A'}, 0 8px 32px ${folderColor}08`,
+                  zIndex: 5,
+                  transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
+                }}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{
+                  opacity: isDraggingOut ? 0.7 : 1,
+                  scale: 1,
+                  left: minX,
+                  top: minY,
+                  width: maxX - minX,
+                  height: maxY - minY,
+                }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />,
+
+              // Bloomed file icons — draggable out of folder
+              ...folderFiles.map((file, i) => {
+                const isThisDragged = expandedDragState?.fileId === file.id;
+                // Dragged file: use original position (for snap-back)
+                // Other files: use display positions (gap-closed when something is dragged out)
+                const targetPos = isThisDragged
+                  ? expandedFolderFilePositions.get(file.id)
+                  : expandedDisplayPositions.get(file.id);
+                if (!targetPos) return null;
+                return (
+                  <motion.div
+                    key={`expanded-${file.id}`}
+                    className="absolute"
+                    style={{ zIndex: isThisDragged ? 20 : 10 }}
+                    initial={{
+                      x: folder.position.x,
+                      y: folder.position.y,
+                      scale: 0,
+                      opacity: 0,
+                    }}
+                    animate={{
+                      x: targetPos.x,
+                      y: targetPos.y,
+                      scale: 1,
+                      opacity: 1,
+                    }}
+                    exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 350,
+                      damping: 22,
+                      delay: i * 0.05,
+                    }}
+                  >
+                    <DesktopFileIcon
+                      node={{ ...file, position: { x: 0, y: 0 }, selected: selectedId === file.id }}
+                      zoom={zoom}
+                      onSelect={handleFileSelect}
+                      onDoubleClick={(fileId) => {
+                        setOpenFolderId(expandedFolderId);
+                        // Open all folder files as tabs, then focus the clicked one
+                        folder.fileIds.forEach(id => focusFile(id));
+                        focusFile(fileId);
+                      }}
+                      onRename={renameFile}
+                      onDelete={deleteFile}
+                      onDrag={() => {}}
+                      onDragMove={handleExpandedFileDragMove}
+                      onDragEnd={handleExpandedFileDragEnd}
+                      isDragTarget={false}
+                    />
+                  </motion.div>
+                );
+              }),
+            ];
+          })()}
+        </AnimatePresence>
 
         {/* Empty state - shows when canvas is empty or only has sample files */}
         {!focusedFileId && (files.length === 0 || onlySampleFiles) && (

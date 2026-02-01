@@ -22,6 +22,7 @@ interface DesktopFolderIconProps {
   onChangeColor?: (folderId: string, color: string) => void;
   onDelete?: (folderId: string) => void;
   isDragTarget?: boolean; // True when a file is being dragged over this folder
+  isExpanded?: boolean; // True when folder is bloom-expanded on canvas
 }
 
 // ============================================================================
@@ -58,6 +59,7 @@ export function DesktopFolderIcon({
   onChangeColor,
   onDelete,
   isDragTarget = false,
+  isExpanded = false,
 }: DesktopFolderIconProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -124,6 +126,9 @@ export function DesktopFolderIcon({
   useEffect(() => {
     if (!isDragging || !dragState.current) return;
 
+    // Lock cursor globally so it stays 'grabbing' even over other elements
+    document.body.classList.add('is-dragging');
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragState.current) return;
 
@@ -155,6 +160,7 @@ export function DesktopFolderIcon({
     window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
+      document.body.classList.remove('is-dragging');
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
@@ -283,15 +289,17 @@ export function DesktopFolderIcon({
           <motion.div
             className="absolute inset-0 rounded-xl"
             style={{
-              background: folder.selected
-                ? `${folder.color || '#6366F1'}15`
-                : isFileDragTarget
-                  ? 'rgba(99, 102, 241, 0.15)'
-                  : isHovered
-                    ? 'rgba(0,0,0,0.03)'
-                    : 'transparent',
+              background: isExpanded
+                ? `${folder.color || '#6366F1'}20`
+                : folder.selected
+                  ? `${folder.color || '#6366F1'}15`
+                  : isFileDragTarget
+                    ? 'rgba(99, 102, 241, 0.15)'
+                    : isHovered
+                      ? 'rgba(0,0,0,0.03)'
+                      : 'transparent',
             }}
-            animate={{ opacity: folder.selected || isHovered || isFileDragTarget ? 1 : 0 }}
+            animate={{ opacity: isExpanded || folder.selected || isHovered || isFileDragTarget ? 1 : 0 }}
           />
 
           {/* Folder icon */}
@@ -299,9 +307,11 @@ export function DesktopFolderIcon({
             className="relative w-16 h-14 flex items-center justify-center"
             animate={{
               rotate: isDragging ? [-1, 1, -1] : 0,
+              scale: isExpanded ? 0.92 : 1,
             }}
             transition={{
               rotate: { repeat: isDragging ? Infinity : 0, duration: 0.15 },
+              scale: { type: 'spring', stiffness: 400, damping: 25 },
             }}
           >
             {/* Folder back */}
@@ -313,12 +323,18 @@ export function DesktopFolderIcon({
               }}
             />
 
-            {/* Folder tab */}
-            <div
+            {/* Folder tab — tilts open when expanded */}
+            <motion.div
               className="absolute top-0 left-2 w-6 h-2.5 rounded-t-md"
               style={{
                 background: folder.color || '#6366F1',
+                transformOrigin: 'bottom left',
               }}
+              animate={{
+                rotate: isExpanded ? -10 : 0,
+                y: isExpanded ? -2 : 0,
+              }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             />
 
             {/* Folder front */}
@@ -333,8 +349,15 @@ export function DesktopFolderIcon({
                     : `0 2px 8px ${folder.color || '#6366F1'}20`,
               }}
             >
-              {/* File type previews (stacked papers) */}
-              <div className="absolute inset-x-2 top-1 bottom-2 flex items-center justify-center">
+              {/* File type previews (stacked papers) — hidden when expanded */}
+              <motion.div
+                className="absolute inset-x-2 top-1 bottom-2 flex items-center justify-center"
+                animate={{
+                  opacity: isExpanded ? 0 : 1,
+                  scale: isExpanded ? 0.8 : 1,
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
                 {previewColors.length > 0 ? (
                   <div className="relative w-full h-full">
                     {previewColors.map((color, i) => (
@@ -351,19 +374,19 @@ export function DesktopFolderIcon({
                           zIndex: i,
                         }}
                         initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
+                        animate={{ opacity: isExpanded ? 0 : 1, y: isExpanded ? -4 : 0 }}
+                        transition={{ delay: isExpanded ? 0 : i * 0.05 }}
                       />
                     ))}
                   </div>
                 ) : (
                   <span className="text-white/60 text-lg">📁</span>
                 )}
-              </div>
+              </motion.div>
             </div>
 
-            {/* File count badge */}
-            {fileCount > 0 && (
+            {/* File count badge — hidden when expanded */}
+            {fileCount > 0 && !isExpanded && (
               <motion.div
                 className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                 style={{
@@ -434,7 +457,7 @@ export function DesktopFolderIcon({
               y: isHovered && !isDragging ? 0 : -4,
             }}
           >
-            {folder.selected ? 'click again to rename' : 'double-click to open'}
+            {isExpanded ? 'double-click to close' : folder.selected ? 'click again to rename' : 'double-click to open'}
           </motion.div>
 
           {/* Drop to add hint */}
