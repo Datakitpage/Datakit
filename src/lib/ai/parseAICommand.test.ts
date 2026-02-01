@@ -355,9 +355,10 @@ describe('parseAICommand - export', () => {
     expect(result.command?.parsed.value).toBe('csv');
   });
 
-  it('fails for unsupported format', () => {
+  it('supports xlsx format', () => {
     const result = parseAICommand('export as xlsx', context);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    expect(result.command?.parsed.value).toBe('xlsx');
   });
 
   it('is not a write operation', () => {

@@ -184,7 +184,7 @@ interface DuckDBViewState {
   sanitizeTableName: (fileName: string) => string;
 
   // Export
-  exportView: (viewName: string, format: 'csv' | 'json' | 'parquet', fileName?: string) => Promise<Blob | null>;
+  exportView: (viewName: string, format: 'csv' | 'json' | 'parquet' | 'xlsx', fileName?: string) => Promise<Blob | null>;
 }
 
 export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
@@ -346,6 +346,11 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
       if (['csv', 'json', 'txt'].includes(fileExt)) {
         const content = await file.text();
         await db.registerFileText(registeredFileName, content);
+      } else if (fileExt === 'xlsx') {
+        // xlsx files need conversion to CSV since DuckDB WASM can't read xlsx
+        const { parseXlsxFile } = await import('@/lib/xlsx');
+        const xlsxResult = await parseXlsxFile(file);
+        await db.registerFileText(registeredFileName, xlsxResult.csvContent);
       } else {
         // For binary files like parquet
         const buffer = await file.arrayBuffer();
@@ -391,6 +396,10 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
           break;
         case 'parquet':
           createTableSQL = `CREATE TABLE "${viewName}" AS SELECT row_number() OVER () as _rowid, * FROM read_parquet('${registeredFileName}')`;
+          break;
+        case 'xlsx':
+          // xlsx has been pre-converted to CSV during registration
+          createTableSQL = `CREATE TABLE "${viewName}" AS SELECT row_number() OVER () as _rowid, * FROM read_csv_auto('${registeredFileName}')`;
           break;
         default:
           // For txt files, create a single column table
@@ -1200,7 +1209,7 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
   },
 
   // Export view data to file
-  exportView: async (viewName: string, format: 'csv' | 'json' | 'parquet', fileName?: string) => {
+  exportView: async (viewName: string, format: 'csv' | 'json' | 'parquet' | 'xlsx', fileName?: string) => {
     const conn = get().connection;
     const db = get().db;
     if (!conn || !db) return null;
@@ -1272,6 +1281,25 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
         set({ isLoading: false, loadingMessage: '' });
         // Use slice to create a copy with proper ArrayBuffer type
         return new Blob([buffer.slice().buffer], { type: 'application/octet-stream' });
+
+      } else if (format === 'xlsx') {
+        // Export to Excel using xlsx library
+        const result = await conn.query(`
+          SELECT * EXCLUDE (_rowid) FROM "${viewName}"
+        `);
+        const rows = result.toArray().map((row: unknown) => {
+          const obj = row as Record<string, unknown>;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _rowid destructured to exclude from export
+          const { _rowid, ...rest } = obj;
+          return rest;
+        });
+
+        const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+        const { createXlsxBlob } = await import('@/lib/xlsx');
+        const blob = createXlsxBlob(rows, columns);
+
+        set({ isLoading: false, loadingMessage: '' });
+        return blob;
       }
 
       set({ isLoading: false, loadingMessage: '' });

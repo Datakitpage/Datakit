@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import type { ContentNodeData, ContentType } from '@/components/flow/ContentNode';
 import Papa from 'papaparse';
+import { parseXlsxFile } from '@/lib/xlsx';
 import { saveFileHandle, removeFileHandle } from '@/store/fileHandleStore';
 import {
   saveFolder as persistFolder,
@@ -238,6 +239,14 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         columns = [];
         rowCount = 0;
         columnCount = 0;
+      } else if (fileType === 'xlsx') {
+        // Parse Excel file using xlsx library
+        // DuckDB can't read xlsx natively, so we extract headers + CSV for DuckDB
+        const result = await parseXlsxFile(file);
+        columns = result.headers;
+        columnCount = result.columnCount;
+        rowCount = result.rowCount;
+        data = [];
       } else if (fileType === 'txt' || fileType === 'md') {
         rawContent = await file.text();
       } else if (fileType === 'image') {
@@ -258,7 +267,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
                 columnCount,
                 processing: false,
                 // Keep file reference for DuckDB (much faster than re-serializing parsed data)
-                ...(['csv', 'json', 'parquet'].includes(fileType) ? { file } : {}),
+                ...(['csv', 'json', 'parquet', 'xlsx'].includes(fileType) ? { file } : {}),
               }
             : f
         ),
@@ -333,6 +342,12 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         columns = [];
         rowCount = 0;
         columnCount = 0;
+      } else if (fileType === 'xlsx') {
+        const result = await parseXlsxFile(file);
+        columns = result.headers;
+        columnCount = result.columnCount;
+        rowCount = result.rowCount;
+        data = [];
       } else if (fileType === 'txt' || fileType === 'md') {
         rawContent = await file.text();
       } else if (fileType === 'image') {
@@ -351,7 +366,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
                 rowCount,
                 columnCount,
                 processing: false,
-                ...(['csv', 'json', 'parquet'].includes(fileType) ? { file } : {}),
+                ...(['csv', 'json', 'parquet', 'xlsx'].includes(fileType) ? { file } : {}),
               }
             : f
         ),

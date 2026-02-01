@@ -201,8 +201,8 @@ export function FocusedFileView({
       // Check if data is available BEFORE checking "already loaded"
       // Fast path: file is available for native DuckDB parsing
       // Slow path: parsed data is available for JSON serialization
-      const fileTypes = ['csv', 'json', 'parquet'];
-      const hasDataToLoad = (fileTypes.includes(activeFile.type) && activeFile.file) ||
+      const duckdbFileTypes = ['csv', 'json', 'parquet', 'xlsx'];
+      const hasDataToLoad = (duckdbFileTypes.includes(activeFile.type) && activeFile.file) ||
                             (activeFile.data && activeFile.columns);
 
       if (!hasDataToLoad) {
@@ -230,9 +230,13 @@ export function FocusedFileView({
         console.log('[FocusedFileView] Loading into DuckDB with viewName:', viewName);
 
         // FAST PATH: Use original file when available (DuckDB parses natively - much faster)
-        const fileTypes = ['csv', 'json', 'parquet'];
-        if (activeFile.file && fileTypes.includes(activeFile.type)) {
+        const nativeFileTypes = ['csv', 'json', 'parquet'];
+        if (activeFile.file && nativeFileTypes.includes(activeFile.type)) {
           console.log('[FocusedFileView] Loading file directly (fast path):', activeFile.type);
+          result = await loadFile(activeFile.file, viewName);
+        } else if (activeFile.file && activeFile.type === 'xlsx') {
+          // XLSX PATH: DuckDB can't read xlsx natively, so convert to CSV first
+          console.log('[FocusedFileView] Loading xlsx via CSV conversion...');
           result = await loadFile(activeFile.file, viewName);
         } else if (activeFile.data && activeFile.columns) {
           // SLOW PATH: Serialize JS objects to JSON (only when no file available)
@@ -763,7 +767,7 @@ export function FocusedFileView({
 
       feedback.showSuccess(description);
     } else if (cmd.type === 'export') {
-      const format = cmd.parsed.value as 'csv' | 'json' | 'parquet';
+      const format = cmd.parsed.value as 'csv' | 'json' | 'parquet' | 'xlsx';
       if (isDuckDBReady) {
         const fileName = activeFile?.name?.replace(/\.[^/.]+$/, '') || 'export';
         const success = await exportData(format, `${fileName}_export.${format}`);
