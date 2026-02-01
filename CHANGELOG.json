@@ -1,14 +1,7 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "tagline": "",
   "upcoming": [
-    {
-      "id": "excel-v0",
-      "title": "Excel Integration",
-      "description": ".xlsx read/write support with formula preservation",
-      "status": "in-progress",
-      "eta": "Soon"
-    },
     {
       "id": "desktop-mode",
       "title": "Desktop Mode",
@@ -19,11 +12,18 @@
   ],
   "recent": [
     {
+      "id": "excel-duckdb-support",
+      "title": "Excel Import",
+      "description": ".xlsx/.xls read and write support via DuckDB with formula preservation",
+      "date": "2026-02-01",
+      "type": "feature"
+    },
+    {
       "id": "folder-persistence",
       "title": "Folder Persistence",
       "description": "Folders and their contents now persist across browser sessions",
       "date": "2026-01-24",
-      "type": "new"
+      "type": "feature"
     },
     {
       "id": "floating-ai-command",
