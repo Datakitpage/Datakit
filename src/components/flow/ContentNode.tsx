@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, useSpring, AnimatePresence } from 'framer-motion';
+import { marked } from 'marked';
 import { ConnectionPort } from './ConnectionPort';
 
 // ============================================================================
@@ -18,6 +19,8 @@ export interface ContentNodeData {
   data?: unknown[];
   rawContent?: string;
   imageUrl?: string;
+  pdfUrl?: string;
+  pageCount?: number;
   rowCount?: number;
   columnCount?: number;
   columns?: string[];
@@ -163,6 +166,78 @@ function ImageView({ url, name }: { url: string; name: string }) {
 }
 
 // ============================================================================
+// PDF Thumbnail Component
+// ============================================================================
+
+function PDFThumbnail({ pageCount }: { pageCount?: number }) {
+  return (
+    <div className="relative w-full min-h-[120px] bg-stone-50 flex flex-col items-center justify-center p-4 gap-2">
+      <div className="w-16 h-20 rounded bg-white border border-stone-200 shadow-sm flex items-center justify-center">
+        <span className="text-2xl text-red-400">▤</span>
+      </div>
+      {pageCount !== undefined && pageCount > 0 && (
+        <span className="text-xs text-stone-400">
+          {pageCount} page{pageCount !== 1 ? 's' : ''}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Markdown Preview Component (canvas card)
+// ============================================================================
+
+function MarkdownPreview({ content }: { content: string }) {
+  const html = useMemo(() => {
+    marked.setOptions({ breaks: true, gfm: true });
+    // Only render the first ~500 chars for the card preview
+    const preview = content.length > 500 ? content.slice(0, 500) + '\n\n...' : content;
+    return marked.parse(preview) as string;
+  }, [content]);
+
+  return (
+    <div className="w-full text-xs overflow-hidden max-h-[200px]">
+      <div
+        className="p-3 markdown-card-preview"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      <style>{`
+        .markdown-card-preview h1, .markdown-card-preview h2, .markdown-card-preview h3 {
+          font-size: 0.85em;
+          font-weight: 600;
+          color: #374151;
+          margin: 0.3em 0;
+        }
+        .markdown-card-preview p { color: #6b7280; margin: 0.2em 0; line-height: 1.5; }
+        .markdown-card-preview ul, .markdown-card-preview ol { padding-left: 1.2em; color: #6b7280; margin: 0.2em 0; }
+        .markdown-card-preview code {
+          background: #f3f4f6;
+          padding: 0.1em 0.3em;
+          border-radius: 3px;
+          font-size: 0.9em;
+        }
+        .markdown-card-preview pre {
+          background: #f9fafb;
+          padding: 0.5em;
+          border-radius: 4px;
+          overflow: hidden;
+          font-size: 0.9em;
+        }
+        .markdown-card-preview blockquote {
+          border-left: 2px solid #d1d5db;
+          padding-left: 0.5em;
+          color: #9ca3af;
+          margin: 0.3em 0;
+        }
+        .markdown-card-preview a { color: #3b82f6; }
+        .markdown-card-preview img { max-width: 100%; border-radius: 4px; }
+      `}</style>
+    </div>
+  );
+}
+
+// ============================================================================
 // Text View Component
 // ============================================================================
 
@@ -279,6 +354,8 @@ export function ContentNode({
         return Math.min(600, Math.max(300, (node.columns?.length || 3) * 100));
       case 'image':
         return 320;
+      case 'pdf':
+        return 240;
       default:
         return 300;
     }
@@ -344,10 +421,19 @@ export function ContentNode({
           return <ImageView url={node.imageUrl} name={node.name} />;
         }
         break;
+      case 'pdf':
+        if (node.pdfUrl) {
+          return <PDFThumbnail pageCount={node.pageCount} />;
+        }
+        break;
       case 'txt':
-      case 'md':
         if (node.rawContent) {
           return <TextView content={node.rawContent} />;
+        }
+        break;
+      case 'md':
+        if (node.rawContent) {
+          return <MarkdownPreview content={node.rawContent} />;
         }
         break;
     }

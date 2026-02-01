@@ -35,6 +35,9 @@ export default defineConfig({
             if (id.includes('xlsx')) {
               return 'xlsx';
             }
+            if (id.includes('pdfjs-dist') || id.includes('react-pdf')) {
+              return 'pdf';
+            }
           }
         },
       },

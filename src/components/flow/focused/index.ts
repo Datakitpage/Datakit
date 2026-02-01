@@ -8,3 +8,4 @@ export { AICommandInput } from './AICommandInput';
 export { HeaderStatusBar } from './HeaderStatusBar';
 export { ShareMenu } from './ShareMenu';
 export { OperationFeedback } from './OperationFeedback';
+export { PDFViewer } from './PDFViewer';
