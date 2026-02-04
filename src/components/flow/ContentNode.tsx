@@ -266,6 +266,8 @@ function TextView({ content, maxLines = 10 }: { content: string; maxLines?: numb
 
 function JSONView({ data }: { data: unknown[] }) {
   const sample = data.slice(0, 2);
+  // Helper to handle BigInt in JSON serialization
+  const bigIntReplacer = (_: string, v: unknown) => typeof v === 'bigint' ? Number(v) : v;
 
   return (
     <div className="w-full font-mono text-xs p-3">
@@ -273,7 +275,7 @@ function JSONView({ data }: { data: unknown[] }) {
         <span className="text-amber-600">[</span>
         {sample.map((item, i) => (
           <div key={i} className="pl-2">
-            {JSON.stringify(item, null, 2)
+            {JSON.stringify(item, bigIntReplacer, 2)
               .split('\n')
               .map((line, j) => (
                 <div key={j} className="whitespace-pre">
