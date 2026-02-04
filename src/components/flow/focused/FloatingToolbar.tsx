@@ -120,7 +120,10 @@ export function FloatingToolbar({
   // Format value for display
   const formatDisplayValue = (value: unknown): string => {
     if (value === null || value === undefined) return 'null';
-    if (typeof value === 'object') return JSON.stringify(value).slice(0, 40);
+    if (typeof value === 'bigint') return String(value);
+    if (typeof value === 'object') {
+      return JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v).slice(0, 40);
+    }
     const str = String(value);
     return str.length > 40 ? str.slice(0, 40) + '...' : str;
   };

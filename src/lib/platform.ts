@@ -248,13 +248,16 @@ async function createWebEngine(): Promise<DataEngine> {
       const data = await store.executeSQL(`SELECT * FROM "${viewName}"`);
       if (!data) throw new Error('Export failed');
 
+      // Replacer to handle BigInt values from DuckDB
+      const bigIntReplacer = (_: string, v: unknown) => typeof v === 'bigint' ? Number(v) : v;
+
       if (format === 'json') {
-        return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        return new Blob([JSON.stringify(data, bigIntReplacer, 2)], { type: 'application/json' });
       } else if (format === 'csv') {
         const columns = Object.keys(data[0] || {});
         const csv = [
           columns.join(','),
-          ...data.map(row => columns.map(c => JSON.stringify(row[c] ?? '')).join(','))
+          ...data.map(row => columns.map(c => JSON.stringify(row[c] ?? '', bigIntReplacer)).join(','))
         ].join('\n');
         return new Blob([csv], { type: 'text/csv' });
       }

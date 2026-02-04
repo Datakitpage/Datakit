@@ -11,6 +11,10 @@
  * - SQL and DataFrame APIs
  */
 
+// Helper to serialize values that may contain BigInt (DuckDB returns BIGINT as JS BigInt)
+const safeStringify = (value: unknown): string =>
+  JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v);
+
 // Type definitions for Polars operations
 export interface PolarsDataFrame {
   columns: string[];
@@ -218,7 +222,7 @@ export async function groupBy(
   // Group rows
   const groups = new Map<string, Record<string, unknown>[]>();
   for (const row of data) {
-    const key = groupColumns.map(col => JSON.stringify(row[col])).join('|');
+    const key = groupColumns.map(col => safeStringify(row[col])).join('|');
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(row);
   }
@@ -379,7 +383,7 @@ export async function join(
   // Build index for right table
   const rightIndex = new Map<string, Record<string, unknown>[]>();
   for (const row of right) {
-    const key = keys.map(k => JSON.stringify(row[k])).join('|');
+    const key = keys.map(k => safeStringify(row[k])).join('|');
     if (!rightIndex.has(key)) rightIndex.set(key, []);
     rightIndex.get(key)!.push(row);
   }
@@ -389,7 +393,7 @@ export async function join(
   // Process left table
   const matchedRightKeys = new Set<string>();
   for (const leftRow of left) {
-    const key = keys.map(k => JSON.stringify(leftRow[k])).join('|');
+    const key = keys.map(k => safeStringify(leftRow[k])).join('|');
     const rightRows = rightIndex.get(key);
 
     if (rightRows) {
@@ -405,7 +409,7 @@ export async function join(
   // Add unmatched right rows for right/outer joins
   if (how === 'right' || how === 'outer') {
     for (const rightRow of right) {
-      const key = keys.map(k => JSON.stringify(rightRow[k])).join('|');
+      const key = keys.map(k => safeStringify(rightRow[k])).join('|');
       if (!matchedRightKeys.has(key)) {
         result.push({ ...rightRow });
       }
@@ -478,7 +482,7 @@ export async function describe(
     min,
     max,
     median,
-    unique: new Set(nonNull.map(v => JSON.stringify(v))).size,
+    unique: new Set(nonNull.map(v => safeStringify(v))).size,
   };
 }
 

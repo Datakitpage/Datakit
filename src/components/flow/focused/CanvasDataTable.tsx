@@ -187,9 +187,20 @@ function formatCellValue(value: unknown, type: string): { display: string; color
     }
   }
 
-  // JSON objects - green
+  // BigInt - convert to number for display
+  if (typeof value === 'bigint') {
+    return {
+      display: Number(value).toLocaleString(),
+      color: '#3B82F6', // Blue for numbers
+    };
+  }
+
+  // JSON objects - green (handle BigInt in nested objects)
   if (typeof value === 'object') {
-    return { display: JSON.stringify(value), color: '#10B981' };
+    return {
+      display: JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v),
+      color: '#10B981',
+    };
   }
 
   // Default strings - use theme primary text color (undefined means use default)

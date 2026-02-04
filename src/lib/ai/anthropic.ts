@@ -3,6 +3,10 @@ import type { ColumnSchema } from "@/store/duckDBViewStore";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 
+// Helper to serialize data that may contain BigInt (DuckDB returns BIGINT as JS BigInt)
+const bigIntReplacer = (_: string, v: unknown): unknown =>
+  typeof v === 'bigint' ? Number(v) : v;
+
 /**
  * Validate an Anthropic API key by making a minimal request
  * Returns true if valid, throws an error with details if invalid
@@ -97,7 +101,7 @@ function buildSystemPrompt(schema: TableSchema[], tableName: string, sampleData?
   
   if (sampleData && sampleData.length > 0) {
     prompt += "Sample data (first 3 rows):\n";
-    prompt += JSON.stringify(sampleData.slice(0, 3), null, 2) + "\n\n";
+    prompt += JSON.stringify(sampleData.slice(0, 3), bigIntReplacer, 2) + "\n\n";
   }
 
   prompt += "When the user asks about their data:\n";
@@ -118,7 +122,7 @@ function buildAutoDashboardPrompt(schema: TableSchema[], tableName: string, samp
   let prompt = "Analyze this data and suggest a dashboard layout.\n\n";
   prompt += "Table: " + tableName + "\n";
   prompt += "Schema: " + schemaStr + "\n\n";
-  prompt += "Sample data:\n" + JSON.stringify(sampleData.slice(0, 5), null, 2) + "\n\n";
+  prompt += "Sample data:\n" + JSON.stringify(sampleData.slice(0, 5), bigIntReplacer, 2) + "\n\n";
   
   prompt += "Create a dashboard with 3-5 widgets. For each widget, provide:\n";
   prompt += "- type: 'metric' (single number), 'chart' (visualization), or 'table' (data grid)\n";

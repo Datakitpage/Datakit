@@ -22,7 +22,10 @@ function formatValue(value: unknown, maxLength = 20): string {
   }
   if (typeof value === 'boolean') return value ? 'true' : 'false';
   if (typeof value === 'number') return value.toLocaleString();
-  if (typeof value === 'object') return JSON.stringify(value).slice(0, maxLength) + '…';
+  if (typeof value === 'bigint') return Number(value).toLocaleString();
+  if (typeof value === 'object') {
+    return JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v).slice(0, maxLength) + '…';
+  }
   return String(value);
 }
 

@@ -2,9 +2,13 @@ import { create } from 'zustand';
 import * as duckdb from '@duckdb/duckdb-wasm';
 import { initializeDuckDB, cleanup } from '@/lib/duckdb/init';
 
-// Helper to serialize values that may contain BigInt (DuckDB returns BIGINT as JS BigInt)
+// Replacer function for JSON.stringify to handle BigInt (DuckDB returns BIGINT as JS BigInt)
+const bigIntReplacer = (_: string, v: unknown): unknown =>
+  typeof v === 'bigint' ? Number(v) : v;
+
+// Helper to serialize values that may contain BigInt
 const serializeValue = (value: unknown): string => {
-  return JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v);
+  return JSON.stringify(value, bigIntReplacer);
 };
 
 // Helper to format a value for SQL based on column type
@@ -542,7 +546,7 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
 
       // Register JSON data directly with DuckDB
       console.log('[DuckDBView] Serializing data to JSON...');
-      const jsonData = JSON.stringify(data);
+      const jsonData = JSON.stringify(data, bigIntReplacer);
       console.log('[DuckDBView] JSON size:', (jsonData.length / 1024 / 1024).toFixed(2), 'MB');
 
       await db.registerFileText(jsonFileName, jsonData);
@@ -1264,7 +1268,7 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
         });
 
         set({ isLoading: false, loadingMessage: '' });
-        return new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' });
+        return new Blob([JSON.stringify(rows, bigIntReplacer, 2)], { type: 'application/json' });
 
       } else if (format === 'parquet') {
         // Export to Parquet using DuckDB's COPY TO
