@@ -15,10 +15,11 @@ function App() {
   if (window.location.pathname === '/oauth/google/callback') {
     return <GoogleOAuthCallback />;
   }
-  if (window.location.pathname === '/privacy') {
+  const hash = window.location.hash;
+  if (hash === '#/privacy') {
     return <PrivacyPolicy />;
   }
-  if (window.location.pathname === '/terms') {
+  if (hash === '#/terms') {
     return <TermsOfService />;
   }
 
