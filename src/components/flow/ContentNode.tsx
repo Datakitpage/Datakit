@@ -7,7 +7,16 @@ import { ConnectionPort } from './ConnectionPort';
 // Types
 // ============================================================================
 
-export type ContentType = 'csv' | 'json' | 'xlsx' | 'parquet' | 'txt' | 'md' | 'image' | 'pdf' | 'unknown';
+export type ContentType = 'csv' | 'json' | 'xlsx' | 'parquet' | 'txt' | 'md' | 'image' | 'pdf' | 'gsheet' | 'unknown';
+
+export interface GoogleSheetMeta {
+  spreadsheetId: string;
+  spreadsheetName: string;
+  sheetId: number;
+  sheetName: string;
+  lastSynced: number;
+  remoteModifiedTime?: string; // ISO 8601 from Drive API, for conflict detection
+}
 
 export interface ContentNodeData {
   id: string;
@@ -30,6 +39,9 @@ export interface ContentNodeData {
   collapsed?: boolean;
   file?: File; // Original file for binary formats like parquet that need DuckDB
   fileHandle?: FileSystemFileHandle; // Persisted handle for file restoration across sessions
+  viewName?: string; // DuckDB view name for queryable data
+  googleSheetMeta?: GoogleSheetMeta; // Metadata for Google Sheets
+  isCloudSource?: boolean; // True if data comes from cloud (Google Sheets, etc.)
 }
 
 interface ContentNodeProps {
@@ -61,6 +73,7 @@ const typeConfigs: Record<ContentType, TypeConfig> = {
   md: { icon: 'M↓', label: 'Markdown', color: '#6366F1', headerBg: 'rgba(99, 102, 241, 0.08)' },
   image: { icon: '◐', label: 'Image', color: '#EC4899', headerBg: 'rgba(236, 72, 153, 0.08)' },
   pdf: { icon: '▤', label: 'PDF', color: '#EF4444', headerBg: 'rgba(239, 68, 68, 0.08)' },
+  gsheet: { icon: '◧', label: 'Google Sheet', color: '#0F9D58', headerBg: 'rgba(15, 157, 88, 0.08)' },
   unknown: { icon: '?', label: 'File', color: '#9CA3AF', headerBg: 'rgba(156, 163, 175, 0.08)' },
 };
 

@@ -2,7 +2,7 @@ export { WarmCanvas } from './WarmCanvas';
 export type { WarmCanvasRef } from './WarmCanvas';
 export { FileObject, type FileObjectData } from './FileObject';
 export { FileNode, type FileNodeData, type FileType } from './FileNode';
-export { ContentNode, type ContentNodeData, type ContentType } from './ContentNode';
+export { ContentNode, type ContentNodeData, type ContentType, type GoogleSheetMeta } from './ContentNode';
 export { DesktopFileIcon, type DesktopFileIconData } from './DesktopFileIcon';
 export { DesktopFolderIcon } from './DesktopFolderIcon';
 export { FileContextMenu } from './FileContextMenu';
@@ -18,6 +18,7 @@ export { ConnectionPort, ConnectionLinePreview } from './ConnectionPort';
 export { FocusedFileView as LegacyFocusedFileView } from './FocusedFileView';
 export { MinimizedFileIcon, FileIconRail } from './MinimizedFileIcon';
 export { SettingsPanel } from './SettingsPanel';
+export { GoogleSheetsModal } from './GoogleSheetsModal';
 export { AppChangelog, hasNewChangelogChanges, currentVersion as changelogVersion } from './AppChangelog';
 // New enhanced focused view components
 export { FocusedFileView, FileTabs, ColumnInspector, type FileTab } from './focused';

@@ -18,6 +18,7 @@ const typeConfigs: Record<ContentType, { icon: string; color: string; bg: string
   md: { icon: 'M↓', color: '#6366F1', bg: '#EEF2FF' },
   image: { icon: '◐', color: '#EC4899', bg: '#FDF2F8' },
   pdf: { icon: '▤', color: '#EF4444', bg: '#FEF2F2' },
+  gsheet: { icon: '⊞', color: '#0F9D58', bg: '#E8F5E9' },
   unknown: { icon: '?', color: '#9CA3AF', bg: '#F9FAFB' },
 };
 

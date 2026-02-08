@@ -54,6 +54,7 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     getVersionInfo: storeGetVersionInfo,
     committedVersions: storeCommittedVersions,
     currentVersionIndex: storeCurrentVersionIndex,
+    dataVersion: storeDataVersion,
   } = useDuckDBViewStore();
 
   // Local state
@@ -122,7 +123,10 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     });
   }, []);
 
-  // Query data when params change
+  // Track the data version for the active view to re-query when underlying data is replaced
+  const activeDataVersion = activeViewName ? storeDataVersion.get(activeViewName) : undefined;
+
+  // Query data when params change or underlying data is refreshed (e.g. after sync/pull)
   useEffect(() => {
     if (!activeViewName || !autoQuery) return;
 
@@ -137,8 +141,8 @@ export function useDuckDBView(options: UseDuckDBViewOptions = {}) {
     };
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mergeDataWithChanges and pendingChanges intentionally excluded
-  }, [activeViewName, queryParams, queryView, autoQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mergeDataWithChanges and pendingChanges intentionally excluded; activeDataVersion triggers re-query after data replacement
+  }, [activeViewName, queryParams, queryView, autoQuery, activeDataVersion]);
 
   // Load file and create view
   const loadFile = useCallback(async (file: File, viewName?: string) => {

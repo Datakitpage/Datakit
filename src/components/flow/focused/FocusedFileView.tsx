@@ -13,6 +13,8 @@ import { PDFViewer } from './PDFViewer';
 import { useDuckDBView } from '@/hooks/useDuckDBView';
 import { useDuckDBViewStore, type ChangeRecord } from '@/store/duckDBViewStore';
 import { useOnboardingStore } from '@/store/onboardingStore';
+import { useSyncStore } from '@/store/syncStore';
+import { SyncConflictDialog } from './SyncConflictDialog';
 import { useViewStateHistory, generateChangeDescription } from '@/hooks/useViewStateHistory';
 import { useOperationFeedback } from '@/hooks/useOperationFeedback';
 
@@ -45,6 +47,7 @@ const typeConfigs: Record<ContentType, {
   md: { icon: 'M↓', label: 'Markdown', color: '#6366F1', gradient: 'from-indigo-50/80 via-indigo-50/40 to-transparent' },
   image: { icon: '◐', label: 'Image', color: '#EC4899', gradient: 'from-pink-50/80 via-pink-50/40 to-transparent' },
   pdf: { icon: '▤', label: 'PDF', color: '#EF4444', gradient: 'from-red-50/80 via-red-50/40 to-transparent' },
+  gsheet: { icon: '◧', label: 'Google Sheet', color: '#0F9D58', gradient: 'from-green-50/80 via-green-50/40 to-transparent' },
   unknown: { icon: '?', label: 'File', color: '#9CA3AF', gradient: 'from-stone-50/80 via-stone-50/40 to-transparent' },
 };
 
@@ -161,7 +164,7 @@ export function FocusedFileView({
   const [useDuckDB, setUseDuckDB] = useState(false);
   const [aiCommandOpen, setAiCommandOpen] = useState(false);
   const [recentCommands, setRecentCommands] = useState<string[]>([]);
-  const [hasCommittedChanges, setHasCommittedChanges] = useState(false);
+  // hasCommittedChanges is now derived from the reactive committedChangeCount selector
   // Track if DuckDB has ever successfully loaded data for current file
   // This persists even after all rows are deleted
   const [duckDBHasLoaded, setDuckDBHasLoaded] = useState(false);
@@ -182,6 +185,19 @@ export function FocusedFileView({
       markCommandBarUsed();
     }
   }, [aiCommandOpen, markCommandBarUsed]);
+
+  // Sync state for Google Sheet nodes
+  const syncNodeState = useSyncStore(state => state.nodes[activeFileId]);
+  const activeConflict = useSyncStore(state => state.activeConflict);
+
+  // Reactive committed change count for gsheet sync status
+  // Uses a Zustand selector so it updates whenever committedVersions changes (after commit or push)
+  const activeViewName = files.find(f => f.id === activeFileId)?.viewName;
+  const committedChangeCount = useDuckDBViewStore(state => {
+    if (!activeViewName) return 0;
+    return (state.committedVersions.get(activeViewName) || [])
+      .reduce((sum, v) => sum + v.changes.length, 0);
+  });
 
   // Custom query result state - when user runs a SELECT query via AI
   const [customQueryResult, setCustomQueryResult] = useState<{
@@ -247,6 +263,19 @@ export function FocusedFileView({
   // Operation feedback toasts
   const feedback = useOperationFeedback();
 
+  // Update sync store status for gsheet nodes when committed changes change
+  // Only committed changes count toward "Push" — pending changes use the separate "Commit" button
+  // Uses the reactive committedChangeCount selector, so this runs on commit AND after push clears versions
+  useEffect(() => {
+    if (activeFile?.type !== 'gsheet') return;
+    const syncStore = useSyncStore.getState();
+    if (committedChangeCount > 0 && syncStore.nodes[activeFile.id]?.syncStatus !== 'conflict') {
+      syncStore.setSyncStatus(activeFile.id, 'local_changes');
+    } else if (committedChangeCount === 0 && syncStore.nodes[activeFile.id]?.syncStatus === 'local_changes') {
+      syncStore.setSyncStatus(activeFile.id, 'synced');
+    }
+  }, [activeFile?.id, activeFile?.type, committedChangeCount]);
+
   // Reset state when active file changes
   useEffect(() => {
     setSearchQuery('');
@@ -254,7 +283,6 @@ export function FocusedFileView({
     setSortColumn(null);
     setSelectedColumn(null);
     setInspectorOpen(false);
-    setHasCommittedChanges(false);
     setCustomQueryResult(null);
     setDuckDBHasLoaded(false);
     queryResultCacheRef.current.clear();
@@ -280,9 +308,20 @@ export function FocusedFileView({
       }
 
       // Only use DuckDB for structured data types
-      const structuredTypes = ['csv', 'json', 'xlsx', 'parquet'];
+      const structuredTypes = ['csv', 'json', 'xlsx', 'parquet', 'gsheet'];
       if (!structuredTypes.includes(activeFile.type)) {
         console.log('[FocusedFileView] Skipping: not a structured type:', activeFile.type);
+        return;
+      }
+
+      // CLOUD SOURCE PATH: gsheet nodes already have data loaded in DuckDB
+      // Just point the hook at the existing view
+      if (activeFile.viewName && activeFile.isCloudSource) {
+        if (loadedViewsRef.current.has(activeFile.id)) return;
+        loadedViewsRef.current.add(activeFile.id);
+        console.log('[FocusedFileView] Connecting to existing DuckDB view:', activeFile.viewName);
+        useDuckDBViewStore.getState().setActiveView(activeFile.viewName);
+        setUseDuckDB(true);
         return;
       }
 
@@ -356,7 +395,7 @@ export function FocusedFileView({
 
     loadIntoDuckDB();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Specific properties intentionally used instead of activeFile object
-  }, [activeFile?.id, activeFile?.data, activeFile?.columns, activeFile?.file, loadData, loadFile]);
+  }, [activeFile?.id, activeFile?.data, activeFile?.columns, activeFile?.file, activeFile?.viewName, activeFile?.isCloudSource, loadData, loadFile]);
 
   // Mark DuckDB as loaded once data first arrives
   // This ensures we stay in DuckDB mode even after all rows are deleted
@@ -618,7 +657,6 @@ export function FocusedFileView({
       const success = await commit();
       if (success) {
         setChangeLogOpen(false);
-        setHasCommittedChanges(true);
       }
     } finally {
       setIsCommitting(false);
@@ -1382,13 +1420,19 @@ export function FocusedFileView({
           const baseName = activeFile?.name?.replace(/\.[^/.]+$/, '') || 'export';
           exportData(format, `${baseName}_export.${format}`);
         }}
-        hasCommittedChanges={hasCommittedChanges}
+        hasCommittedChanges={committedChangeCount > 0}
         hasQueryResult={customQueryResult !== null}
         canViewUndo={viewHistory.canUndo || canUndoVersion}
         canViewRedo={viewHistory.canRedo || canRedoVersion}
         currentFolderId={currentFolderId}
         folderFileIds={folderFileIds}
         onRemoveFromFolder={onRemoveFromFolder}
+        onSync={activeFile.type === 'gsheet' ? () => onAction?.('sync-gsheet', { fileId: activeFile.id }) : undefined}
+        isSyncing={syncNodeState?.isSyncing}
+        syncStatus={syncNodeState?.syncStatus}
+        localChangeCount={committedChangeCount}
+        syncError={syncNodeState?.syncError}
+        lastSynced={activeFile.type === 'gsheet' ? activeFile.googleSheetMeta?.lastSynced ?? null : null}
         onViewUndo={() => {
           // Context-aware navigation:
           // - When viewing a SQL query result, prioritize view history (query results)
@@ -1427,7 +1471,7 @@ export function FocusedFileView({
         {/* Data view */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Data table - Canvas-based for best performance */}
-          {(activeFile.type === 'csv' || activeFile.type === 'json' || activeFile.type === 'xlsx' || activeFile.type === 'parquet') && effectiveColumns.length > 0 && (
+          {(activeFile.type === 'csv' || activeFile.type === 'json' || activeFile.type === 'xlsx' || activeFile.type === 'parquet' || activeFile.type === 'gsheet') && effectiveColumns.length > 0 && (
             isDuckDBReady ? (
               <>
                 {/* Query result indicator */}
@@ -1697,6 +1741,18 @@ export function FocusedFileView({
         onClose={() => setColumnTypePopover(prev => ({ ...prev, isOpen: false }))}
         accentColor={config.color}
       />
+
+      {/* Sync conflict dialog for Google Sheet nodes */}
+      {activeConflict && activeFile?.type === 'gsheet' && activeConflict.fileId === activeFile.id && (
+        <SyncConflictDialog
+          isOpen={true}
+          localChangeCount={activeConflict.localChangeCount}
+          remoteModifiedTime={activeConflict.remoteModifiedTime}
+          onPush={() => onAction?.('force-push-gsheet', { fileId: activeFile.id })}
+          onPull={() => onAction?.('force-pull-gsheet', { fileId: activeFile.id })}
+          onCancel={() => useSyncStore.getState().dismissConflict()}
+        />
+      )}
     </div>
   );
 }

@@ -37,6 +37,7 @@ const typeLabels: Record<ContentType, string> = {
   md: 'Markdown',
   image: 'Image',
   pdf: 'PDF Document',
+  gsheet: 'Google Sheet',
   unknown: 'File',
 };
 

@@ -1651,4 +1651,106 @@ describe('duckDBViewStore - validateSQL', () => {
       expect(view?.schema.find(c => c.name === 'email')).toBeDefined();
     });
   });
+
+  describe('dataVersion tracking', () => {
+    const viewName = 'version_test_view';
+
+    beforeEach(() => {
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValue({ toArray: () => [] });
+      useDuckDBViewStore.setState({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Mock connection for testing
+        connection: mockConnection as any,
+        isInitialized: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Mock db for testing
+        db: {} as any,
+        views: new Map(),
+        dataVersion: new Map(),
+        pendingChanges: new Map(),
+        committedVersions: new Map(),
+        currentVersionIndex: new Map(),
+      });
+    });
+
+    it('should start with empty dataVersion map', () => {
+      const state = useDuckDBViewStore.getState();
+      expect(state.dataVersion.size).toBe(0);
+    });
+
+    it('should initialize dataVersion to 1 when a view is created via setActiveView', () => {
+      // setActiveView doesn't create dataVersion — only createViewFromData/File do
+      useDuckDBViewStore.getState().setActiveView(viewName);
+      const version = useDuckDBViewStore.getState().dataVersion.get(viewName);
+      expect(version).toBeUndefined();
+    });
+
+    it('should clean up dataVersion when view is dropped', async () => {
+      // Set up a view with a dataVersion
+      useDuckDBViewStore.setState(state => {
+        const newViews = new Map(state.views);
+        newViews.set(viewName, {
+          viewName,
+          fileName: 'test.csv',
+          fileType: 'csv',
+          schema: [{ name: '_rowid', type: 'BIGINT' }],
+          totalRows: 10,
+          createdAt: Date.now(),
+        });
+        const newDataVersion = new Map(state.dataVersion);
+        newDataVersion.set(viewName, 3);
+        return { views: newViews, dataVersion: newDataVersion };
+      });
+
+      expect(useDuckDBViewStore.getState().dataVersion.get(viewName)).toBe(3);
+
+      await useDuckDBViewStore.getState().dropView(viewName);
+
+      expect(useDuckDBViewStore.getState().dataVersion.get(viewName)).toBeUndefined();
+    });
+
+    it('should not affect other views when one is dropped', async () => {
+      const otherView = 'other_view';
+      useDuckDBViewStore.setState(state => {
+        const newViews = new Map(state.views);
+        newViews.set(viewName, {
+          viewName,
+          fileName: 'test.csv',
+          fileType: 'csv',
+          schema: [{ name: '_rowid', type: 'BIGINT' }],
+          totalRows: 10,
+          createdAt: Date.now(),
+        });
+        newViews.set(otherView, {
+          viewName: otherView,
+          fileName: 'other.csv',
+          fileType: 'csv',
+          schema: [{ name: '_rowid', type: 'BIGINT' }],
+          totalRows: 5,
+          createdAt: Date.now(),
+        });
+        const newDataVersion = new Map(state.dataVersion);
+        newDataVersion.set(viewName, 2);
+        newDataVersion.set(otherView, 4);
+        return { views: newViews, dataVersion: newDataVersion };
+      });
+
+      await useDuckDBViewStore.getState().dropView(viewName);
+
+      expect(useDuckDBViewStore.getState().dataVersion.get(viewName)).toBeUndefined();
+      expect(useDuckDBViewStore.getState().dataVersion.get(otherView)).toBe(4);
+    });
+
+    it('should not clear dataVersion when clearCommittedVersions is called', () => {
+      useDuckDBViewStore.setState(state => {
+        const newDataVersion = new Map(state.dataVersion);
+        newDataVersion.set(viewName, 5);
+        return { dataVersion: newDataVersion };
+      });
+
+      useDuckDBViewStore.getState().clearCommittedVersions(viewName);
+
+      // dataVersion should be preserved — it's about data freshness, not edit versions
+      expect(useDuckDBViewStore.getState().dataVersion.get(viewName)).toBe(5);
+    });
+  });
 });

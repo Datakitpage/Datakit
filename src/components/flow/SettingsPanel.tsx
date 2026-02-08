@@ -21,6 +21,7 @@ const IconLoader2 = ({ size = 24, className }: { size?: number; className?: stri
     <path d="M12 3a9 9 0 1 0 9 9" />
   </svg>
 );
+
 import { useSettingsStore, ACCENT_PRESETS } from '@/store/settingsStore';
 import { validateApiKey } from '@/lib/ai';
 import anthropicIcon from '@/assets/anthropic.webp';
