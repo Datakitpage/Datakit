@@ -96,6 +96,7 @@ describe('useDuckDBView - Formula Evaluation', () => {
       getVersionInfo: vi.fn().mockReturnValue({ current: 0, total: 0, description: null }),
       committedVersions: new Map(),
       currentVersionIndex: new Map(),
+      dataVersion: new Map([['test_view', 1]]),
       changeHistory,
     };
   }
@@ -387,6 +388,7 @@ describe('useDuckDBView - Formula with Pending Changes', () => {
       getVersionInfo: vi.fn().mockReturnValue({ current: 0, total: 0, description: null }),
       committedVersions: new Map(),
       currentVersionIndex: new Map(),
+      dataVersion: new Map([['test_view', 1]]),
     };
   }
 
@@ -526,6 +528,7 @@ describe('useDuckDBView - Complex Formula Scenarios', () => {
       getVersionInfo: vi.fn().mockReturnValue({ current: 0, total: 0, description: null }),
       committedVersions: new Map(),
       currentVersionIndex: new Map(),
+      dataVersion: new Map([['test_view', 1]]),
     };
 
     vi.mocked(useDuckDBViewStore).mockReturnValue(mockStore);
@@ -688,6 +691,7 @@ describe('useDuckDBView - Large Dataset Scenarios', () => {
       getVersionInfo: vi.fn().mockReturnValue({ current: 0, total: 0, description: null }),
       committedVersions: new Map(),
       currentVersionIndex: new Map(),
+      dataVersion: new Map([['large_view', 1]]),
     };
 
     vi.mocked(useDuckDBViewStore).mockReturnValue(mockStore);
@@ -780,6 +784,7 @@ describe('useDuckDBView - Error Recovery', () => {
       getVersionInfo: vi.fn().mockReturnValue({ current: 0, total: 0, description: null }),
       committedVersions: new Map(),
       currentVersionIndex: new Map(),
+      dataVersion: new Map([['test_view', 1]]),
     };
 
     vi.mocked(useDuckDBViewStore).mockReturnValue(mockStore);

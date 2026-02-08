@@ -478,6 +478,170 @@ describe('boardStore — folder drag-in / drag-out', () => {
   });
 
   // =========================================================================
+  // addGoogleSheet
+  // =========================================================================
+  describe('addGoogleSheet', () => {
+    it('should add a Google Sheet node with correct properties', () => {
+      resetStore();
+      const { addGoogleSheet } = useBoardStore.getState();
+
+      addGoogleSheet({
+        id: 'gsheet-1',
+        name: 'Q4 Sales - Sheet1',
+        viewName: 'gsheet_sales_data',
+        rowCount: 500,
+        columnCount: 5,
+        columns: ['Name', 'Revenue', 'Region', 'Date', 'Status'],
+        position: { x: 200, y: 300 },
+        googleSheetMeta: {
+          spreadsheetId: 'abc-123',
+          spreadsheetName: 'Q4 Sales',
+          sheetId: 0,
+          sheetName: 'Sheet1',
+          lastSynced: Date.now(),
+        },
+      });
+
+      const state = useBoardStore.getState();
+      const file = state.files.find(f => f.id === 'gsheet-1');
+
+      expect(file).toBeDefined();
+      expect(file?.type).toBe('gsheet');
+      expect(file?.name).toBe('Q4 Sales - Sheet1');
+      expect(file?.viewName).toBe('gsheet_sales_data');
+      expect(file?.isCloudSource).toBe(true);
+      expect(file?.position).toEqual({ x: 200, y: 300 });
+      expect(file?.rowCount).toBe(500);
+      expect(file?.columnCount).toBe(5);
+      expect(file?.columns).toEqual(['Name', 'Revenue', 'Region', 'Date', 'Status']);
+      expect(file?.processing).toBe(false);
+      expect(file?.size).toBe(0);
+    });
+
+    it('should auto-focus the added Google Sheet', () => {
+      resetStore();
+      useBoardStore.getState().addGoogleSheet({
+        id: 'gsheet-2',
+        name: 'Test Sheet - Data',
+        viewName: 'gsheet_test',
+        rowCount: 10,
+        columnCount: 2,
+        columns: ['A', 'B'],
+        position: { x: 0, y: 0 },
+        googleSheetMeta: {
+          spreadsheetId: 'xyz',
+          spreadsheetName: 'Test Sheet',
+          sheetId: 0,
+          sheetName: 'Data',
+          lastSynced: Date.now(),
+        },
+      });
+
+      expect(useBoardStore.getState().focusedFileId).toBe('gsheet-2');
+    });
+
+    it('should add the sheet to openFileIds', () => {
+      resetStore();
+      useBoardStore.getState().addGoogleSheet({
+        id: 'gsheet-3',
+        name: 'Open Test - Sheet1',
+        viewName: 'gsheet_open',
+        rowCount: 1,
+        columnCount: 1,
+        columns: ['Col'],
+        position: { x: 0, y: 0 },
+        googleSheetMeta: {
+          spreadsheetId: 'abc',
+          spreadsheetName: 'Open Test',
+          sheetId: 0,
+          sheetName: 'Sheet1',
+          lastSynced: Date.now(),
+        },
+      });
+
+      expect(useBoardStore.getState().openFileIds).toContain('gsheet-3');
+    });
+
+    it('should not duplicate in openFileIds if already present', () => {
+      resetStore();
+      useBoardStore.setState({ openFileIds: ['gsheet-4'] });
+
+      useBoardStore.getState().addGoogleSheet({
+        id: 'gsheet-4',
+        name: 'Dup - Sheet1',
+        viewName: 'gsheet_dup',
+        rowCount: 1,
+        columnCount: 1,
+        columns: ['X'],
+        position: { x: 0, y: 0 },
+        googleSheetMeta: {
+          spreadsheetId: 'dup',
+          spreadsheetName: 'Dup',
+          sheetId: 0,
+          sheetName: 'Sheet1',
+          lastSynced: Date.now(),
+        },
+      });
+
+      const ids = useBoardStore.getState().openFileIds;
+      expect(ids.filter(id => id === 'gsheet-4')).toHaveLength(1);
+    });
+
+    it('should preserve existing files when adding a Google Sheet', () => {
+      const f1 = makeFile('existing-csv');
+      resetStore([f1]);
+
+      useBoardStore.getState().addGoogleSheet({
+        id: 'gsheet-5',
+        name: 'Keep - Sheet1',
+        viewName: 'gsheet_preserve',
+        rowCount: 5,
+        columnCount: 2,
+        columns: ['A', 'B'],
+        position: { x: 100, y: 100 },
+        googleSheetMeta: {
+          spreadsheetId: 'keep',
+          spreadsheetName: 'Keep',
+          sheetId: 0,
+          sheetName: 'Sheet1',
+          lastSynced: Date.now(),
+        },
+      });
+
+      const state = useBoardStore.getState();
+      expect(state.files).toHaveLength(2);
+      expect(state.files.find(f => f.id === 'existing-csv')).toBeDefined();
+      expect(state.files.find(f => f.id === 'gsheet-5')).toBeDefined();
+    });
+
+    it('should store googleSheetMeta on the file node', () => {
+      resetStore();
+      const meta = {
+        spreadsheetId: 'meta-test',
+        spreadsheetName: 'Meta Sheet',
+        sheetId: 42,
+        sheetName: 'Revenue',
+        lastSynced: 1700000000000,
+        remoteModifiedTime: '2025-01-01T00:00:00Z',
+      };
+
+      useBoardStore.getState().addGoogleSheet({
+        id: 'gsheet-meta',
+        name: 'Meta Sheet - Revenue',
+        viewName: 'gsheet_meta_view',
+        rowCount: 100,
+        columnCount: 3,
+        columns: ['A', 'B', 'C'],
+        position: { x: 0, y: 0 },
+        googleSheetMeta: meta,
+      });
+
+      const file = useBoardStore.getState().files.find(f => f.id === 'gsheet-meta');
+      expect(file?.googleSheetMeta).toEqual(meta);
+    });
+  });
+
+  // =========================================================================
   // Edge cases
   // =========================================================================
   describe('edge cases', () => {

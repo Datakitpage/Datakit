@@ -38,6 +38,7 @@ const typeColors: Record<ContentType, string> = {
   md: '#6366F1',
   image: '#EC4899',
   pdf: '#EF4444',
+  gsheet: '#0F9D58',
   unknown: '#9CA3AF',
 };
 

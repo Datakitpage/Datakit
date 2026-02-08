@@ -102,6 +102,13 @@ const typeConfigs: Record<ContentType, TypeConfig> = {
     bgGradient: 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
     shadowColor: 'rgba(239, 68, 68, 0.3)',
   },
+  gsheet: {
+    icon: '◧',
+    label: 'Sheet',
+    color: '#0F9D58',
+    bgGradient: 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)',
+    shadowColor: 'rgba(15, 157, 88, 0.3)',
+  },
   unknown: {
     icon: '?',
     label: 'File',

@@ -115,6 +115,23 @@ interface BoardState {
 
   // Actions - Files
   addFile: (file: File, position: { x: number; y: number }, handle?: FileSystemFileHandle) => Promise<void>;
+  addGoogleSheet: (data: {
+    id: string;
+    name: string;
+    position: { x: number; y: number };
+    viewName: string;
+    rowCount: number;
+    columnCount: number;
+    columns: string[];
+    googleSheetMeta: {
+      spreadsheetId: string;
+      spreadsheetName: string;
+      sheetId: number;
+      sheetName: string;
+      lastSynced: number;
+      remoteModifiedTime?: string;
+    };
+  }) => void;
   restoreFile: (id: string, file: File, metadata: { name: string; type: ContentType; size: number; position: { x: number; y: number } }, handle?: FileSystemFileHandle) => Promise<void>;
   updateFilePosition: (id: string, position: { x: number; y: number }) => void;
   renameFile: (id: string, name: string) => void;
@@ -303,6 +320,31 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         ),
       }));
     }
+  },
+
+  // Add a Google Sheet as a file node
+  addGoogleSheet: (data) => {
+    set(state => ({
+      files: [
+        ...state.files,
+        {
+          id: data.id,
+          name: `${data.googleSheetMeta.spreadsheetName} - ${data.googleSheetMeta.sheetName}`,
+          type: 'gsheet' as ContentType,
+          size: 0, // Google Sheets don't have a local size
+          position: data.position,
+          viewName: data.viewName,
+          rowCount: data.rowCount,
+          columnCount: data.columnCount,
+          columns: data.columns,
+          googleSheetMeta: data.googleSheetMeta,
+          isCloudSource: true,
+          processing: false,
+        },
+      ],
+      focusedFileId: data.id,
+      openFileIds: [...state.openFileIds.filter(fid => fid !== data.id), data.id],
+    }));
   },
 
   // Restore a file from a persisted handle (used on app reload)

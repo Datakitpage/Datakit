@@ -31,6 +31,7 @@ const typeConfigs: Record<ContentType, { icon: string; color: string }> = {
   md: { icon: 'M↓', color: '#6366F1' },
   image: { icon: '◐', color: '#EC4899' },
   pdf: { icon: '▤', color: '#EF4444' },
+  gsheet: { icon: '⊞', color: '#0F9D58' },
   unknown: { icon: '?', color: '#9CA3AF' },
 };
 

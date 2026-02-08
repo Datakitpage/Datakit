@@ -18,6 +18,7 @@ const typeConfigs: Record<ContentType, { icon: string; label: string; color: str
   md: { icon: 'M↓', label: 'Markdown', color: '#6366F1' },
   image: { icon: '◐', label: 'Image', color: '#EC4899' },
   pdf: { icon: '▤', label: 'PDF', color: '#EF4444' },
+  gsheet: { icon: '◧', label: 'Google Sheet', color: '#0F9D58' },
   unknown: { icon: '?', label: 'File', color: '#9CA3AF' },
 };
 

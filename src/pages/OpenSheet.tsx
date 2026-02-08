@@ -10,11 +10,14 @@ import {
   FocusedFileView,
   SettingsPanel,
   AppChangelog,
+  GoogleSheetsModal,
 } from '@/components/flow';
 import type { WarmCanvasRef } from '@/components/flow/WarmCanvas';
 import { useBoardStore } from '@/store/boardStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useDuckDBViewStore } from '@/store/duckDBViewStore';
+import { useGoogleSheetsStore } from '@/store/googleSheetsStore';
+import { getSheetData, getFileModifiedTime, TokenExpiredError } from '@/lib/google/sheetsApi';
 import {
   getAllFileHandles,
   checkHandlePermission,
@@ -34,6 +37,7 @@ import { streamGlobalAssistant, type GlobalSearchContext } from '@/lib/ai';
 
 export function OpenSheet() {
   const isMobile = useIsMobile();
+  const [gsheetsEnabled] = useState(() => new URLSearchParams(window.location.search).get('gsheets') === 'enabled');
 
   const {
     files,
@@ -163,6 +167,7 @@ export function OpenSheet() {
   const [zoom, setZoom] = useState(1);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const [googleSheetsModalOpen, setGoogleSheetsModalOpen] = useState(false);
   const [changelogMinimized, setChangelogMinimized] = useState(false);
   const [changelogAutoExpand, setChangelogAutoExpand] = useState(false);
 
@@ -415,6 +420,15 @@ export function OpenSheet() {
       subtitle: 'Theme, colors, and AI configuration',
       keywords: ['settings', 'preferences', 'config', 'theme', 'colors', 'ai', 'api', 'key', 'anthropic'],
       action: () => setSettingsPanelOpen(true),
+    },
+    {
+      id: 'open-integrations',
+      type: 'action' as const,
+      icon: '🔌',
+      title: 'Integrations',
+      subtitle: 'Connect Google Sheets and other data sources',
+      keywords: ['integrations', 'google', 'sheets', 'connect', 'import', 'drive', 'cloud'],
+      action: () => setGoogleSheetsModalOpen(true),
     },
     // View commands
     {
@@ -774,6 +788,351 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
     streamGlobalAssistant(anthropicApiKey, query, context, onChunk, onComplete, onError);
   }, [anthropicApiKey, files, folders]);
 
+  // Google Sheets import handler
+  const { addSheet: addGoogleSheetToStore } = useGoogleSheetsStore();
+  const googleUserPhoto = useGoogleSheetsStore(state => state.userPhoto);
+  const googleUserEmail = useGoogleSheetsStore(state => state.userEmail);
+  const googleUserName = useGoogleSheetsStore(state => state.userName);
+  const googleConnected = useGoogleSheetsStore(state =>
+    !!state.accessToken && (state.expiresAt ? Date.now() < state.expiresAt - 5 * 60 * 1000 : false)
+  );
+  const createViewFromData = useDuckDBViewStore(state => state.createViewFromData);
+  const addGoogleSheet = useBoardStore(state => state.addGoogleSheet);
+
+  const handleGoogleSheetImport = useCallback(async (data: {
+    spreadsheetId: string;
+    spreadsheetName: string;
+    sheetId: number;
+    sheetName: string;
+    headers: string[];
+    rows: Record<string, unknown>[];
+    rowCount: number;
+    columnCount: number;
+    isTruncated: boolean;
+  }) => {
+    // Generate a unique ID for this sheet
+    const sheetNodeId = `gsheet-${data.spreadsheetId}-${data.sheetId}-${Date.now()}`;
+    const viewName = `gsheet_${data.spreadsheetId.slice(0, 8)}_${data.sheetId}`.replace(/[^a-zA-Z0-9_]/g, '_');
+
+    try {
+      // Create DuckDB view from the sheet data
+      await createViewFromData(viewName, data.rows, data.headers);
+
+      // Fetch remote modified time for conflict detection
+      const token = useGoogleSheetsStore.getState().accessToken;
+      let remoteModifiedTime: string | undefined;
+      if (token) {
+        try {
+          remoteModifiedTime = await getFileModifiedTime(token, data.spreadsheetId);
+        } catch {
+          console.warn('[OpenSheet] Could not fetch remoteModifiedTime');
+        }
+      }
+
+      const now = Date.now();
+
+      // Add to Google Sheets store for tracking
+      addGoogleSheetToStore({
+        id: sheetNodeId,
+        spreadsheetId: data.spreadsheetId,
+        spreadsheetName: data.spreadsheetName,
+        sheetId: data.sheetId,
+        sheetName: data.sheetName,
+        rowCount: data.rowCount,
+        columnCount: data.columnCount,
+        lastSynced: now,
+        remoteModifiedTime,
+      });
+
+      // Add as a file node on the canvas
+      // Position in center of viewport (will be adjusted by canvas)
+      const position = { x: 200 + Math.random() * 100, y: 200 + Math.random() * 100 };
+
+      // Add Google Sheet to the board
+      addGoogleSheet({
+        id: sheetNodeId,
+        name: `${data.spreadsheetName} - ${data.sheetName}`,
+        position,
+        viewName,
+        rowCount: data.rowCount,
+        columnCount: data.columnCount,
+        columns: data.headers,
+        googleSheetMeta: {
+          spreadsheetId: data.spreadsheetId,
+          spreadsheetName: data.spreadsheetName,
+          sheetId: data.sheetId,
+          sheetName: data.sheetName,
+          lastSynced: now,
+          remoteModifiedTime,
+        },
+      });
+
+      console.log('[OpenSheet] Imported Google Sheet:', data.spreadsheetName, '-', data.sheetName);
+    } catch (error) {
+      console.error('[OpenSheet] Failed to import Google Sheet:', error);
+    }
+  }, [addGoogleSheet, addGoogleSheetToStore, createViewFromData]);
+
+
+  // Pull fresh data from Google Sheets (destructive: replaces local DuckDB data)
+  const { updateSheetSyncTime } = useGoogleSheetsStore();
+  const pullGoogleSheet = useCallback(async (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (!file?.googleSheetMeta || !file.viewName) return;
+
+    const token = useGoogleSheetsStore.getState().accessToken;
+    if (!token) return;
+
+    const { spreadsheetId, sheetName } = file.googleSheetMeta;
+
+    const data = await getSheetData(token, spreadsheetId, sheetName);
+
+    // Re-create the DuckDB view with fresh data
+    await createViewFromData(file.viewName, data.rows, data.headers);
+
+    // Clear local committed versions (they're now stale)
+    useDuckDBViewStore.getState().clearCommittedVersions(file.viewName);
+
+    // Fetch updated remote modified time
+    let remoteModifiedTime: string | undefined;
+    try {
+      remoteModifiedTime = await getFileModifiedTime(token, spreadsheetId);
+    } catch { /* ignore */ }
+
+    // Update sync timestamps
+    const now = Date.now();
+    updateSheetSyncTime(fileId);
+
+    // Update the board file node
+    useBoardStore.setState(state => ({
+      files: state.files.map(f =>
+        f.id === fileId
+          ? {
+              ...f,
+              rowCount: data.rowCount,
+              columnCount: data.columnCount,
+              columns: data.headers,
+              googleSheetMeta: f.googleSheetMeta
+                ? { ...f.googleSheetMeta, lastSynced: now, remoteModifiedTime }
+                : undefined,
+            }
+          : f
+      ),
+    }));
+
+    console.log('[OpenSheet] Pulled Google Sheet:', file.name);
+  }, [files, createViewFromData, updateSheetSyncTime]);
+
+  // Sync a Google Sheet node: push local changes or pull remote changes
+  const handleSyncGoogleSheet = useCallback(async (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (!file?.googleSheetMeta || !file.viewName) return;
+
+    const token = useGoogleSheetsStore.getState().accessToken;
+    if (!token) return;
+
+    const { spreadsheetId, sheetId, sheetName, lastSynced } = file.googleSheetMeta;
+
+    const { pushChanges, checkForConflicts } = await import('@/lib/google/syncEngine');
+    const syncStore = (await import('@/store/syncStore')).useSyncStore.getState();
+
+    syncStore.setSyncing(fileId, true);
+    syncStore.setSyncError(fileId, null);
+
+    try {
+      // Gather local changes: pending + committed versions
+      const duckStore = useDuckDBViewStore.getState();
+      const pendingChanges = duckStore.getPendingChanges(file.viewName);
+      const committedVersions = duckStore.committedVersions.get(file.viewName) || [];
+      const allCommittedChanges = committedVersions.flatMap(v => v.changes);
+      const allChanges = [...allCommittedChanges, ...pendingChanges];
+      const hasLocalChanges = allChanges.length > 0;
+
+      // Check for conflicts
+      const { hasConflict, remoteModifiedTime } = await checkForConflicts(
+        token, spreadsheetId, lastSynced, hasLocalChanges
+      );
+
+      if (hasConflict) {
+        syncStore.setSyncing(fileId, false);
+        syncStore.setSyncStatus(fileId, 'conflict');
+        syncStore.showConflict({
+          fileId,
+          localChangeCount: allChanges.length,
+          remoteModifiedTime,
+        });
+        return;
+      }
+
+      if (hasLocalChanges) {
+        // Commit pending changes first if any
+        if (pendingChanges.length > 0) {
+          await duckStore.commitChanges(file.viewName);
+        }
+
+        // Gather schema and push
+        const schema = duckStore.views.get(file.viewName)?.schema || [];
+        const freshVersions = useDuckDBViewStore.getState().committedVersions.get(file.viewName) || [];
+        const changesToPush = freshVersions.flatMap(v => v.changes);
+
+        const result = await pushChanges({
+          accessToken: token,
+          spreadsheetId,
+          sheetId,
+          sheetName,
+          changes: changesToPush,
+          schema,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || 'Push failed');
+        }
+
+        // Clear committed versions after successful push
+        useDuckDBViewStore.getState().clearCommittedVersions(file.viewName);
+
+        const now = Date.now();
+        updateSheetSyncTime(fileId);
+        useBoardStore.setState(state => ({
+          files: state.files.map(f =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  googleSheetMeta: f.googleSheetMeta
+                    ? { ...f.googleSheetMeta, lastSynced: now, remoteModifiedTime: result.remoteModifiedTime }
+                    : undefined,
+                }
+              : f
+          ),
+        }));
+
+        syncStore.setSyncStatus(fileId, 'synced');
+        syncStore.setLastSyncedAt(fileId, now);
+        console.log('[OpenSheet] Pushed changes to Google Sheet:', file.name);
+      } else {
+        // No local changes — pull remote data
+        await pullGoogleSheet(fileId);
+        syncStore.setSyncStatus(fileId, 'synced');
+        syncStore.setLastSyncedAt(fileId, Date.now());
+      }
+    } catch (error) {
+      if (error instanceof TokenExpiredError) {
+        useGoogleSheetsStore.getState().disconnect();
+      }
+      const msg = error instanceof Error ? error.message : 'Sync failed';
+      const syncStoreNow = (await import('@/store/syncStore')).useSyncStore.getState();
+      syncStoreNow.setSyncError(fileId, msg);
+      console.error('[OpenSheet] Sync failed:', error);
+    } finally {
+      const syncStoreNow = (await import('@/store/syncStore')).useSyncStore.getState();
+      syncStoreNow.setSyncing(fileId, false);
+    }
+  }, [files, createViewFromData, updateSheetSyncTime, pullGoogleSheet]);
+
+  // Force push: overwrite remote with local (used after conflict resolution)
+  const handleForcePushGoogleSheet = useCallback(async (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (!file?.googleSheetMeta || !file.viewName) return;
+
+    const token = useGoogleSheetsStore.getState().accessToken;
+    if (!token) return;
+
+    const { pushChanges } = await import('@/lib/google/syncEngine');
+    const syncStore = (await import('@/store/syncStore')).useSyncStore.getState();
+
+    syncStore.setSyncing(fileId, true);
+    syncStore.dismissConflict();
+
+    try {
+      const duckStore = useDuckDBViewStore.getState();
+      const pendingChanges = duckStore.getPendingChanges(file.viewName);
+      if (pendingChanges.length > 0) {
+        await duckStore.commitChanges(file.viewName);
+      }
+
+      const schema = duckStore.views.get(file.viewName)?.schema || [];
+      const freshVersions = useDuckDBViewStore.getState().committedVersions.get(file.viewName) || [];
+      const changesToPush = freshVersions.flatMap(v => v.changes);
+
+      const result = await pushChanges({
+        accessToken: token,
+        spreadsheetId: file.googleSheetMeta.spreadsheetId,
+        sheetId: file.googleSheetMeta.sheetId,
+        sheetName: file.googleSheetMeta.sheetName,
+        changes: changesToPush,
+        schema,
+      });
+
+      if (!result.success) throw new Error(result.error || 'Push failed');
+
+      useDuckDBViewStore.getState().clearCommittedVersions(file.viewName);
+
+      const now = Date.now();
+      updateSheetSyncTime(fileId);
+      useBoardStore.setState(state => ({
+        files: state.files.map(f =>
+          f.id === fileId
+            ? {
+                ...f,
+                googleSheetMeta: f.googleSheetMeta
+                  ? { ...f.googleSheetMeta, lastSynced: now, remoteModifiedTime: result.remoteModifiedTime }
+                  : undefined,
+              }
+            : f
+        ),
+      }));
+
+      syncStore.setSyncStatus(fileId, 'synced');
+      syncStore.setLastSyncedAt(fileId, now);
+    } catch (error) {
+      if (error instanceof TokenExpiredError) {
+        useGoogleSheetsStore.getState().disconnect();
+      }
+      const msg = error instanceof Error ? error.message : 'Push failed';
+      syncStore.setSyncError(fileId, msg);
+    } finally {
+      const syncStoreNow = (await import('@/store/syncStore')).useSyncStore.getState();
+      syncStoreNow.setSyncing(fileId, false);
+    }
+  }, [files, updateSheetSyncTime]);
+
+  // Force pull: discard local, replace with remote (used after conflict resolution)
+  const handleForcePullGoogleSheet = useCallback(async (fileId: string) => {
+    const syncStore = (await import('@/store/syncStore')).useSyncStore.getState();
+    syncStore.setSyncing(fileId, true);
+    syncStore.dismissConflict();
+
+    try {
+      const file = files.find(f => f.id === fileId);
+      if (file?.viewName) {
+        useDuckDBViewStore.getState().discardChanges(file.viewName);
+      }
+      await pullGoogleSheet(fileId);
+      syncStore.setSyncStatus(fileId, 'synced');
+      syncStore.setLastSyncedAt(fileId, Date.now());
+    } catch (error) {
+      if (error instanceof TokenExpiredError) {
+        useGoogleSheetsStore.getState().disconnect();
+      }
+      const msg = error instanceof Error ? error.message : 'Pull failed';
+      syncStore.setSyncError(fileId, msg);
+    } finally {
+      const syncStoreNow = (await import('@/store/syncStore')).useSyncStore.getState();
+      syncStoreNow.setSyncing(fileId, false);
+    }
+  }, [files, pullGoogleSheet]);
+
+  // Handle actions from FocusedFileView
+  const handleFocusedAction = useCallback((action: string, params?: Record<string, unknown>) => {
+    if ((action === 'refresh-gsheet' || action === 'sync-gsheet') && params?.fileId) {
+      handleSyncGoogleSheet(params.fileId as string);
+    } else if (action === 'force-push-gsheet' && params?.fileId) {
+      handleForcePushGoogleSheet(params.fileId as string);
+    } else if (action === 'force-pull-gsheet' && params?.fileId) {
+      handleForcePullGoogleSheet(params.fileId as string);
+    }
+  }, [handleSyncGoogleSheet, handleForcePushGoogleSheet, handleForcePullGoogleSheet]);
+
   // Mobile view - show simplified board with messages
   if (isMobile) {
     return (
@@ -794,6 +1153,7 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
               currentFolderId={openFolderId}
               folderFileIds={openFolderId ? folders.find(f => f.id === openFolderId)?.fileIds : undefined}
               onRemoveFromFolder={openFolderId ? handleRemoveFileFromFolder : undefined}
+              onAction={handleFocusedAction}
             />
           )}
         </AnimatePresence>
@@ -811,23 +1171,115 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        {/* Left: Logo + quick search */}
-        <div className="flex items-center gap-4">
+        {/* Left: Logo + Google Sheets */}
+        <div className="flex items-center gap-3">
           <span className="text-sm font-medium tracking-tight" style={{ color: 'var(--text-primary)' }}>
             OpenSheet
           </span>
-          <button
-            className="flex items-center gap-2 h-6 px-2 rounded text-xs transition-colors hover:bg-[var(--surface-secondary)]"
-            style={{ color: 'var(--text-tertiary)' }}
-            onClick={() => setCommandBarOpen(true)}
+
+          {/* Google Sheets button — gated behind ?gsheets=enabled */}
+          {gsheetsEnabled && <button
+            onClick={() => setGoogleSheetsModalOpen(true)}
+            className="group flex items-center gap-2 h-7 rounded-lg text-xs font-medium transition-all hover:bg-[var(--surface-secondary)]"
+            style={{
+              color: 'var(--text-secondary)',
+              border: `1px solid ${googleConnected ? 'rgba(15,157,88,0.25)' : 'var(--border-subtle)'}`,
+              paddingLeft: googleConnected && googleUserPhoto ? '2px' : '8px',
+              paddingRight: '6px',
+            }}
           >
-            <span style={{ opacity: 0.6 }}>⌘K</span>
-            <span className="hidden sm:inline">Search</span>
-          </button>
+            {googleConnected && googleUserPhoto ? (
+              <img
+                src={googleUserPhoto}
+                alt=""
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
+                className="w-[22px] h-[22px] rounded-md flex-shrink-0"
+                style={{ border: '1.5px solid rgba(15,157,88,0.3)' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
+              />
+            ) : null}
+            {/* Initials fallback (hidden when photo loads, shown on error) */}
+            {googleConnected && googleUserPhoto ? (
+              <span
+                className="hidden w-[22px] h-[22px] rounded-md flex-shrink-0 items-center justify-center text-[10px] font-semibold"
+                style={{ backgroundColor: 'rgba(15,157,88,0.15)', color: '#0F9D58' }}
+              >
+                {(googleUserName || googleUserEmail || '?')[0].toUpperCase()}
+              </span>
+            ) : null}
+            {!googleConnected || !googleUserPhoto ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#0F9D58" />
+                <path d="M14 2v6h6" fill="#87CEAC" />
+                <rect x="7" y="12" width="10" height="1.5" rx="0.5" fill="white" opacity="0.9" />
+                <rect x="7" y="15" width="10" height="1.5" rx="0.5" fill="white" opacity="0.9" />
+                <rect x="7" y="18" width="6" height="1.5" rx="0.5" fill="white" opacity="0.7" />
+              </svg>
+            ) : null}
+            <span className="hidden sm:flex items-center gap-1.5">
+              {googleConnected ? (
+                <>
+                  <span style={{ color: 'var(--text-primary)' }}>
+                    {googleUserName?.split(' ')[0] || googleUserEmail?.split('@')[0] || 'Connected'}
+                  </span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '10px' }}>
+                    Sheets
+                  </span>
+                </>
+              ) : (
+                'Google Sheets'
+              )}
+            </span>
+            {/* Chevron */}
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="flex-shrink-0 transition-transform group-hover:translate-y-[1px]"
+              style={{ color: 'var(--text-tertiary)', opacity: 0.6 }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>}
         </div>
 
-        {/* Right: Minimal actions */}
-        <div className="flex items-center gap-2">
+        {/* Right: Search + Utility actions */}
+        <div className="flex items-center gap-1.5">
+          {/* Search button */}
+          <button
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs transition-colors hover:bg-[var(--surface-secondary)]"
+            style={{
+              color: 'var(--text-tertiary)',
+              border: '1px solid var(--border-subtle)',
+            }}
+            onClick={() => setCommandBarOpen(true)}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <span className="hidden sm:inline">Search</span>
+            <kbd
+              className="hidden sm:inline-flex items-center h-4 px-1 rounded text-[10px] font-medium"
+              style={{
+                backgroundColor: 'var(--surface-secondary)',
+                color: 'var(--text-tertiary)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              ⌘K
+            </kbd>
+          </button>
+
+          {/* Divider */}
+          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: 'var(--border-subtle)' }} />
+
           {/* Feedback button */}
           <Tooltip.Provider delayDuration={100}>
             <Tooltip.Root>
@@ -1184,6 +1636,7 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
             currentFolderId={openFolderId}
             folderFileIds={openFolderId ? folders.find(f => f.id === openFolderId)?.fileIds : undefined}
             onRemoveFromFolder={openFolderId ? handleRemoveFileFromFolder : undefined}
+            onAction={handleFocusedAction}
           />
         )}
       </AnimatePresence>
@@ -1192,6 +1645,13 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
       <SettingsPanel
         isOpen={settingsPanelOpen}
         onClose={() => setSettingsPanelOpen(false)}
+      />
+
+      {/* Google Sheets Modal */}
+      <GoogleSheetsModal
+        isOpen={googleSheetsModalOpen}
+        onClose={() => setGoogleSheetsModalOpen(false)}
+        onImport={handleGoogleSheetImport}
       />
 
       {/* Onboarding overlay for first-time users */}
@@ -1251,6 +1711,16 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer links — desktop only */}
+      <div
+        className="fixed bottom-2 left-4 hidden sm:flex items-center gap-1.5"
+        style={{ fontSize: 10, color: 'var(--text-tertiary)', opacity: 0.6 }}
+      >
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Privacy</a>
+        <span>&middot;</span>
+        <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Terms</a>
+      </div>
     </div>
   );
 }

@@ -43,6 +43,16 @@ interface MinimalHeaderProps {
   currentFolderId?: string | null;
   folderFileIds?: string[];
   onRemoveFromFolder?: (fileId: string) => void;
+  // Google Sheet sync
+  onSync?: () => void;
+  isSyncing?: boolean;
+  lastSynced?: number | null;
+  syncStatus?: 'synced' | 'local_changes' | 'remote_changes' | 'conflict';
+  localChangeCount?: number;
+  syncError?: string | null;
+  // Legacy compat
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 // Type configurations
@@ -55,8 +65,13 @@ const typeConfigs: Record<ContentType, { icon: string; label: string; color: str
   md: { icon: 'M↓', label: 'Markdown', color: '#6366F1' },
   image: { icon: '◐', label: 'Image', color: '#EC4899' },
   pdf: { icon: '▤', label: 'PDF', color: '#EF4444' },
+  gsheet: { icon: '◧', label: 'Google Sheet', color: '#0F9D58' },
   unknown: { icon: '?', label: 'File', color: '#9CA3AF' },
 };
+
+// Spring animation presets (consistent with FloatingToolbar + ColumnTypePopover)
+const springTransition = { type: 'spring' as const, stiffness: 500, damping: 35 };
+const gentleSpring = { type: 'spring' as const, stiffness: 400, damping: 30 };
 
 export function MinimalHeader({
   fileName,
@@ -87,6 +102,14 @@ export function MinimalHeader({
   currentFolderId: _currentFolderId,
   folderFileIds,
   onRemoveFromFolder,
+  onSync,
+  isSyncing,
+  lastSynced,
+  syncStatus,
+  localChangeCount: syncChangeCount,
+  syncError,
+  onRefresh,
+  isRefreshing,
 }: MinimalHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -137,29 +160,46 @@ export function MinimalHeader({
       }}
     >
       {/* Close button with pending changes indicator */}
-      <button
+      <motion.button
         onClick={onClose}
-        className="relative flex items-center justify-center w-7 h-7 rounded-md transition-colors hover:bg-[var(--surface-tertiary)] active:scale-95"
+        className="relative flex items-center justify-center w-7 h-7 rounded-md"
         style={{ color: 'var(--text-secondary)' }}
+        whileHover={{ backgroundColor: 'var(--surface-tertiary)', scale: 1.05 }}
+        whileTap={{ scale: 0.92 }}
+        transition={springTransition}
         title={hasPendingChanges ? `${pendingChangeCount} unsaved changes - ESC to exit` : 'Close (ESC)'}
       >
         <span className="text-lg">×</span>
         {/* Pending changes dot */}
-        {hasPendingChanges && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: '#F59E0B' }}
-          />
-        )}
-      </button>
+        <AnimatePresence>
+          {hasPendingChanges && (
+            <motion.span
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={springTransition}
+              className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: '#F59E0B' }}
+            >
+              <motion.span
+                className="absolute inset-0 rounded-full"
+                style={{ backgroundColor: '#F59E0B' }}
+                animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+              />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
 
       {/* File selector dropdown */}
       <div className="relative" ref={dropdownRef}>
-        <button
+        <motion.button
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center gap-2 min-w-0 px-2 py-1 -mx-2 rounded-md transition-colors hover:bg-[var(--surface-secondary)]"
+          className="flex items-center gap-2 min-w-0 px-2 py-1 -mx-2 rounded-md"
+          whileHover={{ backgroundColor: 'var(--surface-secondary)' }}
+          whileTap={{ scale: 0.98 }}
+          transition={springTransition}
         >
           <span
             className="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs"
@@ -174,25 +214,24 @@ export function MinimalHeader({
             {fileName}
           </span>
           {/* Dropdown indicator */}
-          <span
-            className="text-[10px] transition-transform"
-            style={{
-              color: 'var(--text-tertiary)',
-              transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            }}
+          <motion.span
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+            animate={{ rotate: dropdownOpen ? 180 : 0 }}
+            transition={gentleSpring}
           >
             ▼
-          </span>
-        </button>
+          </motion.span>
+        </motion.button>
 
         {/* Dropdown menu */}
         <AnimatePresence>
           {dropdownOpen && allFiles.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.95 }}
+              initial={{ opacity: 0, y: -4, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              transition={{ duration: 0.1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.96 }}
+              transition={springTransition}
               className="absolute left-0 top-full mt-1 min-w-[240px] max-w-[320px] rounded-lg overflow-hidden z-50"
               style={{
                 backgroundColor: 'var(--surface-primary)',
@@ -286,16 +325,31 @@ export function MinimalHeader({
         </AnimatePresence>
       </div>
 
+      {/* Section divider */}
+      <div className="w-px h-5" style={{ backgroundColor: 'var(--border-default)' }} />
+
       {/* AI Command Input - clickable area (unified / and ⌘K) */}
-      <button
+      <motion.button
         onClick={onAIFocus}
-        className="flex-1 flex items-center gap-2 h-7 px-3 mx-2 rounded-md transition-all cursor-text hover:bg-[var(--surface-secondary)]"
+        className="flex-1 flex items-center gap-2 h-7 px-3 mx-2 rounded-md cursor-text"
         style={{
           border: '1px solid var(--border-subtle)',
-          maxWidth: '400px',
+          maxWidth: '480px',
         }}
+        whileHover={{
+          borderColor: `${accentColor}40`,
+          boxShadow: `0 0 0 3px ${accentColor}10`,
+        }}
+        whileTap={{ scale: 0.998 }}
+        transition={gentleSpring}
       >
-        <span style={{ color: accentColor }}>/</span>
+        <motion.span
+          style={{ color: accentColor }}
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+        >
+          /
+        </motion.span>
         <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Sort, filter, or ask anything...
         </span>
@@ -307,91 +361,246 @@ export function MinimalHeader({
           <span style={{ opacity: 0.5 }}>or</span>
           <span>⌘K</span>
         </span>
-      </button>
+      </motion.button>
 
       {/* View history undo/redo - for navigating sort/filter/search/version history */}
       {(canViewUndo || canViewRedo || (versionInfo && versionInfo.total > 0)) && (
         <div
           className="flex items-center gap-0.5 rounded-md p-0.5"
-          style={{ backgroundColor: 'var(--surface-secondary)' }}
+          style={{ backgroundColor: 'var(--surface-secondary)', boxShadow: 'var(--shadow-sm)' }}
         >
-          <button
+          <motion.button
             onClick={onViewUndo}
             disabled={!canViewUndo}
-            className="flex items-center justify-center w-6 h-6 rounded transition-colors"
+            className="flex items-center justify-center w-6 h-6 rounded"
             style={{
               color: canViewUndo ? 'var(--text-secondary)' : 'var(--text-tertiary)',
               opacity: canViewUndo ? 1 : 0.4,
               cursor: canViewUndo ? 'pointer' : 'not-allowed',
             }}
+            whileHover={canViewUndo ? { backgroundColor: 'var(--surface-tertiary)', scale: 1.1 } : {}}
+            whileTap={canViewUndo ? { scale: 0.88 } : {}}
+            transition={springTransition}
             title="Previous state (⌘Z)"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15,18 9,12 15,6" />
             </svg>
-          </button>
+          </motion.button>
 
           {/* Version indicator - shows when there are committed versions */}
           {versionInfo && versionInfo.total > 0 && (
-            <span
+            <motion.span
+              key={`v${versionInfo.current}/${versionInfo.total}`}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={springTransition}
               className="px-1.5 text-[10px] font-medium tabular-nums"
               style={{ color: 'var(--text-tertiary)' }}
               title={versionInfo.description || `Version ${versionInfo.current} of ${versionInfo.total}`}
             >
               v{versionInfo.current}/{versionInfo.total}
-            </span>
+            </motion.span>
           )}
 
-          <button
+          <motion.button
             onClick={onViewRedo}
             disabled={!canViewRedo}
-            className="flex items-center justify-center w-6 h-6 rounded transition-colors"
+            className="flex items-center justify-center w-6 h-6 rounded"
             style={{
               color: canViewRedo ? 'var(--text-secondary)' : 'var(--text-tertiary)',
               opacity: canViewRedo ? 1 : 0.4,
               cursor: canViewRedo ? 'pointer' : 'not-allowed',
             }}
+            whileHover={canViewRedo ? { backgroundColor: 'var(--surface-tertiary)', scale: 1.1 } : {}}
+            whileTap={canViewRedo ? { scale: 0.88 } : {}}
+            transition={springTransition}
             title="Next state (⌘⇧Z)"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9,18 15,12 9,6" />
             </svg>
-          </button>
+          </motion.button>
         </div>
+      )}
+
+      {/* Section divider */}
+      {(canViewUndo || canViewRedo || (versionInfo && versionInfo.total > 0)) && (
+        <div className="w-px h-5" style={{ backgroundColor: 'var(--border-default)' }} />
       )}
 
       {/* Spacer */}
       <div className="flex-1" />
 
+      {/* Google Sheet sync section */}
+      {(onSync || onRefresh) && (
+        <motion.div
+          className="flex items-center gap-2 px-2 py-0.5 rounded-md"
+          style={{
+            backgroundColor: 'var(--surface-secondary)',
+            border: '1px solid var(--border-default)',
+          }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={springTransition}
+        >
+          {/* Sync status badges (animated transitions between states) */}
+          <AnimatePresence mode="wait">
+            {syncError && (
+              <motion.span
+                key="sync-error"
+                initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                transition={springTransition}
+                className="text-[10px] px-1.5 py-0.5 rounded"
+                style={{ color: '#EF4444', backgroundColor: '#FEF2F2' }}
+              >
+                {syncError.length > 30 ? syncError.slice(0, 30) + '...' : syncError}
+              </motion.span>
+            )}
+            {!syncError && syncStatus === 'local_changes' && syncChangeCount && syncChangeCount > 0 && (
+              <motion.span
+                key="sync-local"
+                initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                transition={springTransition}
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded tabular-nums"
+                style={{ color: '#D97706', backgroundColor: '#FFFBEB' }}
+              >
+                {syncChangeCount} local {syncChangeCount === 1 ? 'change' : 'changes'}
+              </motion.span>
+            )}
+            {!syncError && syncStatus === 'remote_changes' && (
+              <motion.span
+                key="sync-remote"
+                initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                transition={springTransition}
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                style={{ color: '#2563EB', backgroundColor: '#EFF6FF' }}
+              >
+                Remote updated
+              </motion.span>
+            )}
+            {!syncError && syncStatus === 'conflict' && (
+              <motion.span
+                key="sync-conflict"
+                initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                transition={springTransition}
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                style={{ color: '#DC2626', backgroundColor: '#FEF2F2' }}
+              >
+                Conflict
+              </motion.span>
+            )}
+          </AnimatePresence>
+
+          {/* Last synced time */}
+          {lastSynced && !syncError && syncStatus !== 'conflict' && (
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="text-[10px] tabular-nums"
+              style={{ color: 'var(--text-disabled)' }}
+            >
+              {(() => {
+                const mins = Math.floor((Date.now() - lastSynced) / 60000);
+                if (mins < 1) return 'Synced just now';
+                if (mins < 60) return `Synced ${mins}m ago`;
+                const hrs = Math.floor(mins / 60);
+                return `Synced ${hrs}h ago`;
+              })()}
+            </motion.span>
+          )}
+
+          {/* Sync button */}
+          <motion.button
+            onClick={onSync || onRefresh}
+            disabled={isSyncing || isRefreshing}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md"
+            style={{
+              color: (isSyncing || isRefreshing) ? 'var(--text-disabled)' : syncStatus === 'local_changes' ? '#D97706' : 'var(--text-secondary)',
+              border: syncStatus === 'local_changes' ? '1px solid #FCD34D' : '1px solid var(--border-subtle)',
+            }}
+            whileHover={!(isSyncing || isRefreshing) ? {
+              backgroundColor: syncStatus === 'local_changes' ? '#FFFBEB' : 'var(--surface-tertiary)',
+              scale: 1.02,
+              boxShadow: 'var(--shadow-sm)',
+            } : {}}
+            whileTap={!(isSyncing || isRefreshing) ? { scale: 0.96 } : {}}
+            transition={springTransition}
+            title={syncStatus === 'local_changes' ? 'Push local changes to Google Sheets' : 'Sync with Google Sheets'}
+          >
+            {/* Sync icon (two circular arrows) */}
+            <motion.svg
+              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              animate={(isSyncing || isRefreshing) ? { rotate: 360 } : { rotate: 0 }}
+              transition={(isSyncing || isRefreshing)
+                ? { duration: 1, repeat: Infinity, ease: 'linear' }
+                : springTransition
+              }
+            >
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 16h5v5" />
+            </motion.svg>
+            {(isSyncing || isRefreshing)
+              ? 'Syncing...'
+              : syncStatus === 'local_changes'
+                ? 'Push'
+                : 'Sync'}
+          </motion.button>
+        </motion.div>
+      )}
+
       {/* Quick actions on hover/pending changes */}
       {hasPendingChanges && (
         <motion.div
-          initial={{ opacity: 0, x: 10 }}
+          initial={{ opacity: 0, x: 12 }}
           animate={{ opacity: 1, x: 0 }}
+          transition={springTransition}
           className="flex items-center gap-1"
         >
           {onUndo && (
-            <button
+            <motion.button
               onClick={onUndo}
-              className="px-2 py-1 text-xs rounded transition-colors hover:bg-[var(--surface-tertiary)]"
+              className="px-2 py-1 text-xs rounded"
               style={{ color: 'var(--text-secondary)' }}
+              whileHover={{ backgroundColor: 'var(--surface-tertiary)', scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              transition={springTransition}
               title="Undo (⌘Z)"
             >
               Undo
-            </button>
+            </motion.button>
           )}
           {onCommit && (
-            <button
+            <motion.button
               onClick={onCommit}
-              className="px-2 py-1 text-xs rounded transition-colors"
+              className="px-2.5 py-1 text-xs font-medium rounded"
               style={{
                 backgroundColor: `${accentColor}15`,
                 color: accentColor,
               }}
+              whileHover={{
+                backgroundColor: `${accentColor}25`,
+                scale: 1.03,
+                boxShadow: `0 0 0 2px ${accentColor}20`,
+              }}
+              whileTap={{ scale: 0.95 }}
+              transition={springTransition}
               title="Commit changes (⌘S)"
             >
               Commit {pendingChangeCount}
-            </button>
+            </motion.button>
           )}
         </motion.div>
       )}
@@ -418,17 +627,34 @@ export function MinimalHeader({
       {/* Status indicators */}
       <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>
         {/* Loading indicator */}
-        {isLoading && (
-          <div
-            className="w-3 h-3 border border-current rounded-full animate-spin"
-            style={{ borderTopColor: accentColor }}
-          />
-        )}
+        <AnimatePresence>
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              transition={springTransition}
+            >
+              <motion.div
+                className="w-3 h-3 border border-current rounded-full"
+                style={{ borderTopColor: accentColor }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Row/column count */}
-        <span className="tabular-nums">
+        <motion.span
+          key={rowCount}
+          className="tabular-nums"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15 }}
+        >
           {rowCount.toLocaleString()} rows
-        </span>
+        </motion.span>
         <span className="tabular-nums">
           {columnCount} cols
         </span>

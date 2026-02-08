@@ -9,3 +9,4 @@ export { HeaderStatusBar } from './HeaderStatusBar';
 export { ShareMenu } from './ShareMenu';
 export { OperationFeedback } from './OperationFeedback';
 export { PDFViewer } from './PDFViewer';
+export { SyncConflictDialog } from './SyncConflictDialog';

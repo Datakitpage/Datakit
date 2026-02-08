@@ -139,6 +139,9 @@ interface DuckDBViewState {
   committedVersions: Map<string, CommittedVersion[]>;
   currentVersionIndex: Map<string, number>;
 
+  // Data freshness counter — incremented when underlying data is replaced (e.g. pull from remote)
+  dataVersion: Map<string, number>;
+
   // Loading states
   isLoading: boolean;
   loadingMessage: string;
@@ -178,6 +181,7 @@ interface DuckDBViewState {
   canUndoVersion: (viewName: string) => boolean;
   canRedoVersion: (viewName: string) => boolean;
   getVersionInfo: (viewName: string) => { current: number; total: number; description: string | null };
+  clearCommittedVersions: (viewName: string) => void;
 
   // Utilities
   buildPaginatedSQL: (viewName: string, params: QueryParams) => string;
@@ -200,6 +204,7 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
   changeHistory: [],
   committedVersions: new Map(),
   currentVersionIndex: new Map(),
+  dataVersion: new Map(),
   isLoading: false,
   loadingMessage: '',
 
@@ -458,11 +463,14 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
       set(state => {
         const newViews = new Map(state.views);
         newViews.set(viewName, viewDef);
+        const newDataVersion = new Map(state.dataVersion);
+        newDataVersion.set(viewName, (newDataVersion.get(viewName) || 0) + 1);
         return {
           views: newViews,
           activeViewName: viewName,
           isLoading: false,
           loadingMessage: '',
+          dataVersion: newDataVersion,
         };
       });
 
@@ -591,11 +599,14 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
       set(state => {
         const newViews = new Map(state.views);
         newViews.set(viewName, viewDef);
+        const newDataVersion = new Map(state.dataVersion);
+        newDataVersion.set(viewName, (newDataVersion.get(viewName) || 0) + 1);
         return {
           views: newViews,
           activeViewName: viewName,
           isLoading: false,
           loadingMessage: '',
+          dataVersion: newDataVersion,
         };
       });
 
@@ -627,11 +638,14 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
         newCommittedVersions.delete(viewName);
         const newVersionIndex = new Map(state.currentVersionIndex);
         newVersionIndex.delete(viewName);
+        const newDataVersion = new Map(state.dataVersion);
+        newDataVersion.delete(viewName);
         return {
           views: newViews,
           pendingChanges: newPendingChanges,
           committedVersions: newCommittedVersions,
           currentVersionIndex: newVersionIndex,
+          dataVersion: newDataVersion,
           activeViewName: state.activeViewName === viewName ? null : state.activeViewName,
         };
       });
@@ -1336,6 +1350,20 @@ export const useDuckDBViewStore = create<DuckDBViewState>((set, get) => ({
       total: versions.length,
       description: currentVersion?.description ?? null,
     };
+  },
+
+  // Clear committed versions for a view (after successful sync to remote)
+  clearCommittedVersions: (viewName: string) => {
+    set(state => {
+      const newCommittedVersions = new Map(state.committedVersions);
+      newCommittedVersions.delete(viewName);
+      const newVersionIndex = new Map(state.currentVersionIndex);
+      newVersionIndex.delete(viewName);
+      return {
+        committedVersions: newCommittedVersions,
+        currentVersionIndex: newVersionIndex,
+      };
+    });
   },
 
   // Undo a committed version - apply inverse changes
