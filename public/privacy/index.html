@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy - OpenSheet</title>
+  <meta name="description" content="OpenSheet Privacy Policy. All data processing happens locally in your browser." />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { min-height: 100vh; background: #fff; color: #1a1a1a; font-family: system-ui, -apple-system, sans-serif; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #999; text-decoration: none; margin-bottom: 32px; }
+    .back:hover { color: #666; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .updated { font-size: 13px; color: #999; margin-bottom: 40px; }
+    section { margin-bottom: 32px; }
+    h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.01em; }
+    .content { font-size: 14px; line-height: 1.7; color: #555; }
+    .content p { margin: 0 0 12px; }
+    .content ul { margin: 0 0 12px; padding-left: 20px; }
+    .content li { margin-bottom: 8px; }
+    .content code { font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #f5f5f5; color: #1a1a1a; }
+    .content a { color: #3b82f6; text-decoration: none; }
+    .content a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to OpenSheet
+    </a>
+
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: February 2025</p>
+
+    <section>
+      <h2>Overview</h2>
+      <div class="content">
+        <p>OpenSheet is a browser-based data exploration tool. Your privacy is fundamental to how we built it: <strong>all data processing happens locally in your browser</strong>. We do not operate servers that store, process, or have access to your data.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Data We Collect</h2>
+      <div class="content">
+        <p><strong>We do not collect any personal data.</strong> OpenSheet runs entirely in your browser using technologies like DuckDB WASM for data processing. There are no analytics, no tracking pixels, no cookies, and no server-side logging.</p>
+        <p>Files you open in OpenSheet are processed locally and never leave your device.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Local Storage</h2>
+      <div class="content">
+        <p>OpenSheet stores the following data locally on your device using browser storage (localStorage and IndexedDB):</p>
+        <ul>
+          <li><strong>Application settings</strong> — theme preference, accent color, AI API key (if provided)</li>
+          <li><strong>Google account tokens</strong> — OAuth access tokens for Google Sheets integration (encrypted by your browser)</li>
+          <li><strong>Sheet metadata</strong> — names, IDs, and sync timestamps of imported Google Sheets</li>
+          <li><strong>File handles</strong> — references to local files for session restoration</li>
+        </ul>
+        <p>This data never leaves your device. You can clear it at any time through your browser settings or by disconnecting your Google account within the app.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Google Sheets Integration</h2>
+      <div class="content">
+        <p>When you connect your Google account, OpenSheet requests the following permissions (OAuth scopes):</p>
+        <ul>
+          <li><strong>Google Sheets</strong> (<code>spreadsheets</code>) — To read spreadsheet data into your browser and write back changes you make (two-way sync).</li>
+          <li><strong>Google Drive</strong> (<code>drive</code>) — To list your spreadsheets, display file names, and detect when files have been modified externally.</li>
+          <li><strong>Email &amp; Profile</strong> (<code>userinfo.email</code>, <code>userinfo.profile</code>) — To display your name and profile photo in the app so you know which account is connected.</li>
+        </ul>
+        <p>All communication with Google APIs happens <strong>directly from your browser</strong> to Google's servers. OpenSheet does not relay, intercept, or store your Google data on any intermediary server. Your Google access token is stored only in your browser's IndexedDB.</p>
+        <p>You can disconnect your Google account at any time from the app, which revokes the access token and removes all stored Google data from your browser.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>AI Features (Optional)</h2>
+      <div class="content">
+        <p>OpenSheet offers optional AI-powered features using the Anthropic API. To use these features, you provide your own API key, which is stored locally in your browser. API requests are sent directly from your browser to Anthropic's servers. OpenSheet does not proxy or log these requests.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Third-Party Services</h2>
+      <div class="content">
+        <p>When you use integrations, your browser communicates directly with these services:</p>
+        <ul>
+          <li><strong>Google APIs</strong> (Sheets, Drive, OAuth) — governed by <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a></li>
+          <li><strong>Anthropic API</strong> (optional) — governed by <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer">Anthropic's Privacy Policy</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Children's Privacy</h2>
+      <div class="content">
+        <p>OpenSheet is not directed at children under 13. We do not knowingly collect information from children.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Changes to This Policy</h2>
+      <div class="content">
+        <p>We may update this policy from time to time. Changes will be reflected on this page with an updated date.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <div class="content">
+        <p>If you have questions about this privacy policy, you can reach us at <a href="https://amin.contact" target="_blank" rel="noopener noreferrer">amin.contact</a>.</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
