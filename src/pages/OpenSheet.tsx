@@ -1717,9 +1717,9 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
         className="fixed bottom-2 left-4 hidden sm:flex items-center gap-1.5"
         style={{ fontSize: 10, color: 'var(--text-tertiary)', opacity: 0.6 }}
       >
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Privacy</a>
+        <a href="/#/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Privacy</a>
         <span>&middot;</span>
-        <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Terms</a>
+        <a href="/#/terms" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Terms</a>
       </div>
     </div>
   );

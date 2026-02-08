@@ -70,7 +70,7 @@ export function TermsOfService() {
             your Google Sheets. By using this feature:
           </p>
           <ul>
-            <li>You authorize OpenSheet to access your Google Sheets and Drive data as described in our <a href="/privacy">Privacy Policy</a>.</li>
+            <li>You authorize OpenSheet to access your Google Sheets and Drive data as described in our <a href="/#/privacy">Privacy Policy</a>.</li>
             <li>You are responsible for the data you access and any changes you push back to Google Sheets.</li>
             <li>You agree to comply with <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Google's Terms of Service</a>.</li>
           </ul>
