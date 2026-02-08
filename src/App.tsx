@@ -15,11 +15,14 @@ function App() {
   if (window.location.pathname === '/oauth/google/callback') {
     return <GoogleOAuthCallback />;
   }
+  // Support both hash routes (/#/privacy) and pathname routes (/privacy)
+  // Hash routes work for in-app links; pathname routes work for external crawlers (e.g. Google verification)
   const hash = window.location.hash;
-  if (hash === '#/privacy') {
+  const path = window.location.pathname;
+  if (hash === '#/privacy' || path === '/privacy') {
     return <PrivacyPolicy />;
   }
-  if (hash === '#/terms') {
+  if (hash === '#/terms' || path === '/terms') {
     return <TermsOfService />;
   }
 
