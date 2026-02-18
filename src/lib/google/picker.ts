@@ -52,6 +52,7 @@ function loadPickerApi(): Promise<void> {
     script.src = 'https://apis.google.com/js/api.js';
     script.async = true;
     script.defer = true;
+    script.crossOrigin = 'anonymous';
 
     script.onload = () => {
       window.gapi.load('picker', {
