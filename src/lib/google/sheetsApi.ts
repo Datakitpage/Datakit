@@ -2,9 +2,9 @@
  * Google Sheets and Drive API client
  *
  * Provides functions to:
- * - List spreadsheets from Drive (with pagination)
  * - Get spreadsheet metadata (sheet tabs)
  * - Fetch sheet data (with truncation detection)
+ * - Write/update sheet data
  *
  * All API calls use googleFetch() which handles:
  * - 401 → TokenExpiredError (prompt re-auth)
@@ -91,19 +91,6 @@ async function googleFetch(url: string, accessToken: string, options: GoogleFetc
 
 // --- Types ---
 
-export interface SpreadsheetListItem {
-  id: string;
-  name: string;
-  modifiedTime: string;
-  webViewLink: string;
-  iconLink?: string;
-}
-
-export interface SpreadsheetListResult {
-  spreadsheets: SpreadsheetListItem[];
-  nextPageToken: string | null;
-}
-
 export interface SheetTab {
   sheetId: number;
   title: string;
@@ -126,56 +113,6 @@ export interface SheetData {
 }
 
 // --- API functions ---
-
-/**
- * List spreadsheets from user's Drive
- *
- * Returns a page of results plus a nextPageToken for loading more.
- */
-export async function listSpreadsheets(
-  accessToken: string,
-  query?: string,
-  pageSize = 100,
-  pageToken?: string
-): Promise<SpreadsheetListResult> {
-  let q = "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false";
-  if (query) {
-    q += ` and name contains '${query.replace(/'/g, "\\'")}'`;
-  }
-
-  const params = new URLSearchParams({
-    q,
-    pageSize: String(pageSize),
-    fields: 'nextPageToken,files(id,name,modifiedTime,webViewLink,iconLink)',
-    orderBy: 'modifiedTime desc',
-  });
-
-  if (pageToken) {
-    params.set('pageToken', pageToken);
-  }
-
-  const response = await googleFetch(`${DRIVE_API_BASE}/files?${params}`, accessToken);
-  const data = await response.json();
-
-  const spreadsheets = (data.files || []).map((file: {
-    id: string;
-    name: string;
-    modifiedTime: string;
-    webViewLink: string;
-    iconLink?: string;
-  }) => ({
-    id: file.id,
-    name: file.name,
-    modifiedTime: file.modifiedTime,
-    webViewLink: file.webViewLink,
-    iconLink: file.iconLink,
-  }));
-
-  return {
-    spreadsheets,
-    nextPageToken: data.nextPageToken || null,
-  };
-}
 
 /**
  * Get spreadsheet metadata including sheet tabs
@@ -290,30 +227,6 @@ export async function getSheetData(
     columnCount: uniqueHeaders.length,
     isTruncated,
   };
-}
-
-/**
- * Helper to format relative time (e.g., "2 days ago")
- */
-export function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
-
-  if (diffSecs < 60) return 'just now';
-  if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? '' : 's'} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
-  if (diffWeeks < 4) return `${diffWeeks} week${diffWeeks === 1 ? '' : 's'} ago`;
-  if (diffMonths < 12) return `${diffMonths} month${diffMonths === 1 ? '' : 's'} ago`;
-
-  return date.toLocaleDateString();
 }
 
 // --- Write API functions ---

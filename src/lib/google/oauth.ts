@@ -13,10 +13,10 @@
 // Users need to replace this with their own Google Cloud OAuth Client ID
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
-// OAuth scopes for read-write access (needed for two-way sync)
+// OAuth scopes — drive.file gives access only to files the user explicitly picks
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
-  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/userinfo.profile',
 ].join(' ');

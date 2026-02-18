@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { columnIndexToLetter, formatRelativeTime, TokenExpiredError, PermissionError } from './sheetsApi';
+import { columnIndexToLetter, TokenExpiredError, PermissionError } from './sheetsApi';
 
 describe('sheetsApi — columnIndexToLetter', () => {
   it('should convert 0 to A', () => {
@@ -36,67 +36,6 @@ describe('sheetsApi — columnIndexToLetter', () => {
 
   it('should convert 702 to AAA', () => {
     expect(columnIndexToLetter(702)).toBe('AAA');
-  });
-});
-
-describe('sheetsApi — formatRelativeTime', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('should return "just now" for < 60 seconds', () => {
-    expect(formatRelativeTime('2025-06-15T11:59:30Z')).toBe('just now');
-  });
-
-  it('should return "1 min ago" for 1 minute', () => {
-    expect(formatRelativeTime('2025-06-15T11:59:00Z')).toBe('1 min ago');
-  });
-
-  it('should return "5 mins ago" for 5 minutes', () => {
-    expect(formatRelativeTime('2025-06-15T11:55:00Z')).toBe('5 mins ago');
-  });
-
-  it('should return "1 hour ago" for 1 hour', () => {
-    expect(formatRelativeTime('2025-06-15T11:00:00Z')).toBe('1 hour ago');
-  });
-
-  it('should return "3 hours ago" for 3 hours', () => {
-    expect(formatRelativeTime('2025-06-15T09:00:00Z')).toBe('3 hours ago');
-  });
-
-  it('should return "1 day ago" for 1 day', () => {
-    expect(formatRelativeTime('2025-06-14T12:00:00Z')).toBe('1 day ago');
-  });
-
-  it('should return "5 days ago" for 5 days', () => {
-    expect(formatRelativeTime('2025-06-10T12:00:00Z')).toBe('5 days ago');
-  });
-
-  it('should return "1 week ago" for 7 days', () => {
-    expect(formatRelativeTime('2025-06-08T12:00:00Z')).toBe('1 week ago');
-  });
-
-  it('should return "3 weeks ago" for 21 days', () => {
-    expect(formatRelativeTime('2025-05-25T12:00:00Z')).toBe('3 weeks ago');
-  });
-
-  it('should return "1 month ago" for ~30 days', () => {
-    expect(formatRelativeTime('2025-05-16T12:00:00Z')).toBe('1 month ago');
-  });
-
-  it('should return "6 months ago" for ~180 days', () => {
-    expect(formatRelativeTime('2024-12-15T12:00:00Z')).toBe('6 months ago');
-  });
-
-  it('should return formatted date for > 12 months', () => {
-    const result = formatRelativeTime('2024-01-01T12:00:00Z');
-    // Should be a locale date string, not a relative time
-    expect(result).not.toContain('ago');
   });
 });
 

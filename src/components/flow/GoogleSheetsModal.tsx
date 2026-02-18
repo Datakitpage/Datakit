@@ -2,29 +2,20 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGoogleSheetsStore } from '@/store/googleSheetsStore';
 import { initiateOAuth, fetchUserInfo, revokeToken, isOAuthConfigured } from '@/lib/google/oauth';
+import { openSpreadsheetPicker, isPickerConfigured } from '@/lib/google/picker';
 import {
-  listSpreadsheets,
   getSpreadsheetMetadata,
   getSheetData,
-  formatRelativeTime,
   TokenExpiredError,
-  type SpreadsheetListItem,
   type SheetTab,
 } from '@/lib/google/sheetsApi';
 
-// --- Inline icons (consolidated from both old modals) ---
+// --- Inline icons ---
 
 const IconX = ({ size = 24, stroke = 2 }: { size?: number; stroke?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-
-const IconSearch = ({ size = 24, stroke = 2 }: { size?: number; stroke?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
@@ -55,7 +46,12 @@ const GoogleSheetsIcon = ({ size = 24 }: { size?: number }) => (
 
 // --- Types ---
 
-type ModalStep = 'connect' | 'browse' | 'preview';
+type ModalStep = 'connect' | 'preview';
+
+interface SelectedSpreadsheet {
+  id: string;
+  name: string;
+}
 
 interface GoogleSheetsModalProps {
   isOpen: boolean;
@@ -94,16 +90,11 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Browse state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [spreadsheets, setSpreadsheets] = useState<SpreadsheetListItem[]>([]);
-  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
-  const [isLoadingList, setIsLoadingList] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [listError, setListError] = useState<string | null>(null);
+  // Picker state
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   // Sheet selection
-  const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<SpreadsheetListItem | null>(null);
+  const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<SelectedSpreadsheet | null>(null);
   const [sheetTabs, setSheetTabs] = useState<SheetTab[]>([]);
   const [selectedSheetTab, setSelectedSheetTab] = useState<SheetTab | null>(null);
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
@@ -120,18 +111,12 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
   const [importError, setImportError] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // --- Navigation helpers ---
 
   const goForward = useCallback((nextStep: ModalStep) => {
     setDirection('forward');
     setStep(nextStep);
-  }, []);
-
-  const goBack = useCallback((prevStep: ModalStep) => {
-    setDirection('back');
-    setStep(prevStep);
   }, []);
 
   // --- Token expiry handler ---
@@ -146,9 +131,6 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
   // --- Reset state on close ---
 
   const resetState = useCallback(() => {
-    setSearchQuery('');
-    setSpreadsheets([]);
-    setNextPageToken(null);
     setSelectedSpreadsheet(null);
     setSheetTabs([]);
     setSelectedSheetTab(null);
@@ -159,6 +141,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
     setSessionExpired(false);
     setIsLoadingPreview(false);
     setTabDropdownOpen(false);
+    setIsPickerOpen(false);
   }, []);
 
   // --- Determine initial step on open ---
@@ -166,7 +149,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
   useEffect(() => {
     if (isOpen) {
       if (accessToken) {
-        setStep('browse');
+        setStep('connect'); // Start at connect, user clicks "Pick a Spreadsheet"
       } else {
         setStep('connect');
       }
@@ -190,7 +173,6 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
       const userInfo = await fetchUserInfo(result.accessToken);
       setUserInfo(userInfo.email, userInfo.name, userInfo.picture);
       setSessionExpired(false);
-      // accessToken change will trigger the useEffect above, which sets step to 'browse'
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Failed to connect');
     } finally {
@@ -203,113 +185,82 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
       await revokeToken(accessToken);
     }
     disconnect();
-    // accessToken change will trigger the useEffect above, which sets step to 'connect'
   }, [accessToken, disconnect]);
 
-  // --- Spreadsheet list ---
+  // --- Google Picker ---
 
-  const loadSpreadsheets = useCallback(async (query?: string) => {
+  const handleOpenPicker = useCallback(async () => {
     if (!accessToken) return;
 
-    setIsLoadingList(true);
-    setListError(null);
+    setIsPickerOpen(true);
+    setAuthError(null);
 
     try {
-      const result = await listSpreadsheets(accessToken, query);
-      setSpreadsheets(result.spreadsheets);
-      setNextPageToken(result.nextPageToken);
+      const result = await openSpreadsheetPicker(accessToken);
+      if (result) {
+        // User picked a spreadsheet — load metadata
+        setSelectedSpreadsheet({ id: result.id, name: result.name });
+        setIsLoadingMeta(true);
+        setSheetTabs([]);
+        setSelectedSheetTab(null);
+
+        try {
+          const metadata = await getSpreadsheetMetadata(accessToken, result.id);
+          setSheetTabs(metadata.sheets);
+          if (metadata.sheets.length === 1) {
+            // Auto-select the only tab and go to preview
+            handleSelectTab(metadata.sheets[0], result.id, result.name);
+          } else {
+            goForward('preview');
+          }
+        } catch (error) {
+          if (error instanceof TokenExpiredError) {
+            handleTokenExpired();
+            return;
+          }
+          setPreviewError(error instanceof Error ? error.message : 'Failed to load sheet metadata');
+          goForward('preview');
+        } finally {
+          setIsLoadingMeta(false);
+        }
+      }
+      // If null, user cancelled — stay on connect step
     } catch (error) {
       if (error instanceof TokenExpiredError) {
         handleTokenExpired();
         return;
       }
-      setListError(error instanceof Error ? error.message : 'Failed to load spreadsheets');
+      setAuthError(error instanceof Error ? error.message : 'Failed to open file picker');
     } finally {
-      setIsLoadingList(false);
+      setIsPickerOpen(false);
     }
-  }, [accessToken, handleTokenExpired]);
-
-  const loadMore = useCallback(async () => {
-    if (!accessToken || !nextPageToken) return;
-
-    setIsLoadingMore(true);
-
-    try {
-      const result = await listSpreadsheets(accessToken, searchQuery || undefined, 100, nextPageToken);
-      setSpreadsheets((prev) => [...prev, ...result.spreadsheets]);
-      setNextPageToken(result.nextPageToken);
-    } catch (error) {
-      if (error instanceof TokenExpiredError) {
-        handleTokenExpired();
-        return;
-      }
-      setListError(error instanceof Error ? error.message : 'Failed to load more');
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [accessToken, nextPageToken, searchQuery, handleTokenExpired]);
-
-  // Load spreadsheets when entering browse step
-  useEffect(() => {
-    if (isOpen && step === 'browse' && accessToken && spreadsheets.length === 0 && !isLoadingList) {
-      loadSpreadsheets();
-    }
-  }, [isOpen, step, accessToken, spreadsheets.length, isLoadingList, loadSpreadsheets]);
-
-  // Debounced search
-  useEffect(() => {
-    if (!isOpen || step !== 'browse' || !accessToken) return;
-
-    const timer = setTimeout(() => {
-      loadSpreadsheets(searchQuery || undefined);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // --- Spreadsheet selection ---
-
-  const handleSelectSpreadsheet = useCallback(async (spreadsheet: SpreadsheetListItem) => {
-    if (!accessToken) return;
-
-    setSelectedSpreadsheet(spreadsheet);
-    setIsLoadingMeta(true);
-    setSheetTabs([]);
-    setSelectedSheetTab(null);
-
-    try {
-      const metadata = await getSpreadsheetMetadata(accessToken, spreadsheet.id);
-      setSheetTabs(metadata.sheets);
-      if (metadata.sheets.length === 1) {
-        // Auto-select the only tab and go to preview
-        handleSelectTab(metadata.sheets[0]);
-      }
-    } catch (error) {
-      if (error instanceof TokenExpiredError) {
-        handleTokenExpired();
-        return;
-      }
-      console.error('Failed to load sheet metadata:', error);
-    } finally {
-      setIsLoadingMeta(false);
-    }
-  }, [accessToken, handleTokenExpired]);
+  }, [accessToken, handleTokenExpired, goForward, setAuthError]);
 
   // --- Tab selection (triggers preview) ---
 
-  const handleSelectTab = useCallback(async (tab: SheetTab) => {
-    if (!accessToken || !selectedSpreadsheet) return;
+  const handleSelectTab = useCallback(async (tab: SheetTab, spreadsheetId?: string, spreadsheetName?: string) => {
+    const ssId = spreadsheetId || selectedSpreadsheet?.id;
+    if (!accessToken || !ssId) return;
+
+    // If we haven't navigated to preview yet (single-tab auto-select), do it now
+    if (step !== 'preview') {
+      goForward('preview');
+    }
 
     setSelectedSheetTab(tab);
     setTabDropdownOpen(false);
-    goForward('preview');
     setIsLoadingPreview(true);
     setPreviewError(null);
     setPreviewRows([]);
     setPreviewHeaders([]);
 
+    // Ensure selectedSpreadsheet is set if passed explicitly
+    if (spreadsheetId && spreadsheetName) {
+      setSelectedSpreadsheet({ id: spreadsheetId, name: spreadsheetName });
+    }
+
     try {
-      const data = await getSheetData(accessToken, selectedSpreadsheet.id, tab.title, 5);
+      const data = await getSheetData(accessToken, ssId, tab.title, 5);
       setPreviewHeaders(data.headers);
       setPreviewRows(data.rows);
     } catch (error) {
@@ -321,7 +272,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
     } finally {
       setIsLoadingPreview(false);
     }
-  }, [accessToken, selectedSpreadsheet, handleTokenExpired, goForward]);
+  }, [accessToken, selectedSpreadsheet, handleTokenExpired, goForward, step]);
 
   // --- Import ---
 
@@ -360,14 +311,17 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
 
   // --- Back from preview ---
 
-  const handleBackToBrowse = useCallback(() => {
+  const handleBackToConnect = useCallback(() => {
     setPreviewRows([]);
     setPreviewHeaders([]);
     setPreviewError(null);
     setImportError(null);
     setSelectedSheetTab(null);
-    goBack('browse');
-  }, [goBack]);
+    setSelectedSpreadsheet(null);
+    setSheetTabs([]);
+    setDirection('back');
+    setStep('connect');
+  }, []);
 
   // --- Keyboard handling ---
 
@@ -377,7 +331,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (step === 'preview') {
-          handleBackToBrowse();
+          handleBackToConnect();
         } else {
           onClose();
         }
@@ -386,7 +340,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, step, onClose, handleBackToBrowse]);
+  }, [isOpen, step, onClose, handleBackToConnect]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -423,19 +377,15 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
 
   const headerTitle = step === 'connect'
     ? 'Google Sheets'
-    : step === 'browse'
-      ? 'Import from Google Sheets'
-      : selectedSpreadsheet?.name || 'Preview';
+    : selectedSpreadsheet?.name || 'Preview';
 
   const headerSubtitle = step === 'connect'
-    ? 'Connect your Google account to import spreadsheets'
-    : step === 'browse'
-      ? 'Select a spreadsheet to add to your canvas'
-      : selectedSheetTab
-        ? `${selectedSheetTab.title} \u00b7 ${selectedSheetTab.rowCount.toLocaleString()} rows`
-        : 'Loading...';
+    ? (accessToken ? 'Pick a spreadsheet from your Google Drive' : 'Connect your Google account to import spreadsheets')
+    : selectedSheetTab
+      ? `${selectedSheetTab.title} \u00b7 ${selectedSheetTab.rowCount.toLocaleString()} rows`
+      : isLoadingMeta ? 'Loading...' : 'Select a sheet tab';
 
-  // --- Sheet tab selector (shared between browse and preview) ---
+  // --- Sheet tab selector ---
 
   const renderTabSelector = () => {
     if (sheetTabs.length === 0 || isLoadingMeta) return null;
@@ -705,7 +655,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                     <motion.button
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
-                      onClick={handleBackToBrowse}
+                      onClick={handleBackToConnect}
                       className="p-1 rounded-lg flex-shrink-0"
                       style={{ color: 'var(--text-tertiary)' }}
                       whileHover={{ backgroundColor: 'var(--surface-secondary)' }}
@@ -777,8 +727,50 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                     transition={{ duration: 0.15 }}
                   >
                     <div className="p-6 space-y-4">
-                      {/* User info (shown if previously connected) */}
-                      {userEmail && (
+                      {/* Connected account info */}
+                      {accessToken && userEmail && (
+                        <div
+                          className="flex items-center gap-3 p-3 rounded-xl"
+                          style={{ backgroundColor: 'var(--surface-secondary)' }}
+                        >
+                          {userPhoto ? (
+                            <img
+                              src={userPhoto}
+                              alt=""
+                              className="w-9 h-9 rounded-full"
+                              crossOrigin="anonymous"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium"
+                              style={{ backgroundColor: '#0F9D58', color: 'white' }}
+                            >
+                              {userEmail[0]?.toUpperCase() || 'G'}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                              {userEmail}
+                            </p>
+                            <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                              Connected
+                            </p>
+                          </div>
+                          <button
+                            onClick={handleDisconnect}
+                            className="text-[11px] px-2 py-1 rounded-md transition-colors"
+                            style={{ color: 'var(--text-tertiary)' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-primary)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                          >
+                            Disconnect
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Previously connected but session expired */}
+                      {!accessToken && userEmail && (
                         <div
                           className="flex items-center gap-3 p-3 rounded-xl"
                           style={{ backgroundColor: 'var(--surface-secondary)' }}
@@ -823,17 +815,46 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                         </div>
                       )}
 
-                      <motion.button
-                        onClick={handleConnect}
-                        disabled={isConnecting || !isOAuthConfigured()}
-                        className="w-full px-4 py-3 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
-                        style={{ backgroundColor: '#0F9D58', color: 'white' }}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        {isConnecting && <IconLoader2 size={16} className="animate-spin" />}
-                        {isConnecting ? 'Connecting...' : 'Sign in with Google'}
-                      </motion.button>
+                      {!isPickerConfigured() && isOAuthConfigured() && (
+                        <div
+                          className="p-3 rounded-lg text-[11px] flex items-start gap-2"
+                          style={{
+                            backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                            color: 'var(--warning, #f59e0b)',
+                            border: '1px solid rgba(245, 158, 11, 0.15)',
+                          }}
+                        >
+                          <span className="text-sm leading-none">!</span>
+                          <span>Google Picker API key not configured. Set VITE_GOOGLE_API_KEY in your environment.</span>
+                        </div>
+                      )}
+
+                      {/* Show Sign In or Pick a Spreadsheet depending on connection state */}
+                      {!accessToken ? (
+                        <motion.button
+                          onClick={handleConnect}
+                          disabled={isConnecting || !isOAuthConfigured()}
+                          className="w-full px-4 py-3 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+                          style={{ backgroundColor: '#0F9D58', color: 'white' }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          {isConnecting && <IconLoader2 size={16} className="animate-spin" />}
+                          {isConnecting ? 'Connecting...' : 'Sign in with Google'}
+                        </motion.button>
+                      ) : (
+                        <motion.button
+                          onClick={handleOpenPicker}
+                          disabled={isPickerOpen || !isPickerConfigured()}
+                          className="w-full px-4 py-3 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+                          style={{ backgroundColor: '#0F9D58', color: 'white' }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          {isPickerOpen && <IconLoader2 size={16} className="animate-spin" />}
+                          {isPickerOpen ? 'Opening picker...' : 'Pick a Spreadsheet'}
+                        </motion.button>
+                      )}
 
                       {authError && (
                         <p className="text-xs text-center" style={{ color: 'var(--destructive, #ef4444)' }}>
@@ -860,209 +881,6 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                   </motion.div>
                 )}
 
-                {/* ====== BROWSE STEP ====== */}
-                {step === 'browse' && (
-                  <motion.div
-                    key="browse"
-                    custom={direction}
-                    variants={contentVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: 0.15 }}
-                  >
-                    {/* Account bar */}
-                    <div
-                      className="flex items-center gap-3 px-4 py-2.5"
-                      style={{ borderBottom: '1px solid var(--border-subtle)' }}
-                    >
-                      {userPhoto ? (
-                        <img
-                          src={userPhoto}
-                          alt=""
-                          className="w-6 h-6 rounded-full"
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium"
-                          style={{ backgroundColor: '#0F9D58', color: 'white' }}
-                        >
-                          {userEmail?.[0]?.toUpperCase() || 'G'}
-                        </div>
-                      )}
-                      <span className="text-xs truncate flex-1" style={{ color: 'var(--text-secondary)' }}>
-                        {userEmail}
-                      </span>
-                      <button
-                        onClick={handleDisconnect}
-                        className="text-[11px] px-2 py-1 rounded-md transition-colors"
-                        style={{ color: 'var(--text-tertiary)' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-secondary)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-
-                    {/* Search */}
-                    <div className="p-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <div className="relative">
-                        <div
-                          className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                          style={{ color: 'var(--text-tertiary)' }}
-                        >
-                          <IconSearch size={15} stroke={2} />
-                        </div>
-                        <input
-                          ref={searchInputRef}
-                          type="text"
-                          placeholder="Search spreadsheets..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
-                          style={{
-                            backgroundColor: 'var(--surface-secondary)',
-                            border: '1px solid var(--border-default)',
-                            color: 'var(--text-primary)',
-                          }}
-                          autoFocus
-                        />
-                      </div>
-                    </div>
-
-                    {/* Spreadsheet list */}
-                    <div
-                      className="max-h-[280px] overflow-y-auto"
-                      style={{ backgroundColor: 'var(--surface-secondary)' }}
-                    >
-                      {isLoadingList ? (
-                        <div className="flex items-center justify-center py-12">
-                          <IconLoader2 size={24} className="animate-spin" style={{ color: '#0F9D58' } as React.CSSProperties} />
-                        </div>
-                      ) : listError ? (
-                        <div className="p-4 text-center">
-                          <p className="text-sm" style={{ color: 'var(--destructive, #ef4444)' }}>
-                            {listError}
-                          </p>
-                          <button
-                            onClick={() => loadSpreadsheets()}
-                            className="mt-2 text-xs underline"
-                            style={{ color: 'var(--text-tertiary)' }}
-                          >
-                            Try again
-                          </button>
-                        </div>
-                      ) : spreadsheets.length === 0 ? (
-                        <div className="p-8 text-center">
-                          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                            {searchQuery ? 'No spreadsheets found' : 'No spreadsheets in your Drive'}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="p-2">
-                          {spreadsheets.map((spreadsheet) => (
-                            <motion.button
-                              key={spreadsheet.id}
-                              onClick={() => handleSelectSpreadsheet(spreadsheet)}
-                              className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors"
-                              style={{
-                                backgroundColor: selectedSpreadsheet?.id === spreadsheet.id
-                                  ? 'var(--surface-primary)' : 'transparent',
-                                border: selectedSpreadsheet?.id === spreadsheet.id
-                                  ? '1px solid rgba(15, 157, 88, 0.3)' : '1px solid transparent',
-                              }}
-                              whileHover={{ backgroundColor: 'var(--surface-primary)' }}
-                            >
-                              <GoogleSheetsIcon size={24} />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                                  {spreadsheet.name}
-                                </p>
-                                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                                  Modified {formatRelativeTime(spreadsheet.modifiedTime)}
-                                </p>
-                              </div>
-                            </motion.button>
-                          ))}
-
-                          {/* Load more */}
-                          {nextPageToken && (
-                            <div className="pt-2 pb-1 px-3">
-                              <button
-                                onClick={loadMore}
-                                disabled={isLoadingMore}
-                                className="w-full py-2 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                style={{
-                                  color: 'var(--text-secondary)',
-                                  backgroundColor: 'var(--surface-primary)',
-                                  border: '1px solid var(--border-default)',
-                                }}
-                              >
-                                {isLoadingMore ? (
-                                  <>
-                                    <IconLoader2 size={12} className="animate-spin" />
-                                    Loading...
-                                  </>
-                                ) : (
-                                  'Load more spreadsheets'
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Sheet tabs (shown after selecting a spreadsheet with multiple tabs) */}
-                    {selectedSpreadsheet && (
-                      <div
-                        className="p-4 space-y-3"
-                        style={{ borderTop: '1px solid var(--border-subtle)' }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                            {selectedSpreadsheet.name}
-                          </span>
-                          {isLoadingMeta && (
-                            <IconLoader2 size={14} className="animate-spin" style={{ color: 'var(--text-tertiary)' } as React.CSSProperties} />
-                          )}
-                        </div>
-
-                        {!isLoadingMeta && sheetTabs.length > 1 && (
-                          <div>
-                            <span className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-tertiary)' }}>
-                              Select a sheet tab
-                            </span>
-                            {renderTabSelector()}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Footer */}
-                    <div
-                      className="px-5 py-3 flex items-center justify-between"
-                      style={{
-                        borderTop: '1px solid var(--border-subtle)',
-                        backgroundColor: 'var(--surface-secondary)',
-                      }}
-                    >
-                      <span className="text-[11px]" style={{ color: 'var(--text-disabled)' }}>
-                        Your data stays in your browser
-                      </span>
-                      <motion.button
-                        onClick={onClose}
-                        className="px-3 py-1.5 text-xs rounded-lg"
-                        style={{ color: 'var(--text-secondary)' }}
-                        whileHover={{ backgroundColor: 'var(--surface-primary)' }}
-                      >
-                        Cancel
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                )}
-
                 {/* ====== PREVIEW STEP ====== */}
                 {step === 'preview' && (
                   <motion.div
@@ -1075,8 +893,15 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                     transition={{ duration: 0.15 }}
                   >
                     <div className="p-4 space-y-3">
+                      {/* Loading metadata */}
+                      {isLoadingMeta && (
+                        <div className="flex items-center justify-center py-10">
+                          <IconLoader2 size={20} className="animate-spin" style={{ color: '#0F9D58' } as React.CSSProperties} />
+                        </div>
+                      )}
+
                       {/* Tab selector in preview (allows switching without going back) */}
-                      {sheetTabs.length > 1 && (
+                      {!isLoadingMeta && sheetTabs.length > 1 && (
                         <div>
                           <span className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-tertiary)' }}>
                             Sheet
@@ -1103,7 +928,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                       )}
 
                       {/* Preview table */}
-                      {renderPreviewTable()}
+                      {!isLoadingMeta && renderPreviewTable()}
 
                       {/* Import error */}
                       {importError && (
@@ -1122,7 +947,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                       }}
                     >
                       <motion.button
-                        onClick={handleBackToBrowse}
+                        onClick={handleBackToConnect}
                         className="px-3 py-1.5 text-xs rounded-lg flex items-center gap-1"
                         style={{ color: 'var(--text-secondary)' }}
                         whileHover={{ backgroundColor: 'var(--surface-primary)' }}
@@ -1141,7 +966,7 @@ export function GoogleSheetsModal({ isOpen, onClose, onImport }: GoogleSheetsMod
                         </motion.button>
                         <motion.button
                           onClick={handleImport}
-                          disabled={isImporting || isLoadingPreview}
+                          disabled={isImporting || isLoadingPreview || !selectedSheetTab}
                           className="px-4 py-1.5 text-xs font-medium rounded-lg flex items-center gap-2 disabled:opacity-40"
                           style={{ backgroundColor: '#0F9D58', color: 'white' }}
                           whileHover={{ scale: 1.02 }}
