@@ -1712,15 +1712,18 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
         )}
       </AnimatePresence>
 
-      {/* Footer links — desktop only */}
-      <div
-        className="fixed bottom-2 left-4 hidden sm:flex items-center gap-1.5"
-        style={{ fontSize: 10, color: 'var(--text-tertiary)', opacity: 0.6 }}
+      {/* Footer */}
+      <footer
+        className="fixed bottom-0 left-0 right-0 z-40 h-8 flex items-center justify-center gap-4 px-4"
+        style={{
+          backgroundColor: 'var(--surface-primary)',
+          borderTop: '1px solid var(--border-subtle)',
+        }}
       >
-        <a href="/#/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Privacy</a>
-        <span>&middot;</span>
-        <a href="/#/terms" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'inherit' }}>Terms</a>
-      </div>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: 'var(--text-secondary)' }}>Privacy Policy</a>
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>&middot;</span>
+        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: 'var(--text-secondary)' }}>Terms of Service</a>
+      </footer>
     </div>
   );
 }
