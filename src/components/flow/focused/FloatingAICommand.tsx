@@ -31,6 +31,7 @@ interface FloatingAICommandProps {
   viewName?: string;
   recentCommands?: string[];
   fileId?: string; // File ID for sample file detection
+  onAction?: (action: string) => void;
 }
 
 // Re-export the AICommand type for backwards compatibility
@@ -84,6 +85,7 @@ export function FloatingAICommand({
   accentColor,
   viewName = 'data',
   fileId,
+  onAction,
 }: FloatingAICommandProps) {
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -291,7 +293,7 @@ export function FloatingAICommand({
     const canUseSampleProxy = fileId && isSampleFile(fileId) && isSampleProxyConfigured();
 
     if (!anthropicApiKey && !canUseSampleProxy) {
-      setAiResponse('API key not configured. Go to Settings to add your Anthropic API key.');
+      setInput('');
       return;
     }
 
@@ -1047,6 +1049,18 @@ Help the user explore and analyze their data. When suggesting SQL queries, use s
                             >
                               console.anthropic.com
                             </a>
+                            {onAction && (
+                              <>
+                                {' · '}
+                                <button
+                                  onClick={() => { onAction('open-settings'); onClose(); }}
+                                  className="underline hover:no-underline"
+                                  style={{ color: accentColor }}
+                                >
+                                  open Settings
+                                </button>
+                              </>
+                            )}
                           </div>
                         </>
                       )}

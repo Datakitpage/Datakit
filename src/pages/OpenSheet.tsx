@@ -1124,7 +1124,9 @@ Your workspace has ${files.length} files and ${folders.length} folders.`;
 
   // Handle actions from FocusedFileView
   const handleFocusedAction = useCallback((action: string, params?: Record<string, unknown>) => {
-    if ((action === 'refresh-gsheet' || action === 'sync-gsheet') && params?.fileId) {
+    if (action === 'open-settings') {
+      setSettingsPanelOpen(true);
+    } else if ((action === 'refresh-gsheet' || action === 'sync-gsheet') && params?.fileId) {
       handleSyncGoogleSheet(params.fileId as string);
     } else if (action === 'force-push-gsheet' && params?.fileId) {
       handleForcePushGoogleSheet(params.fileId as string);

@@ -1414,6 +1414,7 @@ export function FocusedFileView({
         onClose={onClose}
         onAIFocus={() => setAiCommandOpen(true)}
         onFileSelect={onFileChange}
+        onOpenSettings={() => onAction?.('open-settings')}
         onCommit={hasPendingChanges ? handleCommit : undefined}
         onUndo={hasPendingChanges ? undo : undefined}
         onExport={(format) => {
@@ -1697,6 +1698,7 @@ export function FocusedFileView({
         viewName={viewState.viewName || 'data'}
         recentCommands={recentCommands}
         fileId={activeFileId}
+        onAction={onAction}
       />
 
       {/* Change Log - only shown in DuckDB mode with pending changes */}
