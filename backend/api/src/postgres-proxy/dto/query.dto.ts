@@ -18,7 +18,7 @@ export class ExecuteQueryDto {
   @IsNumber()
   @Type(() => Number)
   @Min(1)
-  @Max(10000)
+  @Max(200000)
   limit?: number = 1000; // Default limit for result sets
 
   @IsOptional()
