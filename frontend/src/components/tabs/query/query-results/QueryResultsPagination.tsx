@@ -16,6 +16,10 @@ interface QueryResultsPaginationProps {
   onRowsPerPageChange?: (rowsPerPage: number) => void;
 }
 
+// Page sizes at or above this need an explicit confirmation, since loading and
+// exporting that many rows can use a lot of memory and slow the browser down.
+const LARGE_PAGE_SIZE_THRESHOLD = 500000;
+
 const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
   currentPage,
   totalPages,
@@ -26,9 +30,20 @@ const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
   const { t } = useTranslation();
   const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRowsPerPage = Number(e.target.value);
-    if (onRowsPerPageChange) {
-      onRowsPerPageChange(newRowsPerPage);
+    if (!onRowsPerPageChange) return;
+
+    if (newRowsPerPage >= LARGE_PAGE_SIZE_THRESHOLD) {
+      const confirmed = window.confirm(
+        t('queryResults.pagination.largeSelectionWarning', {
+          defaultValue:
+            'Loading {{rows}} rows at once may use a lot of memory and slow down your browser. Continue?',
+          rows: newRowsPerPage.toLocaleString(),
+        })
+      );
+      if (!confirmed) return;
     }
+
+    onRowsPerPageChange(newRowsPerPage);
   };
 
   return (
@@ -49,6 +64,8 @@ const QueryResultsPagination: React.FC<QueryResultsPaginationProps> = ({
           <option value={50000}>50000</option>
           <option value={100000}>100000</option>
           <option value={200000}>200000</option>
+          <option value={500000}>500000</option>
+          <option value={1000000}>1000000</option>
         </select>
       </div>
 
