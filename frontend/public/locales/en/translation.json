@@ -1922,7 +1922,8 @@
       "pageOf": "Page {{current}} of {{total}}",
       "nextPage": "Next Page",
       "lastPage": "Last Page",
-      "goTo": "Go to:"
+      "goTo": "Go to:",
+      "largeSelectionWarning": "Loading {{rows}} rows at once may use a lot of memory and slow down your browser. Continue?"
     }
   },
   "import": {

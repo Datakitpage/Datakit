@@ -2080,7 +2080,8 @@
       "pageOf": "Página {{Atual}} de {{total}}",
       "nextPage": "Próxima Página",
       "lastPage": "Última Página",
-      "goTo": "Ir para:"
+      "goTo": "Ir para:",
+      "largeSelectionWarning": "Carregar {{rows}} linhas de uma vez pode usar muita memória e deixar o navegador lento. Continuar?"
     }
   },
   "visualization": {
